@@ -1,0 +1,19 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Status",
+        description: None,
+        kind: StringEnum(
+            StringEnumDef {
+                values: [
+                    "active",
+                    "inactive",
+                    "pending",
+                ],
+            },
+        ),
+    },
+]

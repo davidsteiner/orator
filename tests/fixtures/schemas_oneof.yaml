@@ -1,0 +1,33 @@
+openapi: "3.1.0"
+info:
+  title: oneOf Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    Circle:
+      type: object
+      required:
+        - radius
+      properties:
+        radius:
+          type: number
+          format: float
+    Rectangle:
+      type: object
+      required:
+        - width
+        - height
+      properties:
+        width:
+          type: number
+          format: float
+        height:
+          type: number
+          format: float
+    Shape:
+      oneOf:
+        - $ref: "#/components/schemas/Circle"
+        - $ref: "#/components/schemas/Rectangle"
+      discriminator:
+        propertyName: type

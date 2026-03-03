@@ -1,0 +1,12 @@
+openapi: "3.1.0"
+info:
+  title: anyOf Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    StringOrInt:
+      anyOf:
+        - type: string
+        - type: integer
+          format: int32

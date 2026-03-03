@@ -1,0 +1,52 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Base",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "id",
+                        type_ref: Primitive(
+                            I64,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Extended",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [
+                    Named(
+                        "Base",
+                    ),
+                ],
+                fields: [
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+]

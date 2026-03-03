@@ -1,0 +1,86 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Circle",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "radius",
+                        type_ref: Primitive(
+                            F32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Rectangle",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "height",
+                        type_ref: Primitive(
+                            F32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "width",
+                        type_ref: Primitive(
+                            F32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Shape",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [],
+                variants: [
+                    Variant {
+                        type_ref: Named(
+                            "Circle",
+                        ),
+                        mapping_value: None,
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "Rectangle",
+                        ),
+                        mapping_value: None,
+                    },
+                ],
+                discriminator: Some(
+                    DiscriminatorDef {
+                        property: "type",
+                        mapping: {},
+                    },
+                ),
+            },
+        ),
+    },
+]

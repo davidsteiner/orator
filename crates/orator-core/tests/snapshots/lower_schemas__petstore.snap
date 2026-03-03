@@ -1,0 +1,101 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Error",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "code",
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "message",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
+        name: "NewPet",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "tag",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Pet",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "id",
+                        type_ref: Primitive(
+                            I64,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "tag",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+]

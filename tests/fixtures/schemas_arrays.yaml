@@ -1,0 +1,22 @@
+openapi: "3.1.0"
+info:
+  title: Array Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    Tag:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    Tags:
+      type: array
+      items:
+        $ref: "#/components/schemas/Tag"
+    Strings:
+      type: array
+      items:
+        type: string

@@ -1,0 +1,13 @@
+openapi: "3.1.0"
+info:
+  title: Enum Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    Status:
+      type: string
+      enum:
+        - active
+        - inactive
+        - pending

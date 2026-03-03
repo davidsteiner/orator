@@ -1,6 +1,19 @@
 [package]
 name = "orator-core"
+description = "Server stub generation from OpenAPI 3.1 specs"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
+license.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
+oas3.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+insta.workspace = true

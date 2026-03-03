@@ -1,0 +1,18 @@
+openapi: "3.1.0"
+info:
+  title: Nullable Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    Profile:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        bio:
+          type:
+            - string
+            - "null"

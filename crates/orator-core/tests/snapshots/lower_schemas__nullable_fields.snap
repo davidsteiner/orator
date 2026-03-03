@@ -1,0 +1,37 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Profile",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "bio",
+                        type_ref: Option(
+                            Primitive(
+                                String,
+                            ),
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+]
