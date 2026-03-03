@@ -1,0 +1,75 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "User",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "active",
+                        type_ref: Primitive(
+                            Bool,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "age",
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "email",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "id",
+                        type_ref: Primitive(
+                            I64,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "rating",
+                        type_ref: Primitive(
+                            F64,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "score",
+                        type_ref: Primitive(
+                            F32,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                variants: [],
+                discriminator: None,
+            },
+        ),
+    },
+]

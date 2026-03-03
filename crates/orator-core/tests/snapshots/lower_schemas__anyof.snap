@@ -1,0 +1,31 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "StringOrInt",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [],
+                variants: [
+                    Variant {
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        mapping_value: None,
+                    },
+                    Variant {
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        mapping_value: None,
+                    },
+                ],
+                discriminator: None,
+            },
+        ),
+    },
+]

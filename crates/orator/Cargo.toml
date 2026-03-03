@@ -1,8 +1,16 @@
 [package]
 name = "orator"
+description = "Server stub generation from OpenAPI 3.1 specs"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
+license.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-orator-core.workspace = true
-orator-axum.workspace = true
+orator-axum = { version = "0.0.1", path = "../orator-axum" }
+orator-core = { version = "0.0.1", path = "../orator-core" }
