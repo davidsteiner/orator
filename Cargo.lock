@@ -5,3 +5,18 @@ version = 4
 [[package]]
 name = "orator"
 version = "0.0.1"
+dependencies = [
+ "orator-axum",
+ "orator-core",
+]
+
+[[package]]
+name = "orator-axum"
+version = "0.0.1"
+dependencies = [
+ "orator-core",
+]
+
+[[package]]
+name = "orator-core"
+version = "0.0.1"

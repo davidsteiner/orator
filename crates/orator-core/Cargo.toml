@@ -1,8 +1,6 @@
 [package]
-name = "orator"
+name = "orator-core"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-orator-core.workspace = true
-orator-axum.workspace = true
