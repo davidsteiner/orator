@@ -1,8 +1,11 @@
 [workspace]
 members = ["crates/*"]
+resolver = "3"
 
 [workspace.package]
 version = "0.0.1"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
+orator-core = { path = "crates/orator-core" }
+orator-axum = { path = "crates/orator-axum" }
