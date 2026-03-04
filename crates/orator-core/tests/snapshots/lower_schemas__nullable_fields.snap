@@ -29,8 +29,6 @@ expression: types
                         description: None,
                     },
                 ],
-                variants: [],
-                discriminator: None,
             },
         ),
     },
