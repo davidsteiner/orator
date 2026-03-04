@@ -2,8 +2,8 @@ use oas3::spec::{BooleanSchema, ObjectOrReference, ObjectSchema, SchemaType, Sch
 
 use crate::error::Error;
 use crate::ir::{
-    DiscriminatorDef, Field, PrimitiveType, StringEnumDef, StructDef, TypeDef, TypeDefKind,
-    TypeRef, Variant,
+    DiscriminatorDef, EnumDef, Field, PrimitiveType, StringEnumDef, StructDef, TypeDef,
+    TypeDefKind, TypeRef, Variant,
 };
 
 pub fn lower_schemas(spec: &oas3::Spec) -> Result<Vec<TypeDef>, Error> {
@@ -38,7 +38,7 @@ fn lower_top_level(
 fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
     let description = schema.description.clone();
 
-    // String enum: type string + enum values
+    // string enum: type string + enum values
     if is_string_type(schema) && !schema.enum_values.is_empty() {
         let values = schema
             .enum_values
@@ -52,17 +52,15 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         });
     }
 
-    // Struct: has properties, allOf, oneOf, or anyOf
-    let has_composition = !schema.properties.is_empty()
-        || !schema.all_of.is_empty()
-        || !schema.one_of.is_empty()
-        || !schema.any_of.is_empty();
+    // struct or enum: has properties, allOf, oneOf, or anyOf
+    let has_structure = !schema.properties.is_empty() || !schema.all_of.is_empty();
+    let has_variants = !schema.one_of.is_empty() || !schema.any_of.is_empty();
 
-    if has_composition {
-        return lower_struct(name, schema);
+    if has_structure || has_variants {
+        return lower_composite(name, schema, has_structure, has_variants);
     }
 
-    // Array: type array + items
+    // array: type array + items
     if is_array_type(schema) {
         let inner = lower_items(schema)?;
         return Ok(TypeDef {
@@ -72,7 +70,7 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         });
     }
 
-    // Primitive type alias
+    // primitive type alias
     if let Some(type_ref) = try_lower_primitive(schema) {
         return Ok(TypeDef {
             name: name.to_string(),
@@ -86,11 +84,31 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
     })
 }
 
-fn lower_struct(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
+fn lower_composite(
+    name: &str,
+    schema: &ObjectSchema,
+    has_structure: bool,
+    has_variants: bool,
+) -> Result<TypeDef, Error> {
+    let description = schema.description.clone();
+
+    // pure enum: only oneOf/anyOf, no fields or bases
+    if has_variants && !has_structure {
+        let (variants, discriminator) = lower_variants(schema)?;
+        return Ok(TypeDef {
+            name: name.to_string(),
+            description,
+            kind: TypeDefKind::Enum(EnumDef {
+                variants,
+                discriminator,
+            }),
+        });
+    }
+
+    // struct (possibly with bases from allOf)
     let mut bases = Vec::new();
     let mut fields = Vec::new();
 
-    // allOf: refs become bases, inline objects have their properties merged
     for entry in &schema.all_of {
         match entry {
             ObjectOrReference::Ref { ref_path, .. } => {
@@ -102,10 +120,18 @@ fn lower_struct(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         }
     }
 
-    // Direct properties
     lower_properties_into(&mut fields, schema)?;
 
-    // oneOf / anyOf → variants
+    Ok(TypeDef {
+        name: name.to_string(),
+        description,
+        kind: TypeDefKind::Struct(StructDef { bases, fields }),
+    })
+}
+
+fn lower_variants(
+    schema: &ObjectSchema,
+) -> Result<(Vec<Variant>, Option<DiscriminatorDef>), Error> {
     let mut variants = Vec::new();
     for entry in schema.one_of.iter().chain(schema.any_of.iter()) {
         variants.push(Variant {
@@ -114,13 +140,11 @@ fn lower_struct(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         });
     }
 
-    // Discriminator
     let discriminator = schema.discriminator.as_ref().map(|d| DiscriminatorDef {
         property: d.property_name.clone(),
         mapping: d.mapping.clone().unwrap_or_default(),
     });
 
-    // Apply discriminator mapping values to variants
     if let Some(disc) = &discriminator {
         for (value, schema_ref) in &disc.mapping {
             let target = extract_schema_name(schema_ref).unwrap_or_else(|_| schema_ref.clone());
@@ -133,16 +157,7 @@ fn lower_struct(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         }
     }
 
-    Ok(TypeDef {
-        name: name.to_string(),
-        description: schema.description.clone(),
-        kind: TypeDefKind::Struct(StructDef {
-            bases,
-            fields,
-            variants,
-            discriminator,
-        }),
-    })
+    Ok((variants, discriminator))
 }
 
 fn lower_properties_into(fields: &mut Vec<Field>, schema: &ObjectSchema) -> Result<(), Error> {
@@ -170,7 +185,7 @@ fn lower_type_ref(schema_or_ref: &ObjectOrReference<ObjectSchema>) -> Result<Typ
 }
 
 fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
-    // Nullable: type is [T, "null"]
+    // nullable: type is [T, "null"]
     if let Some(SchemaTypeSet::Multiple(types)) = &schema.schema_type {
         let non_null: Vec<_> = types
             .iter()
@@ -186,7 +201,7 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
     }
 
     let Some(SchemaTypeSet::Single(schema_type)) = &schema.schema_type else {
-        // Object with additionalProperties but no explicit type
+        // object with additionalProperties but no explicit type
         if let Some(additional) = &schema.additional_properties {
             return lower_additional_properties(additional);
         }
@@ -246,7 +261,6 @@ fn lower_additional_properties(schema: &oas3::spec::Schema) -> Result<TypeRef, E
             Ok(TypeRef::Map(Box::new(value_type)))
         }
         oas3::spec::Schema::Boolean(BooleanSchema(true)) => {
-            // additionalProperties: true → Map<String, serde_json::Value>
             Ok(TypeRef::Map(Box::new(TypeRef::Primitive(
                 PrimitiveType::String,
             ))))

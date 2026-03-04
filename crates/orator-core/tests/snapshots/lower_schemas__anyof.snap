@@ -6,10 +6,8 @@ expression: types
     TypeDef {
         name: "StringOrInt",
         description: None,
-        kind: Struct(
-            StructDef {
-                bases: [],
-                fields: [],
+        kind: Enum(
+            EnumDef {
                 variants: [
                     Variant {
                         type_ref: Primitive(

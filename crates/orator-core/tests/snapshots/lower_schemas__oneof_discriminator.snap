@@ -19,8 +19,6 @@ expression: types
                         description: None,
                     },
                 ],
-                variants: [],
-                discriminator: None,
             },
         ),
     },
@@ -48,18 +46,14 @@ expression: types
                         description: None,
                     },
                 ],
-                variants: [],
-                discriminator: None,
             },
         ),
     },
     TypeDef {
         name: "Shape",
         description: None,
-        kind: Struct(
-            StructDef {
-                bases: [],
-                fields: [],
+        kind: Enum(
+            EnumDef {
                 variants: [
                     Variant {
                         type_ref: Named(
