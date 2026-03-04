@@ -1,0 +1,14 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Base {
+    pub id: i64,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Extended {
+    #[serde(flatten)]
+    pub base: Base,
+    pub name: String,
+}

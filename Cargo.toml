@@ -16,6 +16,11 @@ categories = ["web-programming", "web-programming::http-server"]
 [workspace.dependencies]
 oas3 = { version = "0.20", features = ["yaml-spec"] }
 thiserror = "2"
+quote = "1"
+proc-macro2 = "1"
+syn = { version = "2", features = ["full"] }
+prettyplease = "0.2"
+heck = "0.5"
 insta = "1"
 
 orator-core = { path = "crates/orator-core" }
