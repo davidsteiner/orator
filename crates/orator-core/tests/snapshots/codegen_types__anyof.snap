@@ -1,0 +1,10 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
+pub enum StringOrInt {
+    String(String),
+    I32(i32),
+}

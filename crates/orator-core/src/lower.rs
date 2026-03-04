@@ -260,11 +260,9 @@ fn lower_additional_properties(schema: &oas3::spec::Schema) -> Result<TypeRef, E
             let value_type = lower_type_ref(inner)?;
             Ok(TypeRef::Map(Box::new(value_type)))
         }
-        oas3::spec::Schema::Boolean(BooleanSchema(true)) => {
-            Ok(TypeRef::Map(Box::new(TypeRef::Primitive(
-                PrimitiveType::String,
-            ))))
-        }
+        oas3::spec::Schema::Boolean(BooleanSchema(true)) => Ok(TypeRef::Map(Box::new(
+            TypeRef::Primitive(PrimitiveType::String),
+        ))),
         oas3::spec::Schema::Boolean(BooleanSchema(false)) => Err(Error::UnsupportedSchema {
             context: "additionalProperties: false".to_string(),
         }),

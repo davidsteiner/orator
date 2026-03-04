@@ -53,7 +53,7 @@ pub struct DiscriminatorDef {
 }
 
 /// A property on a struct.
-/// 
+///
 /// Non-required fields are wrapped in `Option<T>` during codegen.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {

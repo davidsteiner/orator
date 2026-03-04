@@ -1,0 +1,19 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Circle {
+    pub radius: f32,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Rectangle {
+    pub height: f32,
+    pub width: f32,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type")]
+pub enum Shape {
+    Circle(Circle),
+    Rectangle(Rectangle),
+}
