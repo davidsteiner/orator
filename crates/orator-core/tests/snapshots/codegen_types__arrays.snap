@@ -1,0 +1,10 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+pub type Strings = Vec<String>;
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Tag {
+    pub name: String,
+}
+pub type Tags = Vec<Tag>;

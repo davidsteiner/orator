@@ -394,8 +394,13 @@ dependencies = [
 name = "orator-core"
 version = "0.0.1"
 dependencies = [
+ "heck",
  "insta",
  "oas3",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "syn",
  "thiserror",
 ]
 
