@@ -8,9 +8,14 @@ use crate::ir::{
 
 use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
+/// Generate token streams for a list of type definitions.
+pub fn generate_types_tokens(types: &[TypeDef]) -> Vec<TokenStream> {
+    types.iter().map(generate_typedef).collect()
+}
+
 /// Generate Rust source code for a list of type definitions.
 pub fn generate_types(types: &[TypeDef]) -> String {
-    let items: Vec<TokenStream> = types.iter().map(generate_typedef).collect();
+    let items = generate_types_tokens(types);
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
