@@ -1,8 +1,10 @@
 mod operations;
 mod schemas;
 
-pub use operations::{generate_operations, group_by_tag, status_code_variant_name};
-pub use schemas::generate_types;
+pub use operations::{
+    generate_operations, generate_operations_tokens, group_by_tag, status_code_variant_name,
+};
+pub use schemas::{generate_types, generate_types_tokens};
 
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro2::{Ident, Span, TokenStream};
@@ -48,28 +50,6 @@ pub fn type_ref_to_tokens(type_ref: &TypeRef) -> TokenStream {
         }
         TypeRef::Map(inner) => {
             let inner_tokens = type_ref_to_tokens(inner);
-            quote! { std::collections::HashMap<String, #inner_tokens> }
-        }
-    }
-}
-
-pub fn type_ref_to_qualified_tokens(type_ref: &TypeRef) -> TokenStream {
-    match type_ref {
-        TypeRef::Named(name) => {
-            let ident = to_pascal_ident(name);
-            quote! { crate::#ident }
-        }
-        TypeRef::Primitive(p) => primitive_to_tokens(p),
-        TypeRef::Array(inner) => {
-            let inner_tokens = type_ref_to_qualified_tokens(inner);
-            quote! { Vec<#inner_tokens> }
-        }
-        TypeRef::Option(inner) => {
-            let inner_tokens = type_ref_to_qualified_tokens(inner);
-            quote! { Option<#inner_tokens> }
-        }
-        TypeRef::Map(inner) => {
-            let inner_tokens = type_ref_to_qualified_tokens(inner);
             quote! { std::collections::HashMap<String, #inner_tokens> }
         }
     }

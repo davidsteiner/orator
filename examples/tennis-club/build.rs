@@ -1,8 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use orator_axum::codegen::generate_axum_handlers;
-use orator_core::codegen::{generate_operations, generate_types};
+use orator_axum::codegen::generate;
 use orator_core::lower::{lower_operations, lower_schemas};
 
 fn main() {
@@ -13,16 +12,18 @@ fn main() {
     let spec = oas3::from_yaml(&yaml).expect("failed to parse OpenAPI spec");
 
     let types = lower_schemas(&spec).expect("failed to lower schemas");
-    let types_code = generate_types(&types);
-
     let ops = lower_operations(&spec).expect("failed to lower operations");
-    let ops_code = generate_operations(&ops, &spec.info.title);
+
+    let module = generate(&types, &ops, &spec.info.title);
 
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let out = Path::new(&out_dir);
-    fs::write(out.join("types.rs"), types_code).expect("failed to write generated types");
-    fs::write(out.join("operations.rs"), ops_code).expect("failed to write generated operations");
 
-    let axum_code = generate_axum_handlers(&ops, &spec.info.title);
-    fs::write(out.join("axum_handlers.rs"), axum_code).expect("failed to write axum handlers");
+    let api_dir = out.join("api");
+    fs::create_dir_all(&api_dir).expect("failed to create api directory");
+    fs::write(api_dir.join("types.rs"), &module.types).expect("failed to write types");
+    fs::write(api_dir.join("operations.rs"), &module.operations)
+        .expect("failed to write operations");
+    fs::write(api_dir.join("handlers.rs"), &module.handlers).expect("failed to write handlers");
+    fs::write(out.join("api.rs"), module.build_rs_entry()).expect("failed to write api entry");
 }

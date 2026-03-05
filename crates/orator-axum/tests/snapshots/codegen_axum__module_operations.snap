@@ -1,6 +1,6 @@
 ---
-source: crates/orator-core/tests/codegen_operations.rs
-expression: code
+source: crates/orator-axum/tests/codegen_axum.rs
+expression: module.operations
 ---
 pub enum ListMembersResponse {
     Ok(Vec<Member>),

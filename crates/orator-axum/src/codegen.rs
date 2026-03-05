@@ -4,16 +4,103 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    group_by_tag, status_code_variant_name, to_pascal_ident, to_snake_ident,
-    type_ref_to_qualified_tokens as type_ref_to_tokens,
+    generate_operations_tokens, generate_types_tokens, group_by_tag, status_code_variant_name,
+    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 use orator_core::ir::{
-    HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode,
+    HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode, TypeDef,
 };
 
-/// Generate axum handler functions, `IntoResponse` impls, and router functions
-/// for the given operations.
-pub fn generate_axum_handlers(operations: &[OperationIr], default_tag: &str) -> String {
+/// The result of generating a complete API module.
+///
+/// Contains the formatted Rust source for each file in the module.
+pub struct GeneratedModule {
+    /// Schema types (structs, enums, type aliases).
+    pub types: String,
+    /// Response enums, params structs, and API traits.
+    pub operations: String,
+    /// IntoResponse impls, handler functions, and router functions.
+    pub handlers: String,
+}
+
+impl GeneratedModule {
+    /// Generate a `mod.rs` for direct file write (future CLI use).
+    pub fn mod_file(&self) -> String {
+        [
+            "#[allow(dead_code)]",
+            "mod types;",
+            "#[allow(dead_code)]",
+            "mod operations;",
+            "#[allow(dead_code)]",
+            "mod handlers;",
+            "",
+            "pub use types::*;",
+            "pub use operations::*;",
+            "pub use handlers::*;",
+            "",
+        ]
+        .join("\n")
+    }
+
+    /// Generate a bridge entry file for `build.rs` (`include!`-based).
+    pub fn build_rs_entry(&self) -> String {
+        [
+            "#[allow(dead_code)]",
+            "mod types {",
+            r#"    include!(concat!(env!("OUT_DIR"), "/api/types.rs"));"#,
+            "}",
+            "",
+            "#[allow(dead_code)]",
+            "mod operations {",
+            "    use super::types::*;",
+            r#"    include!(concat!(env!("OUT_DIR"), "/api/operations.rs"));"#,
+            "}",
+            "",
+            "#[allow(dead_code)]",
+            "mod handlers {",
+            "    use super::types::*;",
+            "    use super::operations::*;",
+            r#"    include!(concat!(env!("OUT_DIR"), "/api/handlers.rs"));"#,
+            "}",
+            "",
+            "pub use types::*;",
+            "pub use operations::*;",
+            "pub use handlers::*;",
+            "",
+        ]
+        .join("\n")
+    }
+}
+
+fn format_tokens(tokens: Vec<TokenStream>) -> String {
+    let file_tokens = quote! { #(#tokens)* };
+    let syntax_tree: syn::File =
+        syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
+    prettyplease::unparse(&syntax_tree)
+}
+
+/// Generate a complete API module from type definitions and operations.
+pub fn generate(
+    types: &[TypeDef],
+    operations: &[OperationIr],
+    default_tag: &str,
+) -> GeneratedModule {
+    let types_code = format_tokens(generate_types_tokens(types));
+    let operations_code = format_tokens(generate_operations_tokens(operations, default_tag));
+    let handlers_code = format_tokens(generate_axum_handlers_tokens(operations, default_tag));
+
+    GeneratedModule {
+        types: types_code,
+        operations: operations_code,
+        handlers: handlers_code,
+    }
+}
+
+/// Generate token streams for axum handler functions, `IntoResponse` impls, and router functions.
+pub fn generate_axum_handlers_tokens(
+    operations: &[OperationIr],
+    default_tag: &str,
+) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
     let mut all_items = Vec::new();
@@ -26,7 +113,14 @@ pub fn generate_axum_handlers(operations: &[OperationIr], default_tag: &str) -> 
         all_items.push(generate_router_fn(tag, ops));
     }
 
-    let file_tokens = quote! { #(#all_items)* };
+    all_items
+}
+
+/// Generate axum handler functions, `IntoResponse` impls, and router functions
+/// for the given operations.
+pub fn generate_axum_handlers(operations: &[OperationIr], default_tag: &str) -> String {
+    let items = generate_axum_handlers_tokens(operations, default_tag);
+    let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
     prettyplease::unparse(&syntax_tree)
@@ -173,7 +267,6 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
     };
 
     quote! {
-        #[allow(dead_code)]
         async fn #handler_ident<T, Ctx>(
             #(#fn_params),*
         ) -> Result<#response_ident, T::Error>
@@ -232,7 +325,6 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .collect();
 
     quote! {
-        #[allow(dead_code)]
         pub fn #router_ident<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
         where
             T: #trait_ident<Ctx>,

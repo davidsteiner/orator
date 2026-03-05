@@ -1,5 +1,3 @@
-include!(concat!(env!("OUT_DIR"), "/types.rs"));
-
 mod api;
 
 use std::convert::Infallible;
