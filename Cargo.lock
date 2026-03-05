@@ -650,7 +650,6 @@ dependencies = [
 name = "orator-axum"
 version = "0.0.1"
 dependencies = [
- "heck",
  "insta",
  "oas3",
  "orator-core",
@@ -869,9 +868,9 @@ dependencies = [
 
 [[package]]
 name = "scalar_api_reference"
-version = "0.1.5"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3eac3f009b73e27213aa1ca3dee1c3bcb698beb104bb90d1eb2102623f39d62d"
+checksum = "04b94efa9c10fdf1a7a139f4259a27048be91b46abdb43b53e1d65d2d4d2b916"
 dependencies = [
  "axum",
  "axum-extra",
