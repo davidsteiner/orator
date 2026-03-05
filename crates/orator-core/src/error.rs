@@ -7,4 +7,12 @@ pub enum Error {
 
     #[error("unsupported schema: {context}")]
     UnsupportedSchema { context: String },
+
+    #[error("missing operationId for {method} {path}")]
+    MissingOperationId { method: String, path: String },
+
+    #[error(
+        "unsupported media type for request body in {operation_id} (only application/json is supported)"
+    )]
+    UnsupportedRequestBodyMediaType { operation_id: String },
 }

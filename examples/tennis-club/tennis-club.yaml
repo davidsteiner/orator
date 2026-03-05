@@ -12,6 +12,10 @@ servers:
   - url: http://localhost:3000
     description: Local development server
 
+tags:
+  - name: members
+    description: Member management
+
 security:
   - bearerAuth: []
 
@@ -20,6 +24,7 @@ paths:
     get:
       operationId: listMembers
       summary: List all members
+      tags: [members]
       security:
         - bearerAuth: []
       responses:
@@ -40,6 +45,7 @@ paths:
     post:
       operationId: createMember
       summary: Create a new member
+      tags: [members]
       security:
         - bearerAuth: []
       requestBody:
@@ -66,6 +72,7 @@ paths:
     get:
       operationId: getMember
       summary: Get a member by ID
+      tags: [members]
       security:
         - bearerAuth: []
       parameters:
@@ -91,6 +98,7 @@ paths:
     patch:
       operationId: updateMember
       summary: Update a member
+      tags: [members]
       security:
         - bearerAuth: []
       parameters:
@@ -122,6 +130,7 @@ paths:
     delete:
       operationId: deleteMember
       summary: Delete a member
+      tags: [members]
       security:
         - bearerAuth: []
       parameters:
