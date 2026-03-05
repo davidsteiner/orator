@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+use std::path::Path;
+use std::{fs, io};
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -10,6 +12,7 @@ use orator_core::codegen::{
 use orator_core::ir::{
     HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode, TypeDef,
 };
+use orator_core::lower::{lower_operations, lower_schemas};
 
 /// The result of generating a complete API module.
 ///
@@ -40,6 +43,20 @@ impl GeneratedModule {
             "",
         ]
         .join("\n")
+    }
+
+    /// Write the module files to `OUT_DIR` for use from a `build.rs` script.
+    ///
+    /// Creates `api/types.rs`, `api/operations.rs`, `api/handlers.rs`, and
+    /// a bridge `api.rs` entry file in the given output directory.
+    pub fn write_to_out_dir(&self, out_dir: &Path) -> io::Result<()> {
+        let api_dir = out_dir.join("api");
+        fs::create_dir_all(&api_dir)?;
+        fs::write(api_dir.join("types.rs"), &self.types)?;
+        fs::write(api_dir.join("operations.rs"), &self.operations)?;
+        fs::write(api_dir.join("handlers.rs"), &self.handlers)?;
+        fs::write(out_dir.join("api.rs"), self.build_rs_entry())?;
+        Ok(())
     }
 
     /// Generate a bridge entry file for `build.rs` (`include!`-based).
@@ -94,6 +111,34 @@ pub fn generate(
         operations: operations_code,
         handlers: handlers_code,
     }
+}
+
+/// Generate and write a complete API module from an OpenAPI spec file.
+///
+/// Intended to be called from a `build.rs` script. Reads and parses the spec,
+/// generates the module files, writes them to `OUT_DIR`, and emits
+/// `cargo::rerun-if-changed` for the spec file.
+///
+/// The user's `src/api.rs` should contain:
+/// ```ignore
+/// include!(concat!(env!("OUT_DIR"), "/api.rs"));
+/// ```
+pub fn build(spec_path: impl AsRef<Path>) {
+    let spec_path = spec_path.as_ref();
+    println!("cargo::rerun-if-changed={}", spec_path.display());
+
+    let yaml = fs::read_to_string(spec_path).expect("failed to read OpenAPI spec");
+    let spec = oas3::from_yaml(&yaml).expect("failed to parse OpenAPI spec");
+
+    let types = lower_schemas(&spec).expect("failed to lower schemas");
+    let ops = lower_operations(&spec).expect("failed to lower operations");
+
+    let module = generate(&types, &ops, &spec.info.title);
+
+    let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR not set");
+    module
+        .write_to_out_dir(Path::new(&out_dir))
+        .expect("failed to write generated module");
 }
 
 /// Generate token streams for axum handler functions, `IntoResponse` impls, and router functions.

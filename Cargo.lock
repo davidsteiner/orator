@@ -1074,9 +1074,7 @@ version = "0.0.1"
 dependencies = [
  "axum",
  "http",
- "oas3",
  "orator-axum",
- "orator-core",
  "scalar_api_reference",
  "serde",
  "serde_json",

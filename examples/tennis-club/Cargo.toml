@@ -12,6 +12,4 @@ serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 
 [build-dependencies]
-orator-core = { path = "../../crates/orator-core" }
 orator-axum = { path = "../../crates/orator-axum" }
-oas3 = { version = "0.20", features = ["yaml-spec"] }
