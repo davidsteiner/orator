@@ -7,8 +7,11 @@ use crate::ir::{OperationIr, OperationResponse, ResponseStatusCode};
 
 use super::{to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
-/// Generate Rust source code for a list of operations.
-pub fn generate_operations(operations: &[OperationIr], default_tag: &str) -> String {
+/// Generate token streams for a list of operations.
+pub fn generate_operations_tokens(
+    operations: &[OperationIr],
+    default_tag: &str,
+) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
     let mut all_items = Vec::new();
@@ -21,13 +24,19 @@ pub fn generate_operations(operations: &[OperationIr], default_tag: &str) -> Str
         all_items.push(generate_api_trait(tag, ops));
     }
 
-    let file_tokens = quote! { #(#all_items)* };
+    all_items
+}
+
+/// Generate Rust source code for a list of operations.
+pub fn generate_operations(operations: &[OperationIr], default_tag: &str) -> String {
+    let items = generate_operations_tokens(operations, default_tag);
+    let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
     prettyplease::unparse(&syntax_tree)
 }
 
-fn group_by_tag<'a>(
+pub fn group_by_tag<'a>(
     operations: &'a [OperationIr],
     default_tag: &str,
 ) -> BTreeMap<String, Vec<&'a OperationIr>> {
@@ -39,7 +48,7 @@ fn group_by_tag<'a>(
     groups
 }
 
-fn status_code_variant_name(response: &OperationResponse) -> String {
+pub fn status_code_variant_name(response: &OperationResponse) -> String {
     match &response.status_code {
         ResponseStatusCode::Default => "Default".to_string(),
         ResponseStatusCode::Code(code) => match code {
@@ -121,7 +130,9 @@ fn generate_params_struct(op: &OperationIr) -> TokenStream {
     }
 
     if fields.is_empty() {
-        quote! { pub struct #struct_ident; }
+        quote! {
+            pub struct #struct_ident;
+        }
     } else {
         quote! {
             pub struct #struct_ident {
