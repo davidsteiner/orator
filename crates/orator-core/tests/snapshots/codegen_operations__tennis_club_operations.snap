@@ -1,0 +1,76 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+pub enum ListMembersResponse {
+    Ok(Vec<Member>),
+    Unauthorized(Error),
+}
+pub struct ListMembersParams;
+pub enum CreateMemberResponse {
+    Created(Member),
+    UnprocessableEntity(Error),
+}
+pub struct CreateMemberParams {
+    pub body: NewMember,
+}
+pub enum GetMemberResponse {
+    Ok(Member),
+    NotFound(Error),
+}
+pub struct GetMemberParams {
+    pub member_id: i64,
+}
+pub enum UpdateMemberResponse {
+    Ok(Member),
+    NotFound(Error),
+}
+pub struct UpdateMemberParams {
+    pub member_id: i64,
+    pub body: UpdateMember,
+}
+pub enum DeleteMemberResponse {
+    NoContent,
+    NotFound(Error),
+}
+pub struct DeleteMemberParams {
+    pub member_id: i64,
+}
+pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    fn list_members(
+        &self,
+        ctx: Ctx,
+        params: ListMembersParams,
+    ) -> impl std::future::Future<
+        Output = Result<ListMembersResponse, Self::Error>,
+    > + Send;
+    fn create_member(
+        &self,
+        ctx: Ctx,
+        params: CreateMemberParams,
+    ) -> impl std::future::Future<
+        Output = Result<CreateMemberResponse, Self::Error>,
+    > + Send;
+    fn get_member(
+        &self,
+        ctx: Ctx,
+        params: GetMemberParams,
+    ) -> impl std::future::Future<
+        Output = Result<GetMemberResponse, Self::Error>,
+    > + Send;
+    fn update_member(
+        &self,
+        ctx: Ctx,
+        params: UpdateMemberParams,
+    ) -> impl std::future::Future<
+        Output = Result<UpdateMemberResponse, Self::Error>,
+    > + Send;
+    fn delete_member(
+        &self,
+        ctx: Ctx,
+        params: DeleteMemberParams,
+    ) -> impl std::future::Future<
+        Output = Result<DeleteMemberResponse, Self::Error>,
+    > + Send;
+}

@@ -1,6 +1,5 @@
-// This file represents what orator would eventually generate from the OpenAPI spec.
-// It contains response enums, params structs, the API trait, and axum glue code.
 #![allow(dead_code)]
+
 use std::sync::Arc;
 
 use axum::Json;
@@ -12,30 +11,7 @@ use http::StatusCode;
 
 use crate::{Error, Member, NewMember, UpdateMember};
 
-pub enum ListMembersResponse {
-    Ok(Vec<Member>),
-    Unauthorized(Error),
-}
-
-pub enum CreateMemberResponse {
-    Created(Member),
-    UnprocessableEntity(Error),
-}
-
-pub enum GetMemberResponse {
-    Ok(Member),
-    NotFound(Error),
-}
-
-pub enum UpdateMemberResponse {
-    Ok(Member),
-    NotFound(Error),
-}
-
-pub enum DeleteMemberResponse {
-    NoContent,
-    NotFound(Error),
-}
+include!(concat!(env!("OUT_DIR"), "/operations.rs"));
 
 impl IntoResponse for ListMembersResponse {
     fn into_response(self) -> axum::response::Response {
@@ -84,65 +60,14 @@ impl IntoResponse for DeleteMemberResponse {
     }
 }
 
-pub struct ListMembersParams;
-
-pub struct CreateMemberParams {
-    pub body: NewMember,
-}
-
-pub struct GetMemberParams {
-    pub member_id: i64,
-}
-
-pub struct UpdateMemberParams {
-    pub member_id: i64,
-    pub body: UpdateMember,
-}
-
-pub struct DeleteMemberParams {
-    pub member_id: i64,
-}
-
-pub trait TennisClubApi<Ctx = ()>: Send + Sync + 'static {
-    type Error: Send;
-
-    fn list_members(
-        &self,
-        ctx: Ctx,
-        params: ListMembersParams,
-    ) -> impl Future<Output = Result<ListMembersResponse, Self::Error>> + Send;
-
-    fn create_member(
-        &self,
-        ctx: Ctx,
-        params: CreateMemberParams,
-    ) -> impl Future<Output = Result<CreateMemberResponse, Self::Error>> + Send;
-
-    fn get_member(
-        &self,
-        ctx: Ctx,
-        params: GetMemberParams,
-    ) -> impl Future<Output = Result<GetMemberResponse, Self::Error>> + Send;
-
-    fn update_member(
-        &self,
-        ctx: Ctx,
-        params: UpdateMemberParams,
-    ) -> impl Future<Output = Result<UpdateMemberResponse, Self::Error>> + Send;
-
-    fn delete_member(
-        &self,
-        ctx: Ctx,
-        params: DeleteMemberParams,
-    ) -> impl Future<Output = Result<DeleteMemberResponse, Self::Error>> + Send;
-}
+// axum glue for tag: "members"
 
 async fn handle_list_members<T, Ctx>(
     State(api): State<Arc<T>>,
     ctx: Ctx,
 ) -> Result<ListMembersResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.list_members(ctx, ListMembersParams).await
 }
@@ -153,7 +78,7 @@ async fn handle_create_member<T, Ctx>(
     Json(body): Json<NewMember>,
 ) -> Result<CreateMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.create_member(ctx, CreateMemberParams { body }).await
 }
@@ -164,7 +89,7 @@ async fn handle_get_member<T, Ctx>(
     Path(member_id): Path<i64>,
 ) -> Result<GetMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.get_member(ctx, GetMemberParams { member_id }).await
 }
@@ -176,7 +101,7 @@ async fn handle_update_member<T, Ctx>(
     Json(body): Json<UpdateMember>,
 ) -> Result<UpdateMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.update_member(ctx, UpdateMemberParams { member_id, body })
         .await
@@ -188,15 +113,15 @@ async fn handle_delete_member<T, Ctx>(
     Path(member_id): Path<i64>,
 ) -> Result<DeleteMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.delete_member(ctx, DeleteMemberParams { member_id })
         .await
 }
 
-pub fn tennis_club_router<T, Ctx>(api: Arc<T>) -> Router
+pub fn members_router<T, Ctx>(api: Arc<T>) -> Router
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
     T::Error: IntoResponse,
     Ctx: FromRequestParts<Arc<T>> + Send + 'static,
 {

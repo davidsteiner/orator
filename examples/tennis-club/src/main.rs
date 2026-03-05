@@ -21,15 +21,23 @@ impl TennisClub {
     }
 }
 
-impl TennisClubApi for TennisClub {
+impl MembersApi for TennisClub {
     type Error = Infallible;
 
-    async fn list_members(&self, _ctx: (), _params: ListMembersParams) -> Result<ListMembersResponse, Self::Error> {
+    async fn list_members(
+        &self,
+        _ctx: (),
+        _params: ListMembersParams,
+    ) -> Result<ListMembersResponse, Self::Error> {
         let members = self.members.lock().unwrap();
         Ok(ListMembersResponse::Ok(members.clone()))
     }
 
-    async fn create_member(&self, _ctx: (), params: CreateMemberParams) -> Result<CreateMemberResponse, Self::Error> {
+    async fn create_member(
+        &self,
+        _ctx: (),
+        params: CreateMemberParams,
+    ) -> Result<CreateMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
         let mut next_id = self.next_id.lock().unwrap();
 
@@ -45,7 +53,11 @@ impl TennisClubApi for TennisClub {
         Ok(CreateMemberResponse::Created(member))
     }
 
-    async fn get_member(&self, _ctx: (), params: GetMemberParams) -> Result<GetMemberResponse, Self::Error> {
+    async fn get_member(
+        &self,
+        _ctx: (),
+        params: GetMemberParams,
+    ) -> Result<GetMemberResponse, Self::Error> {
         let members = self.members.lock().unwrap();
 
         match members.iter().find(|m| m.id == params.member_id) {
@@ -57,7 +69,11 @@ impl TennisClubApi for TennisClub {
         }
     }
 
-    async fn update_member(&self, _ctx: (), params: UpdateMemberParams) -> Result<UpdateMemberResponse, Self::Error> {
+    async fn update_member(
+        &self,
+        _ctx: (),
+        params: UpdateMemberParams,
+    ) -> Result<UpdateMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
 
         match members.iter_mut().find(|m| m.id == params.member_id) {
@@ -77,7 +93,11 @@ impl TennisClubApi for TennisClub {
         }
     }
 
-    async fn delete_member(&self, _ctx: (), params: DeleteMemberParams) -> Result<DeleteMemberResponse, Self::Error> {
+    async fn delete_member(
+        &self,
+        _ctx: (),
+        params: DeleteMemberParams,
+    ) -> Result<DeleteMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
         let len_before = members.len();
         members.retain(|m| m.id != params.member_id);
@@ -96,7 +116,8 @@ impl TennisClubApi for TennisClub {
 #[tokio::main]
 async fn main() {
     let api = Arc::new(TennisClub::new());
-    let app = tennis_club_router(api);
+
+    let app = members_router(api);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     println!("Listening on http://localhost:3000");
