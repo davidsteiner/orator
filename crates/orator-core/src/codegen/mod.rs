@@ -53,6 +53,28 @@ pub fn type_ref_to_tokens(type_ref: &TypeRef) -> TokenStream {
     }
 }
 
+pub fn type_ref_to_qualified_tokens(type_ref: &TypeRef) -> TokenStream {
+    match type_ref {
+        TypeRef::Named(name) => {
+            let ident = to_pascal_ident(name);
+            quote! { crate::#ident }
+        }
+        TypeRef::Primitive(p) => primitive_to_tokens(p),
+        TypeRef::Array(inner) => {
+            let inner_tokens = type_ref_to_qualified_tokens(inner);
+            quote! { Vec<#inner_tokens> }
+        }
+        TypeRef::Option(inner) => {
+            let inner_tokens = type_ref_to_qualified_tokens(inner);
+            quote! { Option<#inner_tokens> }
+        }
+        TypeRef::Map(inner) => {
+            let inner_tokens = type_ref_to_qualified_tokens(inner);
+            quote! { std::collections::HashMap<String, #inner_tokens> }
+        }
+    }
+}
+
 pub fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
     match p {
         PrimitiveType::String => quote! { String },

@@ -12,6 +12,7 @@ impl axum::response::IntoResponse for ListMembersResponse {
         }
     }
 }
+#[allow(dead_code)]
 async fn handle_list_members<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
@@ -34,10 +35,11 @@ impl axum::response::IntoResponse for CreateMemberResponse {
         }
     }
 }
+#[allow(dead_code)]
 async fn handle_create_member<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    axum::Json(body): axum::Json<NewMember>,
+    axum::Json(body): axum::Json<crate::NewMember>,
 ) -> Result<CreateMemberResponse, T::Error>
 where
     T: MembersApi<Ctx>,
@@ -54,6 +56,7 @@ impl axum::response::IntoResponse for GetMemberResponse {
         }
     }
 }
+#[allow(dead_code)]
 async fn handle_get_member<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
@@ -74,11 +77,12 @@ impl axum::response::IntoResponse for UpdateMemberResponse {
         }
     }
 }
+#[allow(dead_code)]
 async fn handle_update_member<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
     axum::extract::Path(member_id): axum::extract::Path<i64>,
-    axum::Json(body): axum::Json<UpdateMember>,
+    axum::Json(body): axum::Json<crate::UpdateMember>,
 ) -> Result<UpdateMemberResponse, T::Error>
 where
     T: MembersApi<Ctx>,
@@ -102,6 +106,7 @@ impl axum::response::IntoResponse for DeleteMemberResponse {
         }
     }
 }
+#[allow(dead_code)]
 async fn handle_delete_member<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
@@ -112,6 +117,7 @@ where
 {
     api.delete_member(ctx, DeleteMemberParams { member_id }).await
 }
+#[allow(dead_code)]
 pub fn members_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
 where
     T: MembersApi<Ctx>,

@@ -2,37 +2,47 @@
 source: crates/orator-core/tests/codegen_operations.rs
 expression: code
 ---
+#[allow(dead_code)]
 pub enum ListMembersResponse {
-    Ok(Vec<Member>),
-    Unauthorized(Error),
+    Ok(Vec<crate::Member>),
+    Unauthorized(crate::Error),
 }
+#[allow(dead_code)]
 pub struct ListMembersParams;
+#[allow(dead_code)]
 pub enum CreateMemberResponse {
-    Created(Member),
-    UnprocessableEntity(Error),
+    Created(crate::Member),
+    UnprocessableEntity(crate::Error),
 }
+#[allow(dead_code)]
 pub struct CreateMemberParams {
-    pub body: NewMember,
+    pub body: crate::NewMember,
 }
+#[allow(dead_code)]
 pub enum GetMemberResponse {
-    Ok(Member),
-    NotFound(Error),
+    Ok(crate::Member),
+    NotFound(crate::Error),
 }
+#[allow(dead_code)]
 pub struct GetMemberParams {
     pub member_id: i64,
 }
+#[allow(dead_code)]
 pub enum UpdateMemberResponse {
-    Ok(Member),
-    NotFound(Error),
+    Ok(crate::Member),
+    NotFound(crate::Error),
 }
+#[allow(dead_code)]
 pub struct UpdateMemberParams {
     pub member_id: i64,
-    pub body: UpdateMember,
+    pub body: crate::UpdateMember,
 }
+#[allow(dead_code)]
 pub enum DeleteMemberResponse {
     NoContent,
-    NotFound(Error),
+    NotFound(crate::Error),
 }
+#[allow(dead_code)]
 pub struct DeleteMemberParams {
     pub member_id: i64,
 }

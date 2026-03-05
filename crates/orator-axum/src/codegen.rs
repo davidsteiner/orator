@@ -4,7 +4,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    group_by_tag, status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
+    group_by_tag, status_code_variant_name, to_pascal_ident, to_snake_ident,
+    type_ref_to_qualified_tokens as type_ref_to_tokens,
 };
 use orator_core::ir::{
     HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode,
@@ -172,6 +173,7 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
     };
 
     quote! {
+        #[allow(dead_code)]
         async fn #handler_ident<T, Ctx>(
             #(#fn_params),*
         ) -> Result<#response_ident, T::Error>
@@ -230,6 +232,7 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .collect();
 
     quote! {
+        #[allow(dead_code)]
         pub fn #router_ident<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
         where
             T: #trait_ident<Ctx>,

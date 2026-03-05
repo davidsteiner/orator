@@ -5,7 +5,7 @@ use quote::quote;
 
 use crate::ir::{OperationIr, OperationResponse, ResponseStatusCode};
 
-use super::{to_pascal_ident, to_snake_ident, type_ref_to_tokens};
+use super::{to_pascal_ident, to_snake_ident, type_ref_to_qualified_tokens as type_ref_to_tokens};
 
 /// Generate Rust source code for a list of operations.
 pub fn generate_operations(operations: &[OperationIr], default_tag: &str) -> String {
@@ -86,6 +86,7 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
         .collect();
 
     quote! {
+        #[allow(dead_code)]
         pub enum #enum_ident {
             #(#variants)*
         }
@@ -121,9 +122,13 @@ fn generate_params_struct(op: &OperationIr) -> TokenStream {
     }
 
     if fields.is_empty() {
-        quote! { pub struct #struct_ident; }
+        quote! {
+            #[allow(dead_code)]
+            pub struct #struct_ident;
+        }
     } else {
         quote! {
+            #[allow(dead_code)]
             pub struct #struct_ident {
                 #(#fields)*
             }
