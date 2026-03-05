@@ -1,6 +1,5 @@
-// This file represents what orator would eventually generate from the OpenAPI spec.
-// It contains response enums, params structs, the API trait, and axum glue code.
 #![allow(dead_code)]
+
 use std::sync::Arc;
 
 use axum::Json;
@@ -103,7 +102,7 @@ pub struct DeleteMemberParams {
     pub member_id: i64,
 }
 
-pub trait TennisClubApi<Ctx = ()>: Send + Sync + 'static {
+pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
 
     fn list_members(
@@ -137,12 +136,14 @@ pub trait TennisClubApi<Ctx = ()>: Send + Sync + 'static {
     ) -> impl Future<Output = Result<DeleteMemberResponse, Self::Error>> + Send;
 }
 
+// axum glue for tag: "members"
+
 async fn handle_list_members<T, Ctx>(
     State(api): State<Arc<T>>,
     ctx: Ctx,
 ) -> Result<ListMembersResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.list_members(ctx, ListMembersParams).await
 }
@@ -153,7 +154,7 @@ async fn handle_create_member<T, Ctx>(
     Json(body): Json<NewMember>,
 ) -> Result<CreateMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.create_member(ctx, CreateMemberParams { body }).await
 }
@@ -164,7 +165,7 @@ async fn handle_get_member<T, Ctx>(
     Path(member_id): Path<i64>,
 ) -> Result<GetMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.get_member(ctx, GetMemberParams { member_id }).await
 }
@@ -176,7 +177,7 @@ async fn handle_update_member<T, Ctx>(
     Json(body): Json<UpdateMember>,
 ) -> Result<UpdateMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.update_member(ctx, UpdateMemberParams { member_id, body })
         .await
@@ -188,15 +189,15 @@ async fn handle_delete_member<T, Ctx>(
     Path(member_id): Path<i64>,
 ) -> Result<DeleteMemberResponse, T::Error>
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
 {
     api.delete_member(ctx, DeleteMemberParams { member_id })
         .await
 }
 
-pub fn tennis_club_router<T, Ctx>(api: Arc<T>) -> Router
+pub fn members_router<T, Ctx>(api: Arc<T>) -> Router
 where
-    T: TennisClubApi<Ctx>,
+    T: MembersApi<Ctx>,
     T::Error: IntoResponse,
     Ctx: FromRequestParts<Arc<T>> + Send + 'static,
 {
