@@ -175,7 +175,9 @@ fn lower_properties_into(fields: &mut Vec<Field>, schema: &ObjectSchema) -> Resu
     Ok(())
 }
 
-fn lower_type_ref(schema_or_ref: &ObjectOrReference<ObjectSchema>) -> Result<TypeRef, Error> {
+pub(crate) fn lower_type_ref(
+    schema_or_ref: &ObjectOrReference<ObjectSchema>,
+) -> Result<TypeRef, Error> {
     match schema_or_ref {
         ObjectOrReference::Ref { ref_path, .. } => {
             Ok(TypeRef::Named(extract_schema_name(ref_path)?))
@@ -288,7 +290,7 @@ fn try_lower_primitive(schema: &ObjectSchema) -> Option<TypeRef> {
     }
 }
 
-fn extract_schema_name(ref_path: &str) -> Result<String, Error> {
+pub(crate) fn extract_schema_name(ref_path: &str) -> Result<String, Error> {
     ref_path
         .strip_prefix("#/components/schemas/")
         .map(String::from)

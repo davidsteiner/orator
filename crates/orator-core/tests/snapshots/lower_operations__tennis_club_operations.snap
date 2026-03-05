@@ -1,0 +1,235 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "listMembers",
+        method: Get,
+        path: "/members",
+        tag: Some(
+            "members",
+        ),
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "A list of members",
+                ),
+                body: Some(
+                    Array(
+                        Named(
+                            "Member",
+                        ),
+                    ),
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    401,
+                ),
+                description: Some(
+                    "Unauthorized",
+                ),
+                body: Some(
+                    Named(
+                        "Error",
+                    ),
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "createMember",
+        method: Post,
+        path: "/members",
+        tag: Some(
+            "members",
+        ),
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                type_ref: Named(
+                    "NewMember",
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    201,
+                ),
+                description: Some(
+                    "The created member",
+                ),
+                body: Some(
+                    Named(
+                        "Member",
+                    ),
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    422,
+                ),
+                description: Some(
+                    "Validation error",
+                ),
+                body: Some(
+                    Named(
+                        "Error",
+                    ),
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "getMember",
+        method: Get,
+        path: "/members/{member_id}",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "The member",
+                ),
+                body: Some(
+                    Named(
+                        "Member",
+                    ),
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member not found",
+                ),
+                body: Some(
+                    Named(
+                        "Error",
+                    ),
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "updateMember",
+        method: Patch,
+        path: "/members/{member_id}",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: Some(
+            RequestBodyIr {
+                type_ref: Named(
+                    "UpdateMember",
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "The updated member",
+                ),
+                body: Some(
+                    Named(
+                        "Member",
+                    ),
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member not found",
+                ),
+                body: Some(
+                    Named(
+                        "Error",
+                    ),
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "deleteMember",
+        method: Delete,
+        path: "/members/{member_id}",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    204,
+                ),
+                description: Some(
+                    "Member deleted",
+                ),
+                body: None,
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member not found",
+                ),
+                body: Some(
+                    Named(
+                        "Error",
+                    ),
+                ),
+            },
+        ],
+    },
+]
