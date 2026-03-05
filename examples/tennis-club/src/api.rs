@@ -11,30 +11,7 @@ use http::StatusCode;
 
 use crate::{Error, Member, NewMember, UpdateMember};
 
-pub enum ListMembersResponse {
-    Ok(Vec<Member>),
-    Unauthorized(Error),
-}
-
-pub enum CreateMemberResponse {
-    Created(Member),
-    UnprocessableEntity(Error),
-}
-
-pub enum GetMemberResponse {
-    Ok(Member),
-    NotFound(Error),
-}
-
-pub enum UpdateMemberResponse {
-    Ok(Member),
-    NotFound(Error),
-}
-
-pub enum DeleteMemberResponse {
-    NoContent,
-    NotFound(Error),
-}
+include!(concat!(env!("OUT_DIR"), "/operations.rs"));
 
 impl IntoResponse for ListMembersResponse {
     fn into_response(self) -> axum::response::Response {
@@ -81,59 +58,6 @@ impl IntoResponse for DeleteMemberResponse {
             Self::NotFound(err) => (StatusCode::NOT_FOUND, Json(err)).into_response(),
         }
     }
-}
-
-pub struct ListMembersParams;
-
-pub struct CreateMemberParams {
-    pub body: NewMember,
-}
-
-pub struct GetMemberParams {
-    pub member_id: i64,
-}
-
-pub struct UpdateMemberParams {
-    pub member_id: i64,
-    pub body: UpdateMember,
-}
-
-pub struct DeleteMemberParams {
-    pub member_id: i64,
-}
-
-pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
-    type Error: Send;
-
-    fn list_members(
-        &self,
-        ctx: Ctx,
-        params: ListMembersParams,
-    ) -> impl Future<Output = Result<ListMembersResponse, Self::Error>> + Send;
-
-    fn create_member(
-        &self,
-        ctx: Ctx,
-        params: CreateMemberParams,
-    ) -> impl Future<Output = Result<CreateMemberResponse, Self::Error>> + Send;
-
-    fn get_member(
-        &self,
-        ctx: Ctx,
-        params: GetMemberParams,
-    ) -> impl Future<Output = Result<GetMemberResponse, Self::Error>> + Send;
-
-    fn update_member(
-        &self,
-        ctx: Ctx,
-        params: UpdateMemberParams,
-    ) -> impl Future<Output = Result<UpdateMemberResponse, Self::Error>> + Send;
-
-    fn delete_member(
-        &self,
-        ctx: Ctx,
-        params: DeleteMemberParams,
-    ) -> impl Future<Output = Result<DeleteMemberResponse, Self::Error>> + Send;
 }
 
 // axum glue for tag: "members"
