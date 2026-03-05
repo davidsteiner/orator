@@ -1,18 +1,12 @@
-use heck::{ToPascalCase, ToSnakeCase};
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{format_ident, quote};
+use proc_macro2::{Ident, TokenStream};
+use quote::quote;
 
 use crate::ir::{
     DiscriminatorDef, EnumDef, PrimitiveType, StringEnumDef, StructDef, TypeDef, TypeDefKind,
     TypeRef, Variant,
 };
 
-const RUST_KEYWORDS: &[&str] = &[
-    "as", "async", "await", "break", "const", "continue", "crate", "dyn", "else", "enum", "extern",
-    "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub",
-    "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type",
-    "unsafe", "use", "where", "while", "yield",
-];
+use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
 /// Generate Rust source code for a list of type definitions.
 pub fn generate_types(types: &[TypeDef]) -> String {
@@ -59,7 +53,7 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
             let field_ident = to_snake_ident(&field.name);
             let field_doc = generate_doc_comment(&field.description);
 
-            let snake_case_name = field.name.to_snake_case();
+            let snake_case_name = heck::ToSnakeCase::to_snake_case(field.name.as_str());
             let rename_attr = if snake_case_name != field.name {
                 let original = &field.name;
                 quote! { #[serde(rename = #original)] }
@@ -202,46 +196,6 @@ fn generate_alias(name: &str, type_ref: &TypeRef, doc: TokenStream) -> TokenStre
     }
 }
 
-fn generate_doc_comment(description: &Option<String>) -> TokenStream {
-    match description {
-        Some(desc) => quote! { #[doc = #desc] },
-        None => quote! {},
-    }
-}
-
-fn type_ref_to_tokens(type_ref: &TypeRef) -> TokenStream {
-    match type_ref {
-        TypeRef::Named(name) => {
-            let ident = to_pascal_ident(name);
-            quote! { #ident }
-        }
-        TypeRef::Primitive(p) => primitive_to_tokens(p),
-        TypeRef::Array(inner) => {
-            let inner_tokens = type_ref_to_tokens(inner);
-            quote! { Vec<#inner_tokens> }
-        }
-        TypeRef::Option(inner) => {
-            let inner_tokens = type_ref_to_tokens(inner);
-            quote! { Option<#inner_tokens> }
-        }
-        TypeRef::Map(inner) => {
-            let inner_tokens = type_ref_to_tokens(inner);
-            quote! { std::collections::HashMap<String, #inner_tokens> }
-        }
-    }
-}
-
-fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
-    match p {
-        PrimitiveType::String => quote! { String },
-        PrimitiveType::Bool => quote! { bool },
-        PrimitiveType::I32 => quote! { i32 },
-        PrimitiveType::I64 => quote! { i64 },
-        PrimitiveType::F32 => quote! { f32 },
-        PrimitiveType::F64 => quote! { f64 },
-    }
-}
-
 fn variant_name_for_type_ref(type_ref: &TypeRef) -> Ident {
     let name = match type_ref {
         TypeRef::Named(n) => n.clone(),
@@ -264,18 +218,4 @@ fn variant_name_for_type_ref(type_ref: &TypeRef) -> Ident {
         }
     };
     to_pascal_ident(&name)
-}
-
-fn to_snake_ident(s: &str) -> Ident {
-    let snake = s.to_snake_case();
-    if RUST_KEYWORDS.contains(&snake.as_str()) {
-        format_ident!("r#{}", snake)
-    } else {
-        Ident::new(&snake, Span::call_site())
-    }
-}
-
-fn to_pascal_ident(s: &str) -> Ident {
-    let pascal = s.to_pascal_case();
-    Ident::new(&pascal, Span::call_site())
 }
