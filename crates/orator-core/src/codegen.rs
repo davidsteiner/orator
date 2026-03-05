@@ -144,17 +144,18 @@ fn variant_rename_attr(
     variant_ident: &Ident,
 ) -> TokenStream {
     // if there's an explicit mapping value, use it
-    if let Some(val) = &variant.mapping_value {
-        if val != &variant_ident.to_string() {
-            return quote! { #[serde(rename = #val)] };
-        }
+    if let Some(val) = &variant.mapping_value
+        && val != &variant_ident.to_string()
+    {
+        return quote! { #[serde(rename = #val)] };
     }
 
     // for discriminated enums without explicit mapping, check if the variant name
     // matches what serde would use by default
+    #[allow(clippy::collapsible_if)]
     if discriminator.is_some() {
         if let TypeRef::Named(ref_name) = &variant.type_ref {
-            if *ref_name != variant_ident.to_string() {
+            if variant_ident != ref_name {
                 return quote! { #[serde(rename = #ref_name)] };
             }
         }
@@ -171,7 +172,7 @@ fn generate_string_enum(name: &str, def: &StringEnumDef, doc: TokenStream) -> To
         .iter()
         .map(|value| {
             let variant_ident = to_pascal_ident(value);
-            let rename_attr = if variant_ident.to_string() != *value {
+            let rename_attr = if variant_ident != value {
                 quote! { #[serde(rename = #value)] }
             } else {
                 quote! {}
