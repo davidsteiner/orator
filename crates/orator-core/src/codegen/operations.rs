@@ -27,7 +27,7 @@ pub fn generate_operations(operations: &[OperationIr], default_tag: &str) -> Str
     prettyplease::unparse(&syntax_tree)
 }
 
-fn group_by_tag<'a>(
+pub fn group_by_tag<'a>(
     operations: &'a [OperationIr],
     default_tag: &str,
 ) -> BTreeMap<String, Vec<&'a OperationIr>> {
@@ -39,7 +39,7 @@ fn group_by_tag<'a>(
     groups
 }
 
-fn status_code_variant_name(response: &OperationResponse) -> String {
+pub fn status_code_variant_name(response: &OperationResponse) -> String {
     match &response.status_code {
         ResponseStatusCode::Default => "Default".to_string(),
         ResponseStatusCode::Code(code) => match code {

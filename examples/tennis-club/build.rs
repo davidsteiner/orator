@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 
+use orator_axum::codegen::generate_axum_handlers;
 use orator_core::codegen::{generate_operations, generate_types};
 use orator_core::lower::{lower_operations, lower_schemas};
 
@@ -21,4 +22,7 @@ fn main() {
     let out = Path::new(&out_dir);
     fs::write(out.join("types.rs"), types_code).expect("failed to write generated types");
     fs::write(out.join("operations.rs"), ops_code).expect("failed to write generated operations");
+
+    let axum_code = generate_axum_handlers(&ops, &spec.info.title);
+    fs::write(out.join("axum_handlers.rs"), axum_code).expect("failed to write axum handlers");
 }
