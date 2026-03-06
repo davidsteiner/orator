@@ -1,7 +1,7 @@
 use crate::TennisClub;
 use crate::api::generated::{
-    CreateMemberParams, CreateMemberResponse, DeleteMemberParams, DeleteMemberResponse, Error,
-    GetMemberParams, GetMemberResponse, ListMembersResponse, Member, MembersApi,
+    CreateMemberResponse, DeleteMemberParams, DeleteMemberResponse, Error, GetMemberParams,
+    GetMemberResponse, ListMembersResponse, Member, MembersApi, NewMember, UpdateMember,
     UpdateMemberParams, UpdateMemberResponse,
 };
 use std::convert::Infallible;
@@ -17,15 +17,15 @@ impl MembersApi for TennisClub {
     async fn create_member(
         &self,
         _ctx: (),
-        params: CreateMemberParams,
+        body: NewMember,
     ) -> Result<CreateMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
         let mut next_id = self.next_id.lock().unwrap();
 
         let member = Member {
             id: *next_id,
-            first_name: params.body.first_name,
-            last_name: params.body.last_name,
+            first_name: body.first_name,
+            last_name: body.last_name,
         };
 
         *next_id += 1;
@@ -54,15 +54,16 @@ impl MembersApi for TennisClub {
         &self,
         _ctx: (),
         params: UpdateMemberParams,
+        body: UpdateMember,
     ) -> Result<UpdateMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
 
         match members.iter_mut().find(|m| m.id == params.member_id) {
             Some(member) => {
-                if let Some(first_name) = params.body.first_name {
+                if let Some(first_name) = body.first_name {
                     member.first_name = first_name;
                 }
-                if let Some(last_name) = params.body.last_name {
+                if let Some(last_name) = body.last_name {
                     member.last_name = last_name;
                 }
                 Ok(UpdateMemberResponse::Ok(member.clone()))

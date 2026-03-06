@@ -19,7 +19,7 @@ pub fn generate_operations_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_response_enum(op));
-            if op_has_params(op) {
+            if !op.parameters.is_empty() {
                 all_items.push(generate_params_struct(op));
             }
         }
@@ -77,11 +77,6 @@ pub fn status_code_variant_name(response: &OperationResponse) -> String {
     }
 }
 
-/// Returns `true` when the operation has parameters or a request body.
-pub fn op_has_params(op: &OperationIr) -> bool {
-    !op.parameters.is_empty() || op.request_body.is_some()
-}
-
 fn generate_response_enum(op: &OperationIr) -> TokenStream {
     let enum_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
 
@@ -111,7 +106,7 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
 fn generate_params_struct(op: &OperationIr) -> TokenStream {
     let struct_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
 
-    let mut fields: Vec<TokenStream> = op
+    let fields: Vec<TokenStream> = op
         .parameters
         .iter()
         .map(|param| {
@@ -126,25 +121,9 @@ fn generate_params_struct(op: &OperationIr) -> TokenStream {
         })
         .collect();
 
-    if let Some(body) = &op.request_body {
-        let body_type = if body.required {
-            type_ref_to_tokens(&body.type_ref)
-        } else {
-            let inner = type_ref_to_tokens(&body.type_ref);
-            quote! { Option<#inner> }
-        };
-        fields.push(quote! { pub body: #body_type, });
-    }
-
-    if fields.is_empty() {
-        quote! {
-            pub struct #struct_ident;
-        }
-    } else {
-        quote! {
-            pub struct #struct_ident {
-                #(#fields)*
-            }
+    quote! {
+        pub struct #struct_ident {
+            #(#fields)*
         }
     }
 }
@@ -158,22 +137,29 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
             let method_ident = to_snake_ident(&op.operation_id);
             let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
 
-            if op_has_params(op) {
+            let mut extra_args = Vec::new();
+
+            if !op.parameters.is_empty() {
                 let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
-                quote! {
-                    fn #method_ident(
-                        &self,
-                        ctx: Ctx,
-                        params: #params_ident,
-                    ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
-                }
-            } else {
-                quote! {
-                    fn #method_ident(
-                        &self,
-                        ctx: Ctx,
-                    ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
-                }
+                extra_args.push(quote! { params: #params_ident });
+            }
+
+            if let Some(body) = &op.request_body {
+                let body_type = if body.required {
+                    type_ref_to_tokens(&body.type_ref)
+                } else {
+                    let inner = type_ref_to_tokens(&body.type_ref);
+                    quote! { Option<#inner> }
+                };
+                extra_args.push(quote! { body: #body_type });
+            }
+
+            quote! {
+                fn #method_ident(
+                    &self,
+                    ctx: Ctx,
+                    #(#extra_args),*
+                ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
             }
         })
         .collect();

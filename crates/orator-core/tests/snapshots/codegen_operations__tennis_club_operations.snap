@@ -36,9 +36,6 @@ pub enum CreateMemberResponse {
     Created(Member),
     UnprocessableEntity(Error),
 }
-pub struct CreateMemberParams {
-    pub body: NewMember,
-}
 pub enum GetMemberResponse {
     Ok(Member),
     NotFound(Error),
@@ -52,7 +49,6 @@ pub enum UpdateMemberResponse {
 }
 pub struct UpdateMemberParams {
     pub member_id: i64,
-    pub body: UpdateMember,
 }
 pub enum DeleteMemberResponse {
     NoContent,
@@ -72,7 +68,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn create_member(
         &self,
         ctx: Ctx,
-        params: CreateMemberParams,
+        body: NewMember,
     ) -> impl std::future::Future<
         Output = Result<CreateMemberResponse, Self::Error>,
     > + Send;
@@ -87,6 +83,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
         &self,
         ctx: Ctx,
         params: UpdateMemberParams,
+        body: UpdateMember,
     ) -> impl std::future::Future<
         Output = Result<UpdateMemberResponse, Self::Error>,
     > + Send;
