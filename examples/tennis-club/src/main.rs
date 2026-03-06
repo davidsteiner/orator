@@ -11,9 +11,11 @@ async fn main() {
     let api = Arc::new(TennisClub::new());
 
     let scalar_config = json!({ "url": "/openapi.yaml", "theme": "kepler" });
-    let app = members_router(api.clone())
-        .merge(courts_router(api.clone()))
-        .merge(bookings_router(api))
+    let app = ApiBuilder::new()
+        .members(MembersRouter::new(api.clone()))
+        .courts(CourtsRouter::new(api.clone()))
+        .bookings(BookingsRouter::new(api))
+        .build()
         .route(
             "/openapi.yaml",
             axum::routing::get(|| async {
