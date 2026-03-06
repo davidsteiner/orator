@@ -5,6 +5,8 @@ use quote::quote;
 
 use crate::ir::{OperationIr, OperationResponse, ParamLocation, ResponseStatusCode};
 
+use heck::ToSnakeCase;
+
 use super::{to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
 /// Generate token streams for a list of operations.
@@ -85,19 +87,19 @@ pub const PARAM_LOCATIONS: &[ParamLocation] = &[
 
 pub fn location_suffix(location: &ParamLocation) -> &'static str {
     match location {
-        ParamLocation::Path => "PathParams",
-        ParamLocation::Query => "QueryParams",
-        ParamLocation::Header => "HeaderParams",
-        ParamLocation::Cookie => "CookieParams",
+        ParamLocation::Path => "Path",
+        ParamLocation::Query => "Query",
+        ParamLocation::Header => "Header",
+        ParamLocation::Cookie => "Cookie",
     }
 }
 
 pub fn location_arg_name(location: &ParamLocation) -> &'static str {
     match location {
-        ParamLocation::Path => "path_params",
-        ParamLocation::Query => "query_params",
-        ParamLocation::Header => "header_params",
-        ParamLocation::Cookie => "cookie_params",
+        ParamLocation::Path => "path",
+        ParamLocation::Query => "query",
+        ParamLocation::Header => "header",
+        ParamLocation::Cookie => "cookie",
     }
 }
 
@@ -144,6 +146,8 @@ fn generate_params_structs(op: &OperationIr) -> Vec<TokenStream> {
         let struct_ident =
             to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
 
+        let is_query = *location == ParamLocation::Query;
+
         let fields: Vec<TokenStream> = params
             .iter()
             .map(|param| {
@@ -154,11 +158,24 @@ fn generate_params_structs(op: &OperationIr) -> Vec<TokenStream> {
                     let inner = type_ref_to_tokens(&param.type_ref);
                     quote! { Option<#inner> }
                 };
-                quote! { pub #field_ident: #field_type, }
+                let serde_rename = if is_query && param.name != param.name.to_snake_case() {
+                    let original = &param.name;
+                    quote! { #[serde(rename = #original)] }
+                } else {
+                    quote! {}
+                };
+                quote! { #serde_rename pub #field_ident: #field_type, }
             })
             .collect();
 
+        let derives = if is_query {
+            quote! { #[derive(serde::Deserialize)] }
+        } else {
+            quote! {}
+        };
+
         structs.push(quote! {
+            #derives
             pub struct #struct_ident {
                 #(#fields)*
             }

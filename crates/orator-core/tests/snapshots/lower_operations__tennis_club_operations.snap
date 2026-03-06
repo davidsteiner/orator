@@ -90,7 +90,24 @@ expression: ops
         tag: Some(
             "members",
         ),
-        parameters: [],
+        parameters: [
+            OperationParam {
+                name: "limit",
+                location: Query,
+                type_ref: Primitive(
+                    I32,
+                ),
+                required: false,
+            },
+            OperationParam {
+                name: "offset",
+                location: Query,
+                type_ref: Primitive(
+                    I32,
+                ),
+                required: false,
+            },
+        ],
         request_body: None,
         responses: [
             OperationResponse {
