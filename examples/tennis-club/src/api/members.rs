@@ -1,8 +1,8 @@
 use crate::TennisClub;
 use crate::api::generated::{
-    CreateMemberResponse, DeleteMemberParams, DeleteMemberResponse, Error, GetMemberParams,
+    CreateMemberResponse, DeleteMemberPathParams, DeleteMemberResponse, Error, GetMemberPathParams,
     GetMemberResponse, ListMembersResponse, Member, MembersApi, NewMember, UpdateMember,
-    UpdateMemberParams, UpdateMemberResponse,
+    UpdateMemberPathParams, UpdateMemberResponse,
 };
 use std::convert::Infallible;
 
@@ -37,15 +37,15 @@ impl MembersApi for TennisClub {
     async fn get_member(
         &self,
         _ctx: (),
-        params: GetMemberParams,
+        path_params: GetMemberPathParams,
     ) -> Result<GetMemberResponse, Self::Error> {
         let members = self.members.lock().unwrap();
 
-        match members.iter().find(|m| m.id == params.member_id) {
+        match members.iter().find(|m| m.id == path_params.member_id) {
             Some(member) => Ok(GetMemberResponse::Ok(member.clone())),
             None => Ok(GetMemberResponse::NotFound(Error {
                 code: 404,
-                message: format!("Member {} not found", params.member_id),
+                message: format!("Member {} not found", path_params.member_id),
             })),
         }
     }
@@ -53,12 +53,12 @@ impl MembersApi for TennisClub {
     async fn update_member(
         &self,
         _ctx: (),
-        params: UpdateMemberParams,
+        path_params: UpdateMemberPathParams,
         body: UpdateMember,
     ) -> Result<UpdateMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
 
-        match members.iter_mut().find(|m| m.id == params.member_id) {
+        match members.iter_mut().find(|m| m.id == path_params.member_id) {
             Some(member) => {
                 if let Some(first_name) = body.first_name {
                     member.first_name = first_name;
@@ -70,7 +70,7 @@ impl MembersApi for TennisClub {
             }
             None => Ok(UpdateMemberResponse::NotFound(Error {
                 code: 404,
-                message: format!("Member {} not found", params.member_id),
+                message: format!("Member {} not found", path_params.member_id),
             })),
         }
     }
@@ -78,18 +78,18 @@ impl MembersApi for TennisClub {
     async fn delete_member(
         &self,
         _ctx: (),
-        params: DeleteMemberParams,
+        path_params: DeleteMemberPathParams,
     ) -> Result<DeleteMemberResponse, Self::Error> {
         let mut members = self.members.lock().unwrap();
         let len_before = members.len();
-        members.retain(|m| m.id != params.member_id);
+        members.retain(|m| m.id != path_params.member_id);
 
         if members.len() < len_before {
             Ok(DeleteMemberResponse::NoContent)
         } else {
             Ok(DeleteMemberResponse::NotFound(Error {
                 code: 404,
-                message: format!("Member {} not found", params.member_id),
+                message: format!("Member {} not found", path_params.member_id),
             }))
         }
     }

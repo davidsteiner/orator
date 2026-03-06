@@ -6,8 +6,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    generate_operations_tokens, generate_types_tokens, group_by_tag, status_code_variant_name,
-    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
+    PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, group_by_tag,
+    location_suffix, status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 use orator_core::ir::{
     HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode, TypeDef,
@@ -297,10 +297,20 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
     // build trait method call arguments
     let mut call_args = vec![quote! { ctx }];
 
-    if !op.parameters.is_empty() {
-        let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
-        let field_inits: Vec<_> = op
+    for location in PARAM_LOCATIONS {
+        let params_for_loc: Vec<_> = op
             .parameters
+            .iter()
+            .filter(|p| &p.location == location)
+            .collect();
+
+        if params_for_loc.is_empty() {
+            continue;
+        }
+
+        let params_ident =
+            to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
+        let field_inits: Vec<_> = params_for_loc
             .iter()
             .map(|param| to_snake_ident(&param.name))
             .map(|name| quote! { #name })

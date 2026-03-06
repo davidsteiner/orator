@@ -120,7 +120,7 @@ async fn handle_get_member<T, Ctx>(
 where
     T: MembersApi<Ctx>,
 {
-    api.get_member(ctx, GetMemberParams { member_id }).await
+    api.get_member(ctx, GetMemberPathParams { member_id }).await
 }
 impl axum::response::IntoResponse for UpdateMemberResponse {
     fn into_response(self) -> axum::response::Response {
@@ -141,7 +141,14 @@ async fn handle_update_member<T, Ctx>(
 where
     T: MembersApi<Ctx>,
 {
-    api.update_member(ctx, UpdateMemberParams { member_id }, body).await
+    api.update_member(
+            ctx,
+            UpdateMemberPathParams {
+                member_id,
+            },
+            body,
+        )
+        .await
 }
 impl axum::response::IntoResponse for DeleteMemberResponse {
     fn into_response(self) -> axum::response::Response {
@@ -161,7 +168,13 @@ async fn handle_delete_member<T, Ctx>(
 where
     T: MembersApi<Ctx>,
 {
-    api.delete_member(ctx, DeleteMemberParams { member_id }).await
+    api.delete_member(
+            ctx,
+            DeleteMemberPathParams {
+                member_id,
+            },
+        )
+        .await
 }
 pub fn members_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
 where
