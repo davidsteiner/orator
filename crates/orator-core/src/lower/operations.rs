@@ -48,8 +48,11 @@ pub fn lower_operations(spec: &oas3::Spec) -> Result<Vec<OperationIr>, Error> {
 
             let responses = lower_responses(&op.responses, spec)?;
 
+            let description = op.summary.clone().or(op.description.clone());
+
             operations.push(OperationIr {
                 operation_id,
+                description,
                 method,
                 path: path_str.clone(),
                 tag,
@@ -121,6 +124,7 @@ fn lower_parameter(param: &Parameter) -> Result<OperationParam, Error> {
 
     Ok(OperationParam {
         name: param.name.clone(),
+        description: param.description.clone(),
         location,
         type_ref,
         required: param.required.unwrap_or(false),

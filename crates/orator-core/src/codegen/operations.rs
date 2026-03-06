@@ -7,7 +7,7 @@ use crate::ir::{OperationIr, OperationResponse, ParamLocation, ResponseStatusCod
 
 use heck::ToSnakeCase;
 
-use super::{to_pascal_ident, to_snake_ident, type_ref_to_tokens};
+use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
 /// Generate token streams for a list of operations.
 pub fn generate_operations_tokens(
@@ -105,6 +105,7 @@ pub fn location_arg_name(location: &ParamLocation) -> &'static str {
 
 fn generate_response_enum(op: &OperationIr) -> TokenStream {
     let enum_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
+    let doc = generate_doc_comment(&op.description);
 
     let variants: Vec<TokenStream> = op
         .responses
@@ -112,17 +113,20 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
         .map(|resp| {
             let variant_name = status_code_variant_name(resp);
             let variant_ident = to_pascal_ident(&variant_name);
+            let variant_doc = generate_doc_comment(&resp.description);
 
             if let Some(body) = &resp.body {
                 let body_type = type_ref_to_tokens(body);
-                quote! { #variant_ident(#body_type), }
+                quote! { #variant_doc #variant_ident(#body_type), }
             } else {
-                quote! { #variant_ident, }
+                quote! { #variant_doc #variant_ident, }
             }
         })
         .collect();
 
     quote! {
+        #doc
+        #[derive(Debug)]
         pub enum #enum_ident {
             #(#variants)*
         }
@@ -164,14 +168,15 @@ fn generate_params_structs(op: &OperationIr) -> Vec<TokenStream> {
                 } else {
                     quote! {}
                 };
-                quote! { #serde_rename pub #field_ident: #field_type, }
+                let field_doc = generate_doc_comment(&param.description);
+                quote! { #field_doc #serde_rename pub #field_ident: #field_type, }
             })
             .collect();
 
         let derives = if is_query {
-            quote! { #[derive(serde::Deserialize)] }
+            quote! { #[derive(Debug, Clone, serde::Deserialize)] }
         } else {
-            quote! {}
+            quote! { #[derive(Debug, Clone)] }
         };
 
         structs.push(quote! {
@@ -193,6 +198,7 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .map(|op| {
             let method_ident = to_snake_ident(&op.operation_id);
             let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
+            let doc = generate_doc_comment(&op.description);
 
             let mut extra_args = Vec::new();
 
@@ -220,6 +226,7 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
             }
 
             quote! {
+                #doc
                 fn #method_ident(
                     &self,
                     ctx: Ctx,

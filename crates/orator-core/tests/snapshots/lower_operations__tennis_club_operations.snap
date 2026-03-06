@@ -5,6 +5,9 @@ expression: ops
 [
     OperationIr {
         operation_id: "listBookings",
+        description: Some(
+            "List all bookings",
+        ),
         method: Get,
         path: "/bookings",
         tag: Some(
@@ -45,6 +48,9 @@ expression: ops
     },
     OperationIr {
         operation_id: "listCourts",
+        description: Some(
+            "List all courts",
+        ),
         method: Get,
         path: "/courts",
         tag: Some(
@@ -85,6 +91,9 @@ expression: ops
     },
     OperationIr {
         operation_id: "listMembers",
+        description: Some(
+            "List all members",
+        ),
         method: Get,
         path: "/members",
         tag: Some(
@@ -93,6 +102,9 @@ expression: ops
         parameters: [
             OperationParam {
                 name: "limit",
+                description: Some(
+                    "Maximum number of members to return",
+                ),
                 location: Query,
                 type_ref: Primitive(
                     I32,
@@ -101,6 +113,9 @@ expression: ops
             },
             OperationParam {
                 name: "offset",
+                description: Some(
+                    "Number of members to skip",
+                ),
                 location: Query,
                 type_ref: Primitive(
                     I32,
@@ -142,6 +157,9 @@ expression: ops
     },
     OperationIr {
         operation_id: "createMember",
+        description: Some(
+            "Create a new member",
+        ),
         method: Post,
         path: "/members",
         tag: Some(
@@ -187,6 +205,9 @@ expression: ops
     },
     OperationIr {
         operation_id: "getMember",
+        description: Some(
+            "Get a member by ID",
+        ),
         method: Get,
         path: "/members/{member_id}",
         tag: Some(
@@ -195,6 +216,7 @@ expression: ops
         parameters: [
             OperationParam {
                 name: "member_id",
+                description: None,
                 location: Path,
                 type_ref: Primitive(
                     I64,
@@ -234,6 +256,9 @@ expression: ops
     },
     OperationIr {
         operation_id: "updateMember",
+        description: Some(
+            "Update a member",
+        ),
         method: Patch,
         path: "/members/{member_id}",
         tag: Some(
@@ -242,6 +267,7 @@ expression: ops
         parameters: [
             OperationParam {
                 name: "member_id",
+                description: None,
                 location: Path,
                 type_ref: Primitive(
                     I64,
@@ -288,6 +314,9 @@ expression: ops
     },
     OperationIr {
         operation_id: "deleteMember",
+        description: Some(
+            "Delete a member",
+        ),
         method: Delete,
         path: "/members/{member_id}",
         tag: Some(
@@ -296,6 +325,7 @@ expression: ops
         parameters: [
             OperationParam {
                 name: "member_id",
+                description: None,
                 location: Path,
                 type_ref: Primitive(
                     I64,
