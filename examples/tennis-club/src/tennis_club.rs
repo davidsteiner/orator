@@ -1,9 +1,10 @@
-use crate::api::generated::{Court, Member, Surface};
+use crate::api::generated::{Booking, Court, GuestBooking, Member, MemberBooking, Surface};
 use std::sync::Mutex;
 
 pub struct TennisClub {
     pub members: Mutex<Vec<Member>>,
     pub courts: Mutex<Vec<Court>>,
+    pub bookings: Mutex<Vec<Booking>>,
     pub next_id: Mutex<i64>,
 }
 
@@ -30,9 +31,25 @@ impl TennisClub {
             },
         ];
 
+        let bookings = vec![
+            Booking::MemberBooking(MemberBooking {
+                booking_type: "member".to_string(),
+                court_id: 1,
+                member_id: 1,
+                date: "2026-03-10".to_string(),
+            }),
+            Booking::GuestBooking(GuestBooking {
+                booking_type: "guest".to_string(),
+                court_id: 2,
+                guest_name: "Jane Doe".to_string(),
+                date: "2026-03-11".to_string(),
+            }),
+        ];
+
         Self {
             members: Mutex::new(Vec::new()),
             courts: Mutex::new(courts),
+            bookings: Mutex::new(bookings),
             next_id: Mutex::new(1),
         }
     }

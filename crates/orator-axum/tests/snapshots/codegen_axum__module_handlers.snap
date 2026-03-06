@@ -2,6 +2,35 @@
 source: crates/orator-axum/tests/codegen_axum.rs
 expression: module.handlers
 ---
+impl axum::response::IntoResponse for ListBookingsResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Ok(body) => (http::StatusCode::OK, axum::Json(body)).into_response(),
+            Self::Unauthorized(body) => {
+                (http::StatusCode::UNAUTHORIZED, axum::Json(body)).into_response()
+            }
+        }
+    }
+}
+async fn handle_list_bookings<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<ListBookingsResponse, T::Error>
+where
+    T: BookingsApi<Ctx>,
+{
+    api.list_bookings(ctx, ListBookingsParams).await
+}
+pub fn bookings_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+where
+    T: BookingsApi<Ctx>,
+    T::Error: axum::response::IntoResponse,
+    Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    axum::Router::new()
+        .route("/bookings", axum::routing::get(handle_list_bookings::<T, Ctx>))
+        .with_state(api)
+}
 impl axum::response::IntoResponse for ListCourtsResponse {
     fn into_response(self) -> axum::response::Response {
         match self {

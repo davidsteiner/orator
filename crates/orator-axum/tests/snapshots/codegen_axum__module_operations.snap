@@ -2,6 +2,21 @@
 source: crates/orator-axum/tests/codegen_axum.rs
 expression: module.operations
 ---
+pub enum ListBookingsResponse {
+    Ok(Vec<Booking>),
+    Unauthorized(Error),
+}
+pub struct ListBookingsParams;
+pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    fn list_bookings(
+        &self,
+        ctx: Ctx,
+        params: ListBookingsParams,
+    ) -> impl std::future::Future<
+        Output = Result<ListBookingsResponse, Self::Error>,
+    > + Send;
+}
 pub enum ListCourtsResponse {
     Ok(Vec<Court>),
     Unauthorized(Error),

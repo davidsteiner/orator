@@ -12,7 +12,8 @@ async fn main() {
 
     let scalar_config = json!({ "url": "/openapi.yaml", "theme": "kepler" });
     let app = members_router(api.clone())
-        .merge(courts_router(api))
+        .merge(courts_router(api.clone()))
+        .merge(bookings_router(api))
         .route(
             "/openapi.yaml",
             axum::routing::get(|| async {

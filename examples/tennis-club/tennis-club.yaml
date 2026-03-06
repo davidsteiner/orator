@@ -17,6 +17,8 @@ tags:
     description: Member management
   - name: courts
     description: Court management
+  - name: bookings
+    description: Booking management
 
 security:
   - bearerAuth: [ ]
@@ -152,6 +154,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /bookings:
+    get:
+      operationId: listBookings
+      summary: List all bookings
+      tags: [ bookings ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: A list of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /courts:
     get:
       operationId: listCourts
@@ -233,6 +258,45 @@ components:
           $ref: "#/components/schemas/Surface"
         indoor:
           type: boolean
+
+    MemberBooking:
+      type: object
+      required: [ booking_type, court_id, member_id, date ]
+      properties:
+        booking_type:
+          type: string
+        court_id:
+          type: integer
+          format: int64
+        member_id:
+          type: integer
+          format: int64
+        date:
+          type: string
+
+    GuestBooking:
+      type: object
+      required: [ booking_type, court_id, guest_name, date ]
+      properties:
+        booking_type:
+          type: string
+        court_id:
+          type: integer
+          format: int64
+        guest_name:
+          type: string
+        date:
+          type: string
+
+    Booking:
+      oneOf:
+        - $ref: "#/components/schemas/MemberBooking"
+        - $ref: "#/components/schemas/GuestBooking"
+      discriminator:
+        propertyName: booking_type
+        mapping:
+          member: "#/components/schemas/MemberBooking"
+          guest: "#/components/schemas/GuestBooking"
 
     Error:
       type: object
