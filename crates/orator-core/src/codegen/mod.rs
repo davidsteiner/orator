@@ -69,7 +69,10 @@ pub fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
 
 pub fn generate_doc_comment(description: &Option<String>) -> TokenStream {
     match description {
-        Some(desc) => quote! { #[doc = #desc] },
+        Some(desc) => {
+            let doc = format!(" {desc}");
+            quote! { #[doc = #doc] }
+        }
         None => quote! {},
     }
 }

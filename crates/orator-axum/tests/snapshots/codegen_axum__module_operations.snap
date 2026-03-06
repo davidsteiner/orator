@@ -2,12 +2,17 @@
 source: crates/orator-axum/tests/codegen_axum.rs
 expression: module.operations
 ---
+/// List all bookings
+#[derive(Debug)]
 pub enum ListBookingsResponse {
+    /// A list of bookings
     Ok(Vec<Booking>),
+    /// Unauthorized
     Unauthorized(Error),
 }
 pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
+    /// List all bookings
     fn list_bookings(
         &self,
         ctx: Ctx,
@@ -15,12 +20,17 @@ pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
         Output = Result<ListBookingsResponse, Self::Error>,
     > + Send;
 }
+/// List all courts
+#[derive(Debug)]
 pub enum ListCourtsResponse {
+    /// A list of courts
     Ok(Vec<Court>),
+    /// Unauthorized
     Unauthorized(Error),
 }
 pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
+    /// List all courts
     fn list_courts(
         &self,
         ctx: Ctx,
@@ -28,42 +38,68 @@ pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
         Output = Result<ListCourtsResponse, Self::Error>,
     > + Send;
 }
+/// List all members
+#[derive(Debug)]
 pub enum ListMembersResponse {
+    /// A list of members
     Ok(Vec<Member>),
+    /// Unauthorized
     Unauthorized(Error),
 }
-#[derive(serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct ListMembersQuery {
+    /// Maximum number of members to return
     pub limit: Option<i32>,
+    /// Number of members to skip
     pub offset: Option<i32>,
 }
+/// Create a new member
+#[derive(Debug)]
 pub enum CreateMemberResponse {
+    /// The created member
     Created(Member),
+    /// Validation error
     UnprocessableEntity(Error),
 }
+/// Get a member by ID
+#[derive(Debug)]
 pub enum GetMemberResponse {
+    /// The member
     Ok(Member),
+    /// Member not found
     NotFound(Error),
 }
+#[derive(Debug, Clone)]
 pub struct GetMemberPath {
     pub member_id: i64,
 }
+/// Update a member
+#[derive(Debug)]
 pub enum UpdateMemberResponse {
+    /// The updated member
     Ok(Member),
+    /// Member not found
     NotFound(Error),
 }
+#[derive(Debug, Clone)]
 pub struct UpdateMemberPath {
     pub member_id: i64,
 }
+/// Delete a member
+#[derive(Debug)]
 pub enum DeleteMemberResponse {
+    /// Member deleted
     NoContent,
+    /// Member not found
     NotFound(Error),
 }
+#[derive(Debug, Clone)]
 pub struct DeleteMemberPath {
     pub member_id: i64,
 }
 pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
+    /// List all members
     fn list_members(
         &self,
         ctx: Ctx,
@@ -71,6 +107,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     ) -> impl std::future::Future<
         Output = Result<ListMembersResponse, Self::Error>,
     > + Send;
+    /// Create a new member
     fn create_member(
         &self,
         ctx: Ctx,
@@ -78,6 +115,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     ) -> impl std::future::Future<
         Output = Result<CreateMemberResponse, Self::Error>,
     > + Send;
+    /// Get a member by ID
     fn get_member(
         &self,
         ctx: Ctx,
@@ -85,6 +123,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     ) -> impl std::future::Future<
         Output = Result<GetMemberResponse, Self::Error>,
     > + Send;
+    /// Update a member
     fn update_member(
         &self,
         ctx: Ctx,
@@ -93,6 +132,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     ) -> impl std::future::Future<
         Output = Result<UpdateMemberResponse, Self::Error>,
     > + Send;
+    /// Delete a member
     fn delete_member(
         &self,
         ctx: Ctx,
