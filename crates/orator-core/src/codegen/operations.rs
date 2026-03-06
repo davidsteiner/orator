@@ -87,19 +87,19 @@ pub const PARAM_LOCATIONS: &[ParamLocation] = &[
 
 pub fn location_suffix(location: &ParamLocation) -> &'static str {
     match location {
-        ParamLocation::Path => "PathParams",
-        ParamLocation::Query => "QueryParams",
-        ParamLocation::Header => "HeaderParams",
-        ParamLocation::Cookie => "CookieParams",
+        ParamLocation::Path => "Path",
+        ParamLocation::Query => "Query",
+        ParamLocation::Header => "Header",
+        ParamLocation::Cookie => "Cookie",
     }
 }
 
 pub fn location_arg_name(location: &ParamLocation) -> &'static str {
     match location {
-        ParamLocation::Path => "path_params",
-        ParamLocation::Query => "query_params",
-        ParamLocation::Header => "header_params",
-        ParamLocation::Cookie => "cookie_params",
+        ParamLocation::Path => "path",
+        ParamLocation::Query => "query",
+        ParamLocation::Header => "header",
+        ParamLocation::Cookie => "cookie",
     }
 }
 

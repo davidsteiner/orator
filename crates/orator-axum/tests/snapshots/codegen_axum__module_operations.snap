@@ -33,7 +33,7 @@ pub enum ListMembersResponse {
     Unauthorized(Error),
 }
 #[derive(serde::Deserialize)]
-pub struct ListMembersQueryParams {
+pub struct ListMembersQuery {
     pub limit: Option<i32>,
     pub offset: Option<i32>,
 }
@@ -45,21 +45,21 @@ pub enum GetMemberResponse {
     Ok(Member),
     NotFound(Error),
 }
-pub struct GetMemberPathParams {
+pub struct GetMemberPath {
     pub member_id: i64,
 }
 pub enum UpdateMemberResponse {
     Ok(Member),
     NotFound(Error),
 }
-pub struct UpdateMemberPathParams {
+pub struct UpdateMemberPath {
     pub member_id: i64,
 }
 pub enum DeleteMemberResponse {
     NoContent,
     NotFound(Error),
 }
-pub struct DeleteMemberPathParams {
+pub struct DeleteMemberPath {
     pub member_id: i64,
 }
 pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
@@ -67,7 +67,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn list_members(
         &self,
         ctx: Ctx,
-        query_params: ListMembersQueryParams,
+        query: ListMembersQuery,
     ) -> impl std::future::Future<
         Output = Result<ListMembersResponse, Self::Error>,
     > + Send;
@@ -81,14 +81,14 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn get_member(
         &self,
         ctx: Ctx,
-        path_params: GetMemberPathParams,
+        path: GetMemberPath,
     ) -> impl std::future::Future<
         Output = Result<GetMemberResponse, Self::Error>,
     > + Send;
     fn update_member(
         &self,
         ctx: Ctx,
-        path_params: UpdateMemberPathParams,
+        path: UpdateMemberPath,
         body: UpdateMember,
     ) -> impl std::future::Future<
         Output = Result<UpdateMemberResponse, Self::Error>,
@@ -96,7 +96,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn delete_member(
         &self,
         ctx: Ctx,
-        path_params: DeleteMemberPathParams,
+        path: DeleteMemberPath,
     ) -> impl std::future::Future<
         Output = Result<DeleteMemberResponse, Self::Error>,
     > + Send;

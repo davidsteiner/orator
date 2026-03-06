@@ -299,7 +299,7 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
             location_suffix(&ParamLocation::Query)
         ));
         fn_params.push(quote! {
-            axum::extract::Query(query_params): axum::extract::Query<#query_struct>
+            axum::extract::Query(query): axum::extract::Query<#query_struct>
         });
     }
 
@@ -327,7 +327,7 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
 
         if *location == ParamLocation::Query {
             // Query params are extracted as a whole struct by axum::extract::Query
-            call_args.push(quote! { query_params });
+            call_args.push(quote! { query });
         } else {
             let params_ident =
                 to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
