@@ -53,6 +53,13 @@ pub struct ListMembersQuery {
     /// Number of members to skip
     pub offset: Option<i32>,
 }
+#[derive(Debug, Clone)]
+pub struct ListMembersHeader {
+    /// Unique request identifier for tracing
+    pub x_request_id: String,
+    /// Optional page size override via header
+    pub x_page_size: Option<i32>,
+}
 /// Create a new member
 #[derive(Debug)]
 pub enum CreateMemberResponse {
@@ -104,6 +111,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
         &self,
         ctx: Ctx,
         query: ListMembersQuery,
+        header: ListMembersHeader,
     ) -> impl std::future::Future<
         Output = Result<ListMembersResponse, Self::Error>,
     > + Send;

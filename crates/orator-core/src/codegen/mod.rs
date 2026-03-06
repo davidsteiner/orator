@@ -7,6 +7,8 @@ pub use operations::{
 };
 pub use schemas::{generate_types, generate_types_tokens};
 
+pub use crate::config::Config;
+
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote};

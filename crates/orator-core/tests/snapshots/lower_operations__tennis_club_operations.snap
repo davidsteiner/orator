@@ -101,6 +101,28 @@ expression: ops
         ),
         parameters: [
             OperationParam {
+                name: "X-Request-ID",
+                description: Some(
+                    "Unique request identifier for tracing",
+                ),
+                location: Header,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+            OperationParam {
+                name: "X-Page-Size",
+                description: Some(
+                    "Optional page size override via header",
+                ),
+                location: Header,
+                type_ref: Primitive(
+                    I32,
+                ),
+                required: false,
+            },
+            OperationParam {
                 name: "limit",
                 description: Some(
                     "Maximum number of members to return",

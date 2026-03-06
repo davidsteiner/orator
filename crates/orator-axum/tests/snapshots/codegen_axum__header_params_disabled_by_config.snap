@@ -1,0 +1,30 @@
+---
+source: crates/orator-axum/tests/codegen_axum.rs
+expression: code
+---
+impl axum::response::IntoResponse for GetItemsResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Ok => http::StatusCode::OK.into_response(),
+        }
+    }
+}
+async fn handle_get_items<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<GetItemsResponse, T::Error>
+where
+    T: DefaultApi<Ctx>,
+{
+    api.get_items(ctx).await
+}
+pub fn header_test_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+where
+    T: HeaderTestApi<Ctx>,
+    T::Error: axum::response::IntoResponse,
+    Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    axum::Router::new()
+        .route("/items", axum::routing::get(handle_get_items::<T, Ctx>))
+        .with_state(api)
+}
