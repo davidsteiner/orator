@@ -1,7 +1,7 @@
 use crate::TennisClub;
 use crate::api::generated::{
     CreateMemberParams, CreateMemberResponse, DeleteMemberParams, DeleteMemberResponse, Error,
-    GetMemberParams, GetMemberResponse, ListMembersParams, ListMembersResponse, Member, MembersApi,
+    GetMemberParams, GetMemberResponse, ListMembersResponse, Member, MembersApi,
     UpdateMemberParams, UpdateMemberResponse,
 };
 use std::convert::Infallible;
@@ -9,11 +9,7 @@ use std::convert::Infallible;
 impl MembersApi for TennisClub {
     type Error = Infallible;
 
-    async fn list_members(
-        &self,
-        _ctx: (),
-        _params: ListMembersParams,
-    ) -> Result<ListMembersResponse, Self::Error> {
+    async fn list_members(&self, _ctx: ()) -> Result<ListMembersResponse, Self::Error> {
         let members = self.members.lock().unwrap();
         Ok(ListMembersResponse::Ok(members.clone()))
     }

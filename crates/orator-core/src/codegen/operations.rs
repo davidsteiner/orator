@@ -19,7 +19,9 @@ pub fn generate_operations_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_response_enum(op));
-            all_items.push(generate_params_struct(op));
+            if op_has_params(op) {
+                all_items.push(generate_params_struct(op));
+            }
         }
         all_items.push(generate_api_trait(tag, ops));
     }
@@ -73,6 +75,11 @@ pub fn status_code_variant_name(response: &OperationResponse) -> String {
             other => format!("Status{other}"),
         },
     }
+}
+
+/// Returns `true` when the operation has parameters or a request body.
+pub fn op_has_params(op: &OperationIr) -> bool {
+    !op.parameters.is_empty() || op.request_body.is_some()
 }
 
 fn generate_response_enum(op: &OperationIr) -> TokenStream {
@@ -149,15 +156,24 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .iter()
         .map(|op| {
             let method_ident = to_snake_ident(&op.operation_id);
-            let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
             let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
 
-            quote! {
-                fn #method_ident(
-                    &self,
-                    ctx: Ctx,
-                    params: #params_ident,
-                ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
+            if op_has_params(op) {
+                let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
+                quote! {
+                    fn #method_ident(
+                        &self,
+                        ctx: Ctx,
+                        params: #params_ident,
+                    ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
+                }
+            } else {
+                quote! {
+                    fn #method_ident(
+                        &self,
+                        ctx: Ctx,
+                    ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
+                }
             }
         })
         .collect();

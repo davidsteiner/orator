@@ -19,7 +19,7 @@ async fn handle_list_bookings<T, Ctx>(
 where
     T: BookingsApi<Ctx>,
 {
-    api.list_bookings(ctx, ListBookingsParams).await
+    api.list_bookings(ctx).await
 }
 pub fn bookings_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
 where
@@ -48,7 +48,7 @@ async fn handle_list_courts<T, Ctx>(
 where
     T: CourtsApi<Ctx>,
 {
-    api.list_courts(ctx, ListCourtsParams).await
+    api.list_courts(ctx).await
 }
 pub fn courts_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
 where
@@ -77,7 +77,7 @@ async fn handle_list_members<T, Ctx>(
 where
     T: MembersApi<Ctx>,
 {
-    api.list_members(ctx, ListMembersParams).await
+    api.list_members(ctx).await
 }
 impl axum::response::IntoResponse for CreateMemberResponse {
     fn into_response(self) -> axum::response::Response {

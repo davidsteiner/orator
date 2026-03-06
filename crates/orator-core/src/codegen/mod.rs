@@ -2,7 +2,8 @@ mod operations;
 mod schemas;
 
 pub use operations::{
-    generate_operations, generate_operations_tokens, group_by_tag, status_code_variant_name,
+    generate_operations, generate_operations_tokens, group_by_tag, op_has_params,
+    status_code_variant_name,
 };
 pub use schemas::{generate_types, generate_types_tokens};
 

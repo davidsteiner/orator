@@ -6,8 +6,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    generate_operations_tokens, generate_types_tokens, group_by_tag, status_code_variant_name,
-    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
+    generate_operations_tokens, generate_types_tokens, group_by_tag, op_has_params,
+    status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 use orator_core::ir::{
     HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode, TypeDef,
@@ -246,7 +246,8 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
     let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
     let method_ident = to_snake_ident(&op.operation_id);
     let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
-    let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
+
+    let has_params = op_has_params(op);
 
     // collect path parameters
     let path_params: Vec<_> = op
@@ -295,9 +296,9 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         });
     }
 
-    // build params struct construction
-    let has_fields = !op.parameters.is_empty() || op.request_body.is_some();
-    let params_expr = if has_fields {
+    // build trait method call
+    let method_call = if has_params {
+        let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
         let mut field_inits = Vec::new();
         for param in &op.parameters {
             let name = to_snake_ident(&param.name);
@@ -306,9 +307,10 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         if op.request_body.is_some() {
             field_inits.push(quote! { body });
         }
-        quote! { #params_ident { #(#field_inits),* } }
+        let params_expr = quote! { #params_ident { #(#field_inits),* } };
+        quote! { api.#method_ident(ctx, #params_expr).await }
     } else {
-        quote! { #params_ident }
+        quote! { api.#method_ident(ctx).await }
     };
 
     quote! {
@@ -318,7 +320,7 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         where
             T: #trait_ident<Ctx>,
         {
-            api.#method_ident(ctx, #params_expr).await
+            #method_call
         }
     }
 }
