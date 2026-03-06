@@ -12,21 +12,21 @@ impl TennisClub {
         let courts = vec![
             Court {
                 id: 1,
-                name: "Centre Court".to_string(),
-                surface: Surface::Grass,
-                indoor: Some(false),
-            },
-            Court {
-                id: 2,
-                name: "Court Philippe-Chatrier".to_string(),
+                name: "Court 1".to_string(),
                 surface: Surface::Clay,
                 indoor: Some(false),
             },
             Court {
-                id: 3,
-                name: "Indoor Hard Court".to_string(),
+                id: 2,
+                name: "Court 2".to_string(),
                 surface: Surface::Hard,
                 indoor: Some(true),
+            },
+            Court {
+                id: 3,
+                name: "Court 3".to_string(),
+                surface: Surface::Grass,
+                indoor: Some(false),
             },
         ];
 
