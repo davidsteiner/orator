@@ -53,3 +53,58 @@ where
         .route("/items", axum::routing::get(handle_get_items::<T, Ctx>))
         .with_state(api)
 }
+pub struct Missing;
+pub struct Registered;
+pub struct HeaderTestRouter(axum::Router);
+impl HeaderTestRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: HeaderTestApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(header_test_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct ApiBuilder<HeaderTestState = Missing> {
+    router: axum::Router,
+    _phantom: std::marker::PhantomData<(HeaderTestState)>,
+}
+impl ApiBuilder {
+    pub fn new() -> Self {
+        Self {
+            router: axum::Router::new(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Missing> {
+    pub fn header_test(self, router: HeaderTestRouter) -> ApiBuilder<Registered> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Registered> {
+    pub fn build(self) -> axum::Router {
+        self.router
+    }
+}

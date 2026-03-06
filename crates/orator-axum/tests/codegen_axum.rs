@@ -73,6 +73,39 @@ paths:
 }
 
 #[test]
+fn api_builder_two_tags() {
+    let yaml = r#"
+openapi: "3.1.0"
+info:
+  title: Builder Test
+  version: "0.1.0"
+paths:
+  /users:
+    get:
+      operationId: listUsers
+      tags: [Users]
+      responses:
+        "200":
+          description: OK
+  /items:
+    get:
+      operationId: listItems
+      tags: [Items]
+      responses:
+        "200":
+          description: OK
+    post:
+      operationId: createItem
+      tags: [Items]
+      responses:
+        "201":
+          description: Created
+"#;
+    let code = generate_axum_from_yaml(yaml, "BuilderTest");
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn header_params_disabled_by_config() {
     let yaml = r#"
 openapi: "3.1.0"

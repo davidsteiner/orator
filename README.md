@@ -36,8 +36,8 @@ Please refer to the example's README for more detail.
 - [x] Build script integration
 - [x] Parameter extraction
     - [x] Path parameters
-    - [ ] Query parameters
-    - [ ] Headers
+    - [x] Query parameters
+    - [x] Headers
     - [ ] Cookie parameter support
 - [ ] CLI tool for explicit code generation into your project
 - [ ] Default response handling

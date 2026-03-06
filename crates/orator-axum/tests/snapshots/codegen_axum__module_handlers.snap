@@ -202,3 +202,143 @@ where
         )
         .with_state(api)
 }
+pub struct Missing;
+pub struct Registered;
+pub struct BookingsRouter(axum::Router);
+impl BookingsRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: BookingsApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(bookings_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct CourtsRouter(axum::Router);
+impl CourtsRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: CourtsApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(courts_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct MembersRouter(axum::Router);
+impl MembersRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: MembersApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(members_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct ApiBuilder<
+    BookingsState = Missing,
+    CourtsState = Missing,
+    MembersState = Missing,
+> {
+    router: axum::Router,
+    _phantom: std::marker::PhantomData<(BookingsState, CourtsState, MembersState)>,
+}
+impl ApiBuilder {
+    pub fn new() -> Self {
+        Self {
+            router: axum::Router::new(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<CourtsState, MembersState> ApiBuilder<Missing, CourtsState, MembersState> {
+    pub fn bookings(
+        self,
+        router: BookingsRouter,
+    ) -> ApiBuilder<Registered, CourtsState, MembersState> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<BookingsState, MembersState> ApiBuilder<BookingsState, Missing, MembersState> {
+    pub fn courts(
+        self,
+        router: CourtsRouter,
+    ) -> ApiBuilder<BookingsState, Registered, MembersState> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<BookingsState, CourtsState> ApiBuilder<BookingsState, CourtsState, Missing> {
+    pub fn members(
+        self,
+        router: MembersRouter,
+    ) -> ApiBuilder<BookingsState, CourtsState, Registered> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Registered, Registered, Registered> {
+    pub fn build(self) -> axum::Router {
+        self.router
+    }
+}
