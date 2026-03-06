@@ -4,6 +4,7 @@ use super::TypeRef;
 #[derive(Debug, Clone, PartialEq)]
 pub struct OperationIr {
     pub operation_id: String,
+    pub description: Option<String>,
     pub method: HttpMethod,
     pub path: String,
     pub tag: Option<String>,
@@ -27,6 +28,7 @@ pub enum HttpMethod {
 #[derive(Debug, Clone, PartialEq)]
 pub struct OperationParam {
     pub name: String,
+    pub description: Option<String>,
     pub location: ParamLocation,
     pub type_ref: TypeRef,
     pub required: bool,
