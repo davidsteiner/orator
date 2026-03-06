@@ -1,10 +1,10 @@
-use orator_core::codegen::generate_operations;
+use orator_core::codegen::{Config, generate_operations};
 use orator_core::lower::lower_operations;
 
 fn generate_ops_from_yaml(yaml: &str, default_tag: &str) -> String {
     let spec = oas3::from_yaml(yaml).unwrap();
     let ops = lower_operations(&spec).unwrap();
-    generate_operations(&ops, default_tag)
+    generate_operations(&ops, default_tag, &Config::default())
 }
 
 #[test]

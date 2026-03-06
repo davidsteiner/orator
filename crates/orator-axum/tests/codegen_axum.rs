@@ -1,10 +1,10 @@
-use orator_axum::codegen::{generate, generate_axum_handlers};
+use orator_axum::codegen::{Config, generate, generate_axum_handlers};
 use orator_core::lower::{lower_operations, lower_schemas};
 
 fn generate_axum_from_yaml(yaml: &str, default_tag: &str) -> String {
     let spec = oas3::from_yaml(yaml).unwrap();
     let ops = lower_operations(&spec).unwrap();
-    generate_axum_handlers(&ops, default_tag)
+    generate_axum_handlers(&ops, default_tag, &Config::default())
 }
 
 #[test]
@@ -23,7 +23,7 @@ fn tennis_club_generated_module() {
     let types = lower_schemas(&spec).unwrap();
     let ops = lower_operations(&spec).unwrap();
 
-    let module = generate(&types, &ops, &spec.info.title);
+    let module = generate(&types, &ops, &spec.info.title, &Config::default());
 
     insta::assert_snapshot!("module_types", module.types);
     insta::assert_snapshot!("module_operations", module.operations);

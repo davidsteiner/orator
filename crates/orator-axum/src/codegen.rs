@@ -9,6 +9,7 @@ use orator_core::codegen::{
     PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, group_by_tag,
     location_suffix, status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
+pub use orator_core::config::Config;
 use orator_core::ir::{
     HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode, TypeDef,
 };
@@ -101,10 +102,16 @@ pub fn generate(
     types: &[TypeDef],
     operations: &[OperationIr],
     default_tag: &str,
+    config: &Config,
 ) -> GeneratedModule {
     let types_code = format_tokens(generate_types_tokens(types));
-    let operations_code = format_tokens(generate_operations_tokens(operations, default_tag));
-    let handlers_code = format_tokens(generate_axum_handlers_tokens(operations, default_tag));
+    let operations_code =
+        format_tokens(generate_operations_tokens(operations, default_tag, config));
+    let handlers_code = format_tokens(generate_axum_handlers_tokens(
+        operations,
+        default_tag,
+        config,
+    ));
 
     GeneratedModule {
         types: types_code,
@@ -124,6 +131,10 @@ pub fn generate(
 /// include!(concat!(env!("OUT_DIR"), "/api.rs"));
 /// ```
 pub fn build(spec_path: impl AsRef<Path>) {
+    build_with_config(spec_path, &Config::default());
+}
+
+pub fn build_with_config(spec_path: impl AsRef<Path>, config: &Config) {
     let spec_path = spec_path.as_ref();
     println!("cargo::rerun-if-changed={}", spec_path.display());
 
@@ -133,7 +144,7 @@ pub fn build(spec_path: impl AsRef<Path>) {
     let types = lower_schemas(&spec).expect("failed to lower schemas");
     let ops = lower_operations(&spec).expect("failed to lower operations");
 
-    let module = generate(&types, &ops, &spec.info.title);
+    let module = generate(&types, &ops, &spec.info.title, config);
 
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR not set");
     module
@@ -145,6 +156,7 @@ pub fn build(spec_path: impl AsRef<Path>) {
 pub fn generate_axum_handlers_tokens(
     operations: &[OperationIr],
     default_tag: &str,
+    config: &Config,
 ) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
@@ -153,7 +165,7 @@ pub fn generate_axum_handlers_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_into_response_impl(op));
-            all_items.push(generate_handler_fn(op));
+            all_items.push(generate_handler_fn(op, config));
         }
         all_items.push(generate_router_fn(tag, ops));
     }
@@ -163,8 +175,12 @@ pub fn generate_axum_handlers_tokens(
 
 /// Generate axum handler functions, `IntoResponse` impls, and router functions
 /// for the given operations.
-pub fn generate_axum_handlers(operations: &[OperationIr], default_tag: &str) -> String {
-    let items = generate_axum_handlers_tokens(operations, default_tag);
+pub fn generate_axum_handlers(
+    operations: &[OperationIr],
+    default_tag: &str,
+    config: &Config,
+) -> String {
+    let items = generate_axum_handlers_tokens(operations, default_tag, config);
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
@@ -241,7 +257,7 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
     }
 }
 
-fn generate_handler_fn(op: &OperationIr) -> TokenStream {
+fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
     let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
     let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
     let method_ident = to_snake_ident(&op.operation_id);
@@ -315,6 +331,10 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
     let mut call_args = vec![quote! { ctx }];
 
     for location in PARAM_LOCATIONS {
+        if !config.is_location_enabled(location) {
+            continue;
+        }
+
         let params_for_loc: Vec<_> = op
             .parameters
             .iter()
