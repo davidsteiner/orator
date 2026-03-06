@@ -1,0 +1,55 @@
+---
+source: crates/orator-axum/tests/codegen_axum.rs
+expression: code
+---
+impl axum::response::IntoResponse for GetItemsResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Ok => http::StatusCode::OK.into_response(),
+        }
+    }
+}
+async fn handle_get_items<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+    headers: axum::http::HeaderMap,
+) -> Result<GetItemsResponse, T::Error>
+where
+    T: DefaultApi<Ctx>,
+{
+    let header = GetItemsHeader {
+        x_request_id: headers
+            .get("X-Request-ID")
+            .expect(concat!("missing required header: ", "X-Request-ID"))
+            .to_str()
+            .expect(concat!("non-ASCII header value: ", "X-Request-ID"))
+            .to_owned(),
+        x_rate_limit: headers
+            .get("X-Rate-Limit")
+            .map(|v| {
+                v
+                    .to_str()
+                    .expect(concat!("non-ASCII header value: ", "X-Rate-Limit"))
+                    .parse::<i32>()
+                    .expect(concat!("invalid header value: ", "X-Rate-Limit"))
+            }),
+        x_trace_enabled: headers
+            .get("X-Trace-Enabled")
+            .expect(concat!("missing required header: ", "X-Trace-Enabled"))
+            .to_str()
+            .expect(concat!("non-ASCII header value: ", "X-Trace-Enabled"))
+            .parse::<bool>()
+            .expect(concat!("invalid header value: ", "X-Trace-Enabled")),
+    };
+    api.get_items(ctx, header).await
+}
+pub fn header_test_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+where
+    T: HeaderTestApi<Ctx>,
+    T::Error: axum::response::IntoResponse,
+    Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    axum::Router::new()
+        .route("/items", axum::routing::get(handle_get_items::<T, Ctx>))
+        .with_state(api)
+}

@@ -32,6 +32,19 @@ paths:
       security:
         - bearerAuth: [ ]
       parameters:
+        - name: X-Request-ID
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Unique request identifier for tracing
+        - name: X-Page-Size
+          in: header
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Optional page size override via header
         - name: limit
           in: query
           required: false

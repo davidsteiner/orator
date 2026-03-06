@@ -74,11 +74,29 @@ async fn handle_list_members<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
     axum::extract::Query(query): axum::extract::Query<ListMembersQuery>,
+    headers: axum::http::HeaderMap,
 ) -> Result<ListMembersResponse, T::Error>
 where
     T: MembersApi<Ctx>,
 {
-    api.list_members(ctx, query).await
+    let header = ListMembersHeader {
+        x_request_id: headers
+            .get("X-Request-ID")
+            .expect(concat!("missing required header: ", "X-Request-ID"))
+            .to_str()
+            .expect(concat!("non-ASCII header value: ", "X-Request-ID"))
+            .to_owned(),
+        x_page_size: headers
+            .get("X-Page-Size")
+            .map(|v| {
+                v
+                    .to_str()
+                    .expect(concat!("non-ASCII header value: ", "X-Page-Size"))
+                    .parse::<i32>()
+                    .expect(concat!("invalid header value: ", "X-Page-Size"))
+            }),
+    };
+    api.list_members(ctx, query, header).await
 }
 impl axum::response::IntoResponse for CreateMemberResponse {
     fn into_response(self) -> axum::response::Response {
