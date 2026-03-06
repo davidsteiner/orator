@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use proc_macro2::TokenStream;
 use quote::quote;
 
+use crate::config::Config;
 use crate::ir::{OperationIr, OperationResponse, ParamLocation, ResponseStatusCode};
 
 use heck::ToSnakeCase;
@@ -13,6 +14,7 @@ use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_t
 pub fn generate_operations_tokens(
     operations: &[OperationIr],
     default_tag: &str,
+    config: &Config,
 ) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
@@ -21,17 +23,21 @@ pub fn generate_operations_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_response_enum(op));
-            all_items.extend(generate_params_structs(op));
+            all_items.extend(generate_params_structs(op, config));
         }
-        all_items.push(generate_api_trait(tag, ops));
+        all_items.push(generate_api_trait(tag, ops, config));
     }
 
     all_items
 }
 
 /// Generate Rust source code for a list of operations.
-pub fn generate_operations(operations: &[OperationIr], default_tag: &str) -> String {
-    let items = generate_operations_tokens(operations, default_tag);
+pub fn generate_operations(
+    operations: &[OperationIr],
+    default_tag: &str,
+    config: &Config,
+) -> String {
+    let items = generate_operations_tokens(operations, default_tag, config);
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
@@ -133,10 +139,13 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
     }
 }
 
-fn generate_params_structs(op: &OperationIr) -> Vec<TokenStream> {
+fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream> {
     let mut structs = Vec::new();
 
     for location in PARAM_LOCATIONS {
+        if !config.is_location_enabled(location) {
+            continue;
+        }
         let params: Vec<_> = op
             .parameters
             .iter()
@@ -190,7 +199,7 @@ fn generate_params_structs(op: &OperationIr) -> Vec<TokenStream> {
     structs
 }
 
-fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
+fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -> TokenStream {
     let trait_ident = to_pascal_ident(&format!("{tag}Api"));
 
     let methods: Vec<TokenStream> = operations
@@ -203,6 +212,9 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
             let mut extra_args = Vec::new();
 
             for location in PARAM_LOCATIONS {
+                if !config.is_location_enabled(location) {
+                    continue;
+                }
                 let has_params = op.parameters.iter().any(|p| &p.location == location);
                 if has_params {
                     let params_ident = to_pascal_ident(&format!(

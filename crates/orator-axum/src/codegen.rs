@@ -9,8 +9,10 @@ use orator_core::codegen::{
     PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, group_by_tag,
     location_suffix, status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
+pub use orator_core::config::Config;
 use orator_core::ir::{
-    HttpMethod, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode, TypeDef,
+    HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation, PrimitiveType,
+    ResponseStatusCode, TypeDef, TypeRef,
 };
 use orator_core::lower::{lower_operations, lower_schemas};
 
@@ -101,10 +103,16 @@ pub fn generate(
     types: &[TypeDef],
     operations: &[OperationIr],
     default_tag: &str,
+    config: &Config,
 ) -> GeneratedModule {
     let types_code = format_tokens(generate_types_tokens(types));
-    let operations_code = format_tokens(generate_operations_tokens(operations, default_tag));
-    let handlers_code = format_tokens(generate_axum_handlers_tokens(operations, default_tag));
+    let operations_code =
+        format_tokens(generate_operations_tokens(operations, default_tag, config));
+    let handlers_code = format_tokens(generate_axum_handlers_tokens(
+        operations,
+        default_tag,
+        config,
+    ));
 
     GeneratedModule {
         types: types_code,
@@ -124,6 +132,10 @@ pub fn generate(
 /// include!(concat!(env!("OUT_DIR"), "/api.rs"));
 /// ```
 pub fn build(spec_path: impl AsRef<Path>) {
+    build_with_config(spec_path, &Config::default());
+}
+
+pub fn build_with_config(spec_path: impl AsRef<Path>, config: &Config) {
     let spec_path = spec_path.as_ref();
     println!("cargo::rerun-if-changed={}", spec_path.display());
 
@@ -133,7 +145,7 @@ pub fn build(spec_path: impl AsRef<Path>) {
     let types = lower_schemas(&spec).expect("failed to lower schemas");
     let ops = lower_operations(&spec).expect("failed to lower operations");
 
-    let module = generate(&types, &ops, &spec.info.title);
+    let module = generate(&types, &ops, &spec.info.title, config);
 
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR not set");
     module
@@ -145,6 +157,7 @@ pub fn build(spec_path: impl AsRef<Path>) {
 pub fn generate_axum_handlers_tokens(
     operations: &[OperationIr],
     default_tag: &str,
+    config: &Config,
 ) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
@@ -153,7 +166,7 @@ pub fn generate_axum_handlers_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_into_response_impl(op));
-            all_items.push(generate_handler_fn(op));
+            all_items.push(generate_handler_fn(op, config));
         }
         all_items.push(generate_router_fn(tag, ops));
     }
@@ -163,8 +176,12 @@ pub fn generate_axum_handlers_tokens(
 
 /// Generate axum handler functions, `IntoResponse` impls, and router functions
 /// for the given operations.
-pub fn generate_axum_handlers(operations: &[OperationIr], default_tag: &str) -> String {
-    let items = generate_axum_handlers_tokens(operations, default_tag);
+pub fn generate_axum_handlers(
+    operations: &[OperationIr],
+    default_tag: &str,
+    config: &Config,
+) -> String {
+    let items = generate_axum_handlers_tokens(operations, default_tag, config);
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
@@ -241,7 +258,67 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
     }
 }
 
-fn generate_handler_fn(op: &OperationIr) -> TokenStream {
+fn generate_header_extraction(
+    op: &OperationIr,
+    header_params: &[&OperationParam],
+) -> (TokenStream, TokenStream) {
+    let header_struct = to_pascal_ident(&format!(
+        "{}{}",
+        op.operation_id,
+        location_suffix(&ParamLocation::Header)
+    ));
+
+    let field_inits: Vec<TokenStream> = header_params
+        .iter()
+        .map(|param| {
+            let field_name = to_snake_ident(&param.name);
+            let header_name = &param.name;
+            let is_string = matches!(&param.type_ref, TypeRef::Primitive(PrimitiveType::String));
+
+            let value_expr = if is_string {
+                quote! {
+                    .to_str()
+                    .expect(concat!("non-ASCII header value: ", #header_name))
+                    .to_owned()
+                }
+            } else {
+                let ty = type_ref_to_tokens(&param.type_ref);
+                quote! {
+                    .to_str()
+                    .expect(concat!("non-ASCII header value: ", #header_name))
+                    .parse::<#ty>()
+                    .expect(concat!("invalid header value: ", #header_name))
+                }
+            };
+
+            if param.required {
+                quote! {
+                    #field_name: headers
+                        .get(#header_name)
+                        .expect(concat!("missing required header: ", #header_name))
+                        #value_expr,
+                }
+            } else {
+                quote! {
+                    #field_name: headers
+                        .get(#header_name)
+                        .map(|v| v #value_expr),
+                }
+            }
+        })
+        .collect();
+
+    let fn_param = quote! { headers: axum::http::HeaderMap };
+    let let_block = quote! {
+        let header = #header_struct {
+            #(#field_inits)*
+        };
+    };
+
+    (fn_param, let_block)
+}
+
+fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
     let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
     let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
     let method_ident = to_snake_ident(&op.operation_id);
@@ -303,6 +380,21 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         });
     }
 
+    // header extractor
+    let header_params: Vec<_> = op
+        .parameters
+        .iter()
+        .filter(|p| p.location == ParamLocation::Header)
+        .filter(|_| config.is_location_enabled(&ParamLocation::Header))
+        .collect();
+    let header_extraction = if !header_params.is_empty() {
+        let (fn_param, let_block) = generate_header_extraction(op, &header_params);
+        fn_params.push(fn_param);
+        Some(let_block)
+    } else {
+        None
+    };
+
     // request body is last
     if let Some(body) = &op.request_body {
         let body_type = type_ref_to_tokens(&body.type_ref);
@@ -315,6 +407,10 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
     let mut call_args = vec![quote! { ctx }];
 
     for location in PARAM_LOCATIONS {
+        if !config.is_location_enabled(location) {
+            continue;
+        }
+
         let params_for_loc: Vec<_> = op
             .parameters
             .iter()
@@ -326,8 +422,9 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         }
 
         if *location == ParamLocation::Query {
-            // Query params are extracted as a whole struct by axum::extract::Query
             call_args.push(quote! { query });
+        } else if *location == ParamLocation::Header {
+            call_args.push(quote! { header });
         } else {
             let params_ident =
                 to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
@@ -354,6 +451,7 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         where
             T: #trait_ident<Ctx>,
         {
+            #header_extraction
             #method_call
         }
     }
