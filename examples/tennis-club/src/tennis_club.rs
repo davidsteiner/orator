@@ -41,16 +41,44 @@ impl TennisClub {
             Booking::GuestBooking(GuestBooking {
                 booking_type: "guest".to_string(),
                 court_id: 2,
-                guest_name: "Jane Doe".to_string(),
+                guest_name: "Radagast the Brown".to_string(),
                 date: "2026-03-11".to_string(),
             }),
         ];
 
+        let members = vec![
+            Member {
+                id: 1,
+                first_name: "Lobelia".to_string(),
+                last_name: "Sackville-Baggins".to_string(),
+            },
+            Member {
+                id: 2,
+                first_name: "Fredegar".to_string(),
+                last_name: "Bolger".to_string(),
+            },
+            Member {
+                id: 3,
+                first_name: "Folco".to_string(),
+                last_name: "Boffin".to_string(),
+            },
+            Member {
+                id: 4,
+                first_name: "Estella".to_string(),
+                last_name: "Brandybuck".to_string(),
+            },
+            Member {
+                id: 5,
+                first_name: "Elanor".to_string(),
+                last_name: "Gamgee".to_string(),
+            },
+        ];
+
         Self {
-            members: Mutex::new(Vec::new()),
+            members: Mutex::new(members),
             courts: Mutex::new(courts),
             bookings: Mutex::new(bookings),
-            next_id: Mutex::new(1),
+            next_id: Mutex::new(6),
         }
     }
 }
