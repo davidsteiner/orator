@@ -3,10 +3,10 @@ info:
   title: Tennis Club API
   version: "0.1.0"
   description: A simple tennis club member management API.
-  license: 
+  license:
     name: MIT
     url: https://github.com/davidsteiner/orator/blob/main/LICENSE
-    
+
 
 servers:
   - url: http://localhost:3000
@@ -15,18 +15,20 @@ servers:
 tags:
   - name: members
     description: Member management
+  - name: courts
+    description: Court management
 
 security:
-  - bearerAuth: []
+  - bearerAuth: [ ]
 
 paths:
   /members:
     get:
       operationId: listMembers
       summary: List all members
-      tags: [members]
+      tags: [ members ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       responses:
         "200":
           description: A list of members
@@ -45,9 +47,9 @@ paths:
     post:
       operationId: createMember
       summary: Create a new member
-      tags: [members]
+      tags: [ members ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -72,9 +74,9 @@ paths:
     get:
       operationId: getMember
       summary: Get a member by ID
-      tags: [members]
+      tags: [ members ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: member_id
           in: path
@@ -98,9 +100,9 @@ paths:
     patch:
       operationId: updateMember
       summary: Update a member
-      tags: [members]
+      tags: [ members ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: member_id
           in: path
@@ -130,9 +132,9 @@ paths:
     delete:
       operationId: deleteMember
       summary: Delete a member
-      tags: [members]
+      tags: [ members ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: member_id
           in: path
@@ -145,6 +147,29 @@ paths:
           description: Member deleted
         "404":
           description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /courts:
+    get:
+      operationId: listCourts
+      summary: List all courts
+      tags: [ courts ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: A list of courts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Court"
+        "401":
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -190,6 +215,24 @@ components:
           type: string
         last_name:
           type: string
+
+    Surface:
+      type: string
+      enum: [ clay, grass, hard ]
+
+    Court:
+      type: object
+      required: [ id, name, surface ]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        surface:
+          $ref: "#/components/schemas/Surface"
+        indoor:
+          type: boolean
 
     Error:
       type: object

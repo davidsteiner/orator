@@ -4,6 +4,46 @@ expression: ops
 ---
 [
     OperationIr {
+        operation_id: "listCourts",
+        method: Get,
+        path: "/courts",
+        tag: Some(
+            "courts",
+        ),
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "A list of courts",
+                ),
+                body: Some(
+                    Array(
+                        Named(
+                            "Court",
+                        ),
+                    ),
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    401,
+                ),
+                description: Some(
+                    "Unauthorized",
+                ),
+                body: Some(
+                    Named(
+                        "Error",
+                    ),
+                ),
+            },
+        ],
+    },
+    OperationIr {
         operation_id: "listMembers",
         method: Get,
         path: "/members",

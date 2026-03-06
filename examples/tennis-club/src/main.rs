@@ -7,13 +7,36 @@ use std::sync::{Arc, Mutex};
 
 struct TennisClub {
     members: Mutex<Vec<Member>>,
+    courts: Mutex<Vec<Court>>,
     next_id: Mutex<i64>,
 }
 
 impl TennisClub {
     fn new() -> Self {
+        let courts = vec![
+            Court {
+                id: 1,
+                name: "Centre Court".to_string(),
+                surface: Surface::Grass,
+                indoor: Some(false),
+            },
+            Court {
+                id: 2,
+                name: "Court Philippe-Chatrier".to_string(),
+                surface: Surface::Clay,
+                indoor: Some(false),
+            },
+            Court {
+                id: 3,
+                name: "Indoor Hard Court".to_string(),
+                surface: Surface::Hard,
+                indoor: Some(true),
+            },
+        ];
+
         Self {
             members: Mutex::new(Vec::new()),
+            courts: Mutex::new(courts),
             next_id: Mutex::new(1),
         }
     }
@@ -111,12 +134,26 @@ impl MembersApi for TennisClub {
     }
 }
 
+impl CourtsApi for TennisClub {
+    type Error = Infallible;
+
+    async fn list_courts(
+        &self,
+        _ctx: (),
+        _params: ListCourtsParams,
+    ) -> Result<ListCourtsResponse, Self::Error> {
+        let courts = self.courts.lock().unwrap();
+        Ok(ListCourtsResponse::Ok(courts.clone()))
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let api = Arc::new(TennisClub::new());
 
     let scalar_config = json!({ "url": "/openapi.yaml", "theme": "kepler" });
-    let app = members_router(api)
+    let app = members_router(api.clone())
+        .merge(courts_router(api))
         .route(
             "/openapi.yaml",
             axum::routing::get(|| async {
