@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::ir::{OperationIr, OperationResponse, ResponseStatusCode};
+use crate::ir::{OperationIr, OperationResponse, ParamLocation, ResponseStatusCode};
 
 use super::{to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
@@ -19,7 +19,7 @@ pub fn generate_operations_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_response_enum(op));
-            all_items.push(generate_params_struct(op));
+            all_items.extend(generate_params_structs(op));
         }
         all_items.push(generate_api_trait(tag, ops));
     }
@@ -75,6 +75,32 @@ pub fn status_code_variant_name(response: &OperationResponse) -> String {
     }
 }
 
+/// The canonical ordering for parameter locations in generated signatures.
+pub const PARAM_LOCATIONS: &[ParamLocation] = &[
+    ParamLocation::Path,
+    ParamLocation::Query,
+    ParamLocation::Header,
+    ParamLocation::Cookie,
+];
+
+pub fn location_suffix(location: &ParamLocation) -> &'static str {
+    match location {
+        ParamLocation::Path => "PathParams",
+        ParamLocation::Query => "QueryParams",
+        ParamLocation::Header => "HeaderParams",
+        ParamLocation::Cookie => "CookieParams",
+    }
+}
+
+pub fn location_arg_name(location: &ParamLocation) -> &'static str {
+    match location {
+        ParamLocation::Path => "path_params",
+        ParamLocation::Query => "query_params",
+        ParamLocation::Header => "header_params",
+        ParamLocation::Cookie => "cookie_params",
+    }
+}
+
 fn generate_response_enum(op: &OperationIr) -> TokenStream {
     let enum_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
 
@@ -101,45 +127,45 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
     }
 }
 
-fn generate_params_struct(op: &OperationIr) -> TokenStream {
-    let struct_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
+fn generate_params_structs(op: &OperationIr) -> Vec<TokenStream> {
+    let mut structs = Vec::new();
 
-    let mut fields: Vec<TokenStream> = op
-        .parameters
-        .iter()
-        .map(|param| {
-            let field_ident = to_snake_ident(&param.name);
-            let field_type = if param.required {
-                type_ref_to_tokens(&param.type_ref)
-            } else {
-                let inner = type_ref_to_tokens(&param.type_ref);
-                quote! { Option<#inner> }
-            };
-            quote! { pub #field_ident: #field_type, }
-        })
-        .collect();
+    for location in PARAM_LOCATIONS {
+        let params: Vec<_> = op
+            .parameters
+            .iter()
+            .filter(|p| &p.location == location)
+            .collect();
 
-    if let Some(body) = &op.request_body {
-        let body_type = if body.required {
-            type_ref_to_tokens(&body.type_ref)
-        } else {
-            let inner = type_ref_to_tokens(&body.type_ref);
-            quote! { Option<#inner> }
-        };
-        fields.push(quote! { pub body: #body_type, });
-    }
-
-    if fields.is_empty() {
-        quote! {
-            pub struct #struct_ident;
+        if params.is_empty() {
+            continue;
         }
-    } else {
-        quote! {
+
+        let struct_ident =
+            to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
+
+        let fields: Vec<TokenStream> = params
+            .iter()
+            .map(|param| {
+                let field_ident = to_snake_ident(&param.name);
+                let field_type = if param.required {
+                    type_ref_to_tokens(&param.type_ref)
+                } else {
+                    let inner = type_ref_to_tokens(&param.type_ref);
+                    quote! { Option<#inner> }
+                };
+                quote! { pub #field_ident: #field_type, }
+            })
+            .collect();
+
+        structs.push(quote! {
             pub struct #struct_ident {
                 #(#fields)*
             }
-        }
+        });
     }
+
+    structs
 }
 
 fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
@@ -149,14 +175,38 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .iter()
         .map(|op| {
             let method_ident = to_snake_ident(&op.operation_id);
-            let params_ident = to_pascal_ident(&format!("{}Params", op.operation_id));
             let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
+
+            let mut extra_args = Vec::new();
+
+            for location in PARAM_LOCATIONS {
+                let has_params = op.parameters.iter().any(|p| &p.location == location);
+                if has_params {
+                    let params_ident = to_pascal_ident(&format!(
+                        "{}{}",
+                        op.operation_id,
+                        location_suffix(location)
+                    ));
+                    let arg_name = to_snake_ident(location_arg_name(location));
+                    extra_args.push(quote! { #arg_name: #params_ident });
+                }
+            }
+
+            if let Some(body) = &op.request_body {
+                let body_type = if body.required {
+                    type_ref_to_tokens(&body.type_ref)
+                } else {
+                    let inner = type_ref_to_tokens(&body.type_ref);
+                    quote! { Option<#inner> }
+                };
+                extra_args.push(quote! { body: #body_type });
+            }
 
             quote! {
                 fn #method_ident(
                     &self,
                     ctx: Ctx,
-                    params: #params_ident,
+                    #(#extra_args),*
                 ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
             }
         })

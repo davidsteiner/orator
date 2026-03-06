@@ -38,7 +38,7 @@ Please refer to the example's README for more detail.
     - [x] Path parameters
     - [ ] Query parameters
     - [ ] Headers
-    - [] Cookie parameter support
+    - [ ] Cookie parameter support
 - [ ] CLI tool for explicit code generation into your project
 - [ ] Default response handling
 - [ ] Support for security schemes

@@ -6,13 +6,11 @@ pub enum ListBookingsResponse {
     Ok(Vec<Booking>),
     Unauthorized(Error),
 }
-pub struct ListBookingsParams;
 pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     fn list_bookings(
         &self,
         ctx: Ctx,
-        params: ListBookingsParams,
     ) -> impl std::future::Future<
         Output = Result<ListBookingsResponse, Self::Error>,
     > + Send;
@@ -21,13 +19,11 @@ pub enum ListCourtsResponse {
     Ok(Vec<Court>),
     Unauthorized(Error),
 }
-pub struct ListCourtsParams;
 pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     fn list_courts(
         &self,
         ctx: Ctx,
-        params: ListCourtsParams,
     ) -> impl std::future::Future<
         Output = Result<ListCourtsResponse, Self::Error>,
     > + Send;
@@ -36,34 +32,29 @@ pub enum ListMembersResponse {
     Ok(Vec<Member>),
     Unauthorized(Error),
 }
-pub struct ListMembersParams;
 pub enum CreateMemberResponse {
     Created(Member),
     UnprocessableEntity(Error),
-}
-pub struct CreateMemberParams {
-    pub body: NewMember,
 }
 pub enum GetMemberResponse {
     Ok(Member),
     NotFound(Error),
 }
-pub struct GetMemberParams {
+pub struct GetMemberPathParams {
     pub member_id: i64,
 }
 pub enum UpdateMemberResponse {
     Ok(Member),
     NotFound(Error),
 }
-pub struct UpdateMemberParams {
+pub struct UpdateMemberPathParams {
     pub member_id: i64,
-    pub body: UpdateMember,
 }
 pub enum DeleteMemberResponse {
     NoContent,
     NotFound(Error),
 }
-pub struct DeleteMemberParams {
+pub struct DeleteMemberPathParams {
     pub member_id: i64,
 }
 pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
@@ -71,35 +62,35 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn list_members(
         &self,
         ctx: Ctx,
-        params: ListMembersParams,
     ) -> impl std::future::Future<
         Output = Result<ListMembersResponse, Self::Error>,
     > + Send;
     fn create_member(
         &self,
         ctx: Ctx,
-        params: CreateMemberParams,
+        body: NewMember,
     ) -> impl std::future::Future<
         Output = Result<CreateMemberResponse, Self::Error>,
     > + Send;
     fn get_member(
         &self,
         ctx: Ctx,
-        params: GetMemberParams,
+        path_params: GetMemberPathParams,
     ) -> impl std::future::Future<
         Output = Result<GetMemberResponse, Self::Error>,
     > + Send;
     fn update_member(
         &self,
         ctx: Ctx,
-        params: UpdateMemberParams,
+        path_params: UpdateMemberPathParams,
+        body: UpdateMember,
     ) -> impl std::future::Future<
         Output = Result<UpdateMemberResponse, Self::Error>,
     > + Send;
     fn delete_member(
         &self,
         ctx: Ctx,
-        params: DeleteMemberParams,
+        path_params: DeleteMemberPathParams,
     ) -> impl std::future::Future<
         Output = Result<DeleteMemberResponse, Self::Error>,
     > + Send;
