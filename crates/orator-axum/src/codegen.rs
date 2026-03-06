@@ -171,6 +171,8 @@ pub fn generate_axum_handlers_tokens(
         all_items.push(generate_router_fn(tag, ops));
     }
 
+    all_items.push(generate_api_builder(&grouped));
+
     all_items
 }
 
@@ -470,11 +472,178 @@ fn http_method_to_routing_fn(method: &HttpMethod) -> proc_macro2::Ident {
     }
 }
 
+fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStream {
+    if tags.is_empty() {
+        return quote! {};
+    }
+
+    let tag_names: Vec<&String> = tags.keys().collect();
+
+    struct TagInfo {
+        wrapper_ident: proc_macro2::Ident,
+        state_ident: proc_macro2::Ident,
+        method_ident: proc_macro2::Ident,
+        trait_ident: proc_macro2::Ident,
+        router_fn_ident: proc_macro2::Ident,
+    }
+
+    let infos: Vec<TagInfo> = tag_names
+        .iter()
+        .map(|tag| TagInfo {
+            wrapper_ident: to_pascal_ident(&format!("{tag}Router")),
+            state_ident: to_pascal_ident(&format!("{tag}State")),
+            method_ident: to_snake_ident(tag),
+            trait_ident: to_pascal_ident(&format!("{tag}Api")),
+            router_fn_ident: to_snake_ident(&format!("{tag}_router")),
+        })
+        .collect();
+
+    let markers = quote! {
+        pub struct Missing;
+        pub struct Registered;
+    };
+
+    // per-tag typed router wrappers
+    let wrappers: Vec<TokenStream> = infos
+        .iter()
+        .map(|info| {
+            let wrapper = &info.wrapper_ident;
+            let trait_ident = &info.trait_ident;
+            let router_fn = &info.router_fn_ident;
+
+            quote! {
+                pub struct #wrapper(axum::Router);
+
+                impl #wrapper {
+                    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+                    where
+                        T: #trait_ident<Ctx>,
+                        T::Error: axum::response::IntoResponse,
+                        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+                    {
+                        Self(#router_fn(api))
+                    }
+
+                    pub fn layer<L>(self, layer: L) -> Self
+                    where
+                        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+                        L::Service: tower::Service<axum::http::Request<axum::body::Body>>
+                            + Clone + Send + Sync + 'static,
+                        <L::Service as tower::Service<axum::http::Request<axum::body::Body>>>::Response:
+                            axum::response::IntoResponse + 'static,
+                        <L::Service as tower::Service<axum::http::Request<axum::body::Body>>>::Error:
+                            Into<std::convert::Infallible> + 'static,
+                        <L::Service as tower::Service<axum::http::Request<axum::body::Body>>>::Future:
+                            Send + 'static,
+                    {
+                        Self(self.0.layer(layer))
+                    }
+                }
+            }
+        })
+        .collect();
+
+    // ApiBuilder struct
+    let state_idents: Vec<&proc_macro2::Ident> = infos.iter().map(|i| &i.state_ident).collect();
+
+    let builder_struct = quote! {
+        pub struct ApiBuilder<#(#state_idents = Missing),*> {
+            router: axum::Router,
+            _phantom: std::marker::PhantomData<(#(#state_idents),*)>,
+        }
+    };
+
+    // new() impl on all-defaults type
+    let new_impl = quote! {
+        impl ApiBuilder {
+            pub fn new() -> Self {
+                Self {
+                    router: axum::Router::new(),
+                    _phantom: std::marker::PhantomData,
+                }
+            }
+        }
+    };
+
+    // per-tag registration methods
+    let registration_impls: Vec<TokenStream> = infos
+        .iter()
+        .enumerate()
+        .map(|(idx, info)| {
+            let wrapper = &info.wrapper_ident;
+            let method = &info.method_ident;
+
+            let impl_generics: Vec<&proc_macro2::Ident> = infos
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| *i != idx)
+                .map(|(_, i)| &i.state_ident)
+                .collect();
+
+            let input_params: Vec<TokenStream> = infos
+                .iter()
+                .enumerate()
+                .map(|(i, info)| {
+                    if i == idx {
+                        quote! { Missing }
+                    } else {
+                        let ident = &info.state_ident;
+                        quote! { #ident }
+                    }
+                })
+                .collect();
+
+            let output_params: Vec<TokenStream> = infos
+                .iter()
+                .enumerate()
+                .map(|(i, info)| {
+                    if i == idx {
+                        quote! { Registered }
+                    } else {
+                        let ident = &info.state_ident;
+                        quote! { #ident }
+                    }
+                })
+                .collect();
+
+            quote! {
+                impl<#(#impl_generics),*> ApiBuilder<#(#input_params),*> {
+                    pub fn #method(self, router: #wrapper) -> ApiBuilder<#(#output_params),*> {
+                        ApiBuilder {
+                            router: self.router.merge(router.0),
+                            _phantom: std::marker::PhantomData,
+                        }
+                    }
+                }
+            }
+        })
+        .collect();
+
+    // build() impl for all Registered state
+    let all_registered: Vec<TokenStream> = infos.iter().map(|_| quote! { Registered }).collect();
+    let build_impl = quote! {
+        impl ApiBuilder<#(#all_registered),*> {
+            pub fn build(self) -> axum::Router {
+                self.router
+            }
+        }
+    };
+
+    quote! {
+        #markers
+        #(#wrappers)*
+        #builder_struct
+        #new_impl
+        #(#registration_impls)*
+        #build_impl
+    }
+}
+
 fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
     let router_ident = to_snake_ident(&format!("{tag}_router"));
     let trait_ident = to_pascal_ident(&format!("{tag}Api"));
 
-    // Group operations by path, preserving order
+    // group operations by path, preserving order
     let mut path_groups: BTreeMap<&str, Vec<&OperationIr>> = BTreeMap::new();
     for op in operations {
         path_groups.entry(&op.path).or_default().push(op);

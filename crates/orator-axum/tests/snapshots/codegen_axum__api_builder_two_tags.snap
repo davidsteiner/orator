@@ -1,0 +1,167 @@
+---
+source: crates/orator-axum/tests/codegen_axum.rs
+expression: code
+---
+impl axum::response::IntoResponse for ListItemsResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Ok => http::StatusCode::OK.into_response(),
+        }
+    }
+}
+async fn handle_list_items<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<ListItemsResponse, T::Error>
+where
+    T: ItemsApi<Ctx>,
+{
+    api.list_items(ctx).await
+}
+impl axum::response::IntoResponse for CreateItemResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Created => http::StatusCode::CREATED.into_response(),
+        }
+    }
+}
+async fn handle_create_item<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<CreateItemResponse, T::Error>
+where
+    T: ItemsApi<Ctx>,
+{
+    api.create_item(ctx).await
+}
+pub fn items_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+where
+    T: ItemsApi<Ctx>,
+    T::Error: axum::response::IntoResponse,
+    Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    axum::Router::new()
+        .route(
+            "/items",
+            axum::routing::get(handle_list_items::<T, Ctx>)
+                .post(handle_create_item::<T, Ctx>),
+        )
+        .with_state(api)
+}
+impl axum::response::IntoResponse for ListUsersResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Ok => http::StatusCode::OK.into_response(),
+        }
+    }
+}
+async fn handle_list_users<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<ListUsersResponse, T::Error>
+where
+    T: UsersApi<Ctx>,
+{
+    api.list_users(ctx).await
+}
+pub fn users_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+where
+    T: UsersApi<Ctx>,
+    T::Error: axum::response::IntoResponse,
+    Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    axum::Router::new()
+        .route("/users", axum::routing::get(handle_list_users::<T, Ctx>))
+        .with_state(api)
+}
+pub struct Missing;
+pub struct Registered;
+pub struct ItemsRouter(axum::Router);
+impl ItemsRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: ItemsApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(items_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct UsersRouter(axum::Router);
+impl UsersRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: UsersApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(users_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct ApiBuilder<ItemsState = Missing, UsersState = Missing> {
+    router: axum::Router,
+    _phantom: std::marker::PhantomData<(ItemsState, UsersState)>,
+}
+impl ApiBuilder {
+    pub fn new() -> Self {
+        Self {
+            router: axum::Router::new(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<UsersState> ApiBuilder<Missing, UsersState> {
+    pub fn items(self, router: ItemsRouter) -> ApiBuilder<Registered, UsersState> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<ItemsState> ApiBuilder<ItemsState, Missing> {
+    pub fn users(self, router: UsersRouter) -> ApiBuilder<ItemsState, Registered> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Registered, Registered> {
+    pub fn build(self) -> axum::Router {
+        self.router
+    }
+}
