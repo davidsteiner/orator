@@ -32,6 +32,11 @@ pub enum ListMembersResponse {
     Ok(Vec<Member>),
     Unauthorized(Error),
 }
+#[derive(serde::Deserialize)]
+pub struct ListMembersQueryParams {
+    pub limit: Option<i32>,
+    pub offset: Option<i32>,
+}
 pub enum CreateMemberResponse {
     Created(Member),
     UnprocessableEntity(Error),
@@ -62,6 +67,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn list_members(
         &self,
         ctx: Ctx,
+        query_params: ListMembersQueryParams,
     ) -> impl std::future::Future<
         Output = Result<ListMembersResponse, Self::Error>,
     > + Send;

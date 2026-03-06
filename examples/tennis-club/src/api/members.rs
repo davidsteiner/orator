@@ -1,17 +1,28 @@
 use crate::TennisClub;
 use crate::api::generated::{
     CreateMemberResponse, DeleteMemberPathParams, DeleteMemberResponse, Error, GetMemberPathParams,
-    GetMemberResponse, ListMembersResponse, Member, MembersApi, NewMember, UpdateMember,
-    UpdateMemberPathParams, UpdateMemberResponse,
+    GetMemberResponse, ListMembersQueryParams, ListMembersResponse, Member, MembersApi, NewMember,
+    UpdateMember, UpdateMemberPathParams, UpdateMemberResponse,
 };
 use std::convert::Infallible;
 
 impl MembersApi for TennisClub {
     type Error = Infallible;
 
-    async fn list_members(&self, _ctx: ()) -> Result<ListMembersResponse, Self::Error> {
+    async fn list_members(
+        &self,
+        _ctx: (),
+        query_params: ListMembersQueryParams,
+    ) -> Result<ListMembersResponse, Self::Error> {
         let members = self.members.lock().unwrap();
-        Ok(ListMembersResponse::Ok(members.clone()))
+        let offset = query_params.offset.unwrap_or(0) as usize;
+        let result: Vec<_> = members
+            .iter()
+            .skip(offset)
+            .take(query_params.limit.unwrap_or(i32::MAX) as usize)
+            .cloned()
+            .collect();
+        Ok(ListMembersResponse::Ok(result))
     }
 
     async fn create_member(

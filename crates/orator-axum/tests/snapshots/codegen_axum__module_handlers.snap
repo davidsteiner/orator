@@ -73,11 +73,12 @@ impl axum::response::IntoResponse for ListMembersResponse {
 async fn handle_list_members<T, Ctx>(
     axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
+    axum::extract::Query(query_params): axum::extract::Query<ListMembersQueryParams>,
 ) -> Result<ListMembersResponse, T::Error>
 where
     T: MembersApi<Ctx>,
 {
-    api.list_members(ctx).await
+    api.list_members(ctx, query_params).await
 }
 impl axum::response::IntoResponse for CreateMemberResponse {
     fn into_response(self) -> axum::response::Response {

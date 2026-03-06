@@ -286,6 +286,23 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
         });
     }
 
+    // query extractor
+    let query_params: Vec<_> = op
+        .parameters
+        .iter()
+        .filter(|p| p.location == ParamLocation::Query)
+        .collect();
+    if !query_params.is_empty() {
+        let query_struct = to_pascal_ident(&format!(
+            "{}{}",
+            op.operation_id,
+            location_suffix(&ParamLocation::Query)
+        ));
+        fn_params.push(quote! {
+            axum::extract::Query(query_params): axum::extract::Query<#query_struct>
+        });
+    }
+
     // request body is last
     if let Some(body) = &op.request_body {
         let body_type = type_ref_to_tokens(&body.type_ref);
@@ -308,15 +325,20 @@ fn generate_handler_fn(op: &OperationIr) -> TokenStream {
             continue;
         }
 
-        let params_ident =
-            to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
-        let field_inits: Vec<_> = params_for_loc
-            .iter()
-            .map(|param| to_snake_ident(&param.name))
-            .map(|name| quote! { #name })
-            .collect();
-        let params_expr = quote! { #params_ident { #(#field_inits),* } };
-        call_args.push(params_expr);
+        if *location == ParamLocation::Query {
+            // Query params are extracted as a whole struct by axum::extract::Query
+            call_args.push(quote! { query_params });
+        } else {
+            let params_ident =
+                to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
+            let field_inits: Vec<_> = params_for_loc
+                .iter()
+                .map(|param| to_snake_ident(&param.name))
+                .map(|name| quote! { #name })
+                .collect();
+            let params_expr = quote! { #params_ident { #(#field_inits),* } };
+            call_args.push(params_expr);
+        }
     }
 
     if op.request_body.is_some() {
