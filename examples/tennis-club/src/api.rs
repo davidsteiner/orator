@@ -1,1 +1,3 @@
-include!(concat!(env!("OUT_DIR"), "/api.rs"));
+pub mod courts;
+pub mod generated;
+mod members;
