@@ -1,0 +1,101 @@
+---
+source: crates/orator-axum/tests/codegen_axum.rs
+expression: code
+---
+impl axum::response::IntoResponse for GetItemsResponse {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Ok => http::StatusCode::OK.into_response(),
+        }
+    }
+}
+async fn handle_get_items<T, Ctx>(
+    axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+    jar: axum_extra::extract::CookieJar,
+) -> Result<GetItemsResponse, T::Error>
+where
+    T: DefaultApi<Ctx>,
+{
+    let cookie = GetItemsCookie {
+        session_id: jar
+            .get("session_id")
+            .expect(concat!("missing required cookie: ", "session_id"))
+            .value()
+            .to_owned(),
+        max_results: jar
+            .get("max_results")
+            .map(|c| {
+                c
+                    .value()
+                    .parse::<i32>()
+                    .expect(concat!("invalid cookie value: ", "max_results"))
+            }),
+    };
+    api.get_items(ctx, cookie).await
+}
+pub fn cookie_test_router<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+where
+    T: CookieTestApi<Ctx>,
+    T::Error: axum::response::IntoResponse,
+    Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    axum::Router::new()
+        .route("/items", axum::routing::get(handle_get_items::<T, Ctx>))
+        .with_state(api)
+}
+pub struct Missing;
+pub struct Registered;
+pub struct CookieTestRouter(axum::Router);
+impl CookieTestRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: CookieTestApi<Ctx>,
+        T::Error: axum::response::IntoResponse,
+        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(cookie_test_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
+        L::Service: tower::Service<axum::http::Request<axum::body::Body>> + Clone + Send
+            + Sync + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Response: axum::response::IntoResponse + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as tower::Service<
+            axum::http::Request<axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct ApiBuilder<CookieTestState = Missing> {
+    router: axum::Router,
+    _phantom: std::marker::PhantomData<(CookieTestState)>,
+}
+impl ApiBuilder {
+    pub fn new() -> Self {
+        Self {
+            router: axum::Router::new(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Missing> {
+    pub fn cookie_test(self, router: CookieTestRouter) -> ApiBuilder<Registered> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Registered> {
+    pub fn build(self) -> axum::Router {
+        self.router
+    }
+}

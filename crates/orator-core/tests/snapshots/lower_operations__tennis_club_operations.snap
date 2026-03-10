@@ -123,6 +123,17 @@ expression: ops
                 required: false,
             },
             OperationParam {
+                name: "session_id",
+                description: Some(
+                    "Session identifier cookie",
+                ),
+                location: Cookie,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+            OperationParam {
                 name: "limit",
                 description: Some(
                     "Maximum number of members to return",

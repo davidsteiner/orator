@@ -106,6 +106,63 @@ paths:
 }
 
 #[test]
+fn cookie_params_extraction() {
+    let yaml = r#"
+openapi: "3.1.0"
+info:
+  title: Cookie Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      parameters:
+        - name: session_id
+          in: cookie
+          required: true
+          schema:
+            type: string
+        - name: max_results
+          in: cookie
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+"#;
+    let code = generate_axum_from_yaml(yaml, "CookieTest");
+    insta::assert_snapshot!(code);
+}
+
+#[test]
+fn cookie_params_disabled_by_config() {
+    let yaml = r#"
+openapi: "3.1.0"
+info:
+  title: Cookie Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      parameters:
+        - name: session_id
+          in: cookie
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+"#;
+    let config = Config::default().cookie_params(false);
+    let code = generate_axum_from_yaml_with_config(yaml, "CookieTest", &config);
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn header_params_disabled_by_config() {
     let yaml = r#"
 openapi: "3.1.0"

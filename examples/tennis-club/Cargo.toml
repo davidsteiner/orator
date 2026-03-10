@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 axum = "0.8"
+axum-extra = { version = "0.12", features = ["cookie"] }
 tower = "0.5"
 http = "1"
 serde = { version = "1", features = ["derive"] }

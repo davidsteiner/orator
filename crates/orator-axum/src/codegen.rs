@@ -320,6 +320,64 @@ fn generate_header_extraction(
     (fn_param, let_block)
 }
 
+fn generate_cookie_extraction(
+    op: &OperationIr,
+    cookie_params: &[&OperationParam],
+) -> (TokenStream, TokenStream) {
+    let cookie_struct = to_pascal_ident(&format!(
+        "{}{}",
+        op.operation_id,
+        location_suffix(&ParamLocation::Cookie)
+    ));
+
+    let field_inits: Vec<TokenStream> = cookie_params
+        .iter()
+        .map(|param| {
+            let field_name = to_snake_ident(&param.name);
+            let cookie_name = &param.name;
+            let is_string = matches!(&param.type_ref, TypeRef::Primitive(PrimitiveType::String));
+
+            let value_expr = if is_string {
+                quote! {
+                    .value()
+                    .to_owned()
+                }
+            } else {
+                let ty = type_ref_to_tokens(&param.type_ref);
+                quote! {
+                    .value()
+                    .parse::<#ty>()
+                    .expect(concat!("invalid cookie value: ", #cookie_name))
+                }
+            };
+
+            if param.required {
+                quote! {
+                    #field_name: jar
+                        .get(#cookie_name)
+                        .expect(concat!("missing required cookie: ", #cookie_name))
+                        #value_expr,
+                }
+            } else {
+                quote! {
+                    #field_name: jar
+                        .get(#cookie_name)
+                        .map(|c| c #value_expr),
+                }
+            }
+        })
+        .collect();
+
+    let fn_param = quote! { jar: axum_extra::extract::CookieJar };
+    let let_block = quote! {
+        let cookie = #cookie_struct {
+            #(#field_inits)*
+        };
+    };
+
+    (fn_param, let_block)
+}
+
 fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
     let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
     let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
@@ -397,6 +455,21 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
         None
     };
 
+    // cookie extractor
+    let cookie_params: Vec<_> = op
+        .parameters
+        .iter()
+        .filter(|p| p.location == ParamLocation::Cookie)
+        .filter(|_| config.is_location_enabled(&ParamLocation::Cookie))
+        .collect();
+    let cookie_extraction = if !cookie_params.is_empty() {
+        let (fn_param, let_block) = generate_cookie_extraction(op, &cookie_params);
+        fn_params.push(fn_param);
+        Some(let_block)
+    } else {
+        None
+    };
+
     // request body is last
     if let Some(body) = &op.request_body {
         let body_type = type_ref_to_tokens(&body.type_ref);
@@ -427,6 +500,8 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
             call_args.push(quote! { query });
         } else if *location == ParamLocation::Header {
             call_args.push(quote! { header });
+        } else if *location == ParamLocation::Cookie {
+            call_args.push(quote! { cookie });
         } else {
             let params_ident =
                 to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
@@ -454,6 +529,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
             T: #trait_ident<Ctx>,
         {
             #header_extraction
+            #cookie_extraction
             #method_call
         }
     }

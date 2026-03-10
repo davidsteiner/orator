@@ -75,6 +75,7 @@ async fn handle_list_members<T, Ctx>(
     ctx: Ctx,
     axum::extract::Query(query): axum::extract::Query<ListMembersQuery>,
     headers: axum::http::HeaderMap,
+    jar: axum_extra::extract::CookieJar,
 ) -> Result<ListMembersResponse, T::Error>
 where
     T: MembersApi<Ctx>,
@@ -96,7 +97,14 @@ where
                     .expect(concat!("invalid header value: ", "X-Page-Size"))
             }),
     };
-    api.list_members(ctx, query, header).await
+    let cookie = ListMembersCookie {
+        session_id: jar
+            .get("session_id")
+            .expect(concat!("missing required cookie: ", "session_id"))
+            .value()
+            .to_owned(),
+    };
+    api.list_members(ctx, query, header, cookie).await
 }
 impl axum::response::IntoResponse for CreateMemberResponse {
     fn into_response(self) -> axum::response::Response {
