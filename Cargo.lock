@@ -669,12 +669,22 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 name = "orator"
 version = "0.0.1"
 dependencies = [
- "orator-axum",
+ "orator-axum-build",
  "orator-core",
 ]
 
 [[package]]
 name = "orator-axum"
+version = "0.0.1"
+dependencies = [
+ "axum",
+ "axum-extra",
+ "http",
+ "tower",
+]
+
+[[package]]
+name = "orator-axum-build"
 version = "0.0.1"
 dependencies = [
  "insta",
@@ -1105,14 +1115,12 @@ name = "tennis-club"
 version = "0.0.1"
 dependencies = [
  "axum",
- "axum-extra",
- "http",
  "orator-axum",
+ "orator-axum-build",
  "scalar_api_reference",
  "serde",
  "serde_json",
  "tokio",
- "tower",
 ]
 
 [[package]]

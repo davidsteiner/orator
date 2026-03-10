@@ -1,4 +1,4 @@
-use orator_axum::codegen::{Config, generate, generate_axum_handlers};
+use orator_axum_build::codegen::{Config, generate, generate_axum_handlers};
 use orator_core::lower::{lower_operations, lower_schemas};
 
 fn generate_axum_from_yaml(yaml: &str, default_tag: &str) -> String {

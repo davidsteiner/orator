@@ -1,6 +1,6 @@
 [package]
-name = "orator"
-description = "Server stub generation from OpenAPI 3.1 specs"
+name = "orator-axum-build"
+description = "Axum build-time codegen for orator"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -12,5 +12,13 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-orator-axum-build = { version = "0.0.1", path = "../orator-axum-build" }
 orator-core = { version = "0.0.1", path = "../orator-core" }
+
+oas3.workspace = true
+prettyplease.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
