@@ -1,8 +1,8 @@
 use crate::TennisClub;
 use crate::api::generated::{
     CreateMemberResponse, DeleteMemberPath, DeleteMemberResponse, Error, GetMemberPath,
-    GetMemberResponse, ListMembersHeader, ListMembersQuery, ListMembersResponse, Member,
-    MembersApi, NewMember, UpdateMember, UpdateMemberPath, UpdateMemberResponse,
+    GetMemberResponse, ListMembersCookie, ListMembersHeader, ListMembersQuery, ListMembersResponse,
+    Member, MembersApi, NewMember, UpdateMember, UpdateMemberPath, UpdateMemberResponse,
 };
 use std::convert::Infallible;
 
@@ -14,6 +14,7 @@ impl MembersApi for TennisClub {
         _ctx: (),
         query: ListMembersQuery,
         _header: ListMembersHeader,
+        _cookie: ListMembersCookie,
     ) -> Result<ListMembersResponse, Self::Error> {
         let members = self.members.lock().unwrap();
         let offset = query.offset.unwrap_or(0) as usize;

@@ -28,3 +28,4 @@ thiserror = "2"
 
 orator-core = { path = "crates/orator-core" }
 orator-axum = { path = "crates/orator-axum" }
+orator-axum-build = { path = "crates/orator-axum-build" }

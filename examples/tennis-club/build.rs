@@ -1,3 +1,3 @@
 fn main() {
-    orator_axum::codegen::build("tennis-club.yaml");
+    orator_axum_build::codegen::build("tennis-club.yaml");
 }

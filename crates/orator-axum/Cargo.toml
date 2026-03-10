@@ -1,6 +1,6 @@
 [package]
 name = "orator-axum"
-description = "Axum extension for orator"
+description = "Axum runtime support for orator"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -12,13 +12,15 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-orator-core = { version = "0.0.1", path = "../orator-core" }
+axum = "0.8"
+http = "1"
+tower = "0.5"
 
-oas3.workspace = true
-prettyplease.workspace = true
-proc-macro2.workspace = true
-quote.workspace = true
-syn.workspace = true
+[features]
+default = []
+cookies = ["dep:axum-extra"]
 
-[dev-dependencies]
-insta.workspace = true
+[dependencies.axum-extra]
+version = "0.12"
+features = ["cookie"]
+optional = true
