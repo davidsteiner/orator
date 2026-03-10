@@ -1,0 +1,91 @@
+---
+source: crates/orator-axum-build/tests/codegen_axum.rs
+expression: code
+---
+impl orator_axum::axum::response::IntoResponse for GetItemsResponse {
+    fn into_response(self) -> orator_axum::axum::response::Response {
+        match self {
+            Self::Ok => orator_axum::http::StatusCode::OK.into_response(),
+        }
+    }
+}
+async fn handle_get_items<T, Ctx>(
+    orator_axum::axum::extract::State(
+        api,
+    ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<GetItemsResponse, T::Error>
+where
+    T: DefaultApi<Ctx>,
+{
+    api.get_items(ctx).await
+}
+pub fn header_test_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+where
+    T: HeaderTestApi<Ctx>,
+    T::Error: orator_axum::axum::response::IntoResponse,
+    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
+        + 'static,
+{
+    orator_axum::axum::Router::new()
+        .route("/items", orator_axum::axum::routing::get(handle_get_items::<T, Ctx>))
+        .with_state(api)
+}
+pub struct Missing;
+pub struct Registered;
+pub struct HeaderTestRouter(orator_axum::axum::Router);
+impl HeaderTestRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: HeaderTestApi<Ctx>,
+        T::Error: orator_axum::axum::response::IntoResponse,
+        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
+            + 'static,
+    {
+        Self(header_test_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: orator_axum::tower::Layer<orator_axum::axum::routing::Route> + Clone + Send
+            + Sync + 'static,
+        L::Service: orator_axum::tower::Service<
+                orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+            > + Clone + Send + Sync + 'static,
+        <L::Service as orator_axum::tower::Service<
+            orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        >>::Response: orator_axum::axum::response::IntoResponse + 'static,
+        <L::Service as orator_axum::tower::Service<
+            orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as orator_axum::tower::Service<
+            orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
+pub struct ApiBuilder<HeaderTestState = Missing> {
+    router: orator_axum::axum::Router,
+    _phantom: std::marker::PhantomData<(HeaderTestState)>,
+}
+impl ApiBuilder {
+    pub fn new() -> Self {
+        Self {
+            router: orator_axum::axum::Router::new(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Missing> {
+    pub fn header_test(self, router: HeaderTestRouter) -> ApiBuilder<Registered> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl ApiBuilder<Registered> {
+    pub fn build(self) -> orator_axum::axum::Router {
+        self.router
+    }
+}

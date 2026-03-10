@@ -192,7 +192,9 @@ pub fn generate_axum_handlers(
 
 fn status_code_to_tokens(response: &OperationResponse) -> TokenStream {
     match &response.status_code {
-        ResponseStatusCode::Default => quote! { http::StatusCode::INTERNAL_SERVER_ERROR },
+        ResponseStatusCode::Default => {
+            quote! { orator_axum::http::StatusCode::INTERNAL_SERVER_ERROR }
+        }
         ResponseStatusCode::Code(code) => {
             let constant = match code {
                 200 => Some("OK"),
@@ -217,10 +219,10 @@ fn status_code_to_tokens(response: &OperationResponse) -> TokenStream {
             };
             if let Some(name) = constant {
                 let ident = format_ident!("{}", name);
-                quote! { http::StatusCode::#ident }
+                quote! { orator_axum::http::StatusCode::#ident }
             } else {
                 let code_lit = *code;
-                quote! { http::StatusCode::from_u16(#code_lit).unwrap() }
+                quote! { orator_axum::http::StatusCode::from_u16(#code_lit).unwrap() }
             }
         }
     }
@@ -239,7 +241,7 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
 
             if resp.body.is_some() {
                 quote! {
-                    Self::#variant_ident(body) => (#status, axum::Json(body)).into_response(),
+                    Self::#variant_ident(body) => (#status, orator_axum::axum::Json(body)).into_response(),
                 }
             } else {
                 quote! {
@@ -250,8 +252,8 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
         .collect();
 
     quote! {
-        impl axum::response::IntoResponse for #enum_ident {
-            fn into_response(self) -> axum::response::Response {
+        impl orator_axum::axum::response::IntoResponse for #enum_ident {
+            fn into_response(self) -> orator_axum::axum::response::Response {
                 match self {
                     #(#arms)*
                 }
@@ -310,9 +312,67 @@ fn generate_header_extraction(
         })
         .collect();
 
-    let fn_param = quote! { headers: axum::http::HeaderMap };
+    let fn_param = quote! { headers: orator_axum::axum::http::HeaderMap };
     let let_block = quote! {
         let header = #header_struct {
+            #(#field_inits)*
+        };
+    };
+
+    (fn_param, let_block)
+}
+
+fn generate_cookie_extraction(
+    op: &OperationIr,
+    cookie_params: &[&OperationParam],
+) -> (TokenStream, TokenStream) {
+    let cookie_struct = to_pascal_ident(&format!(
+        "{}{}",
+        op.operation_id,
+        location_suffix(&ParamLocation::Cookie)
+    ));
+
+    let field_inits: Vec<TokenStream> = cookie_params
+        .iter()
+        .map(|param| {
+            let field_name = to_snake_ident(&param.name);
+            let cookie_name = &param.name;
+            let is_string = matches!(&param.type_ref, TypeRef::Primitive(PrimitiveType::String));
+
+            let value_expr = if is_string {
+                quote! {
+                    .value()
+                    .to_owned()
+                }
+            } else {
+                let ty = type_ref_to_tokens(&param.type_ref);
+                quote! {
+                    .value()
+                    .parse::<#ty>()
+                    .expect(concat!("invalid cookie value: ", #cookie_name))
+                }
+            };
+
+            if param.required {
+                quote! {
+                    #field_name: jar
+                        .get(#cookie_name)
+                        .expect(concat!("missing required cookie: ", #cookie_name))
+                        #value_expr,
+                }
+            } else {
+                quote! {
+                    #field_name: jar
+                        .get(#cookie_name)
+                        .map(|c| c #value_expr),
+                }
+            }
+        })
+        .collect();
+
+    let fn_param = quote! { jar: orator_axum::axum_extra::extract::CookieJar };
+    let let_block = quote! {
+        let cookie = #cookie_struct {
             #(#field_inits)*
         };
     };
@@ -338,7 +398,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
 
     // state is always first
     fn_params.push(quote! {
-        axum::extract::State(api): axum::extract::State<std::sync::Arc<T>>
+        orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>
     });
     // ctx is second
     fn_params.push(quote! { ctx: Ctx });
@@ -349,7 +409,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
         let name = to_snake_ident(&p.name);
         let ty = type_ref_to_tokens(&p.type_ref);
         fn_params.push(quote! {
-            axum::extract::Path(#name): axum::extract::Path<#ty>
+            orator_axum::axum::extract::Path(#name): orator_axum::axum::extract::Path<#ty>
         });
     } else if path_params.len() > 1 {
         let names: Vec<_> = path_params
@@ -361,7 +421,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
             .map(|p| type_ref_to_tokens(&p.type_ref))
             .collect();
         fn_params.push(quote! {
-            axum::extract::Path((#(#names),*)): axum::extract::Path<(#(#types),*)>
+            orator_axum::axum::extract::Path((#(#names),*)): orator_axum::axum::extract::Path<(#(#types),*)>
         });
     }
 
@@ -378,7 +438,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
             location_suffix(&ParamLocation::Query)
         ));
         fn_params.push(quote! {
-            axum::extract::Query(query): axum::extract::Query<#query_struct>
+            orator_axum::axum::extract::Query(query): orator_axum::axum::extract::Query<#query_struct>
         });
     }
 
@@ -397,11 +457,26 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
         None
     };
 
+    // cookie extractor
+    let cookie_params: Vec<_> = op
+        .parameters
+        .iter()
+        .filter(|p| p.location == ParamLocation::Cookie)
+        .filter(|_| config.is_location_enabled(&ParamLocation::Cookie))
+        .collect();
+    let cookie_extraction = if !cookie_params.is_empty() {
+        let (fn_param, let_block) = generate_cookie_extraction(op, &cookie_params);
+        fn_params.push(fn_param);
+        Some(let_block)
+    } else {
+        None
+    };
+
     // request body is last
     if let Some(body) = &op.request_body {
         let body_type = type_ref_to_tokens(&body.type_ref);
         fn_params.push(quote! {
-            axum::Json(body): axum::Json<#body_type>
+            orator_axum::axum::Json(body): orator_axum::axum::Json<#body_type>
         });
     }
 
@@ -427,6 +502,8 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
             call_args.push(quote! { query });
         } else if *location == ParamLocation::Header {
             call_args.push(quote! { header });
+        } else if *location == ParamLocation::Cookie {
+            call_args.push(quote! { cookie });
         } else {
             let params_ident =
                 to_pascal_ident(&format!("{}{}", op.operation_id, location_suffix(location)));
@@ -454,6 +531,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
             T: #trait_ident<Ctx>,
         {
             #header_extraction
+            #cookie_extraction
             #method_call
         }
     }
@@ -512,28 +590,28 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
             let router_fn = &info.router_fn_ident;
 
             quote! {
-                pub struct #wrapper(axum::Router);
+                pub struct #wrapper(orator_axum::axum::Router);
 
                 impl #wrapper {
                     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
                     where
                         T: #trait_ident<Ctx>,
-                        T::Error: axum::response::IntoResponse,
-                        Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+                        T::Error: orator_axum::axum::response::IntoResponse,
+                        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
                     {
                         Self(#router_fn(api))
                     }
 
                     pub fn layer<L>(self, layer: L) -> Self
                     where
-                        L: tower::Layer<axum::routing::Route> + Clone + Send + Sync + 'static,
-                        L::Service: tower::Service<axum::http::Request<axum::body::Body>>
+                        L: orator_axum::tower::Layer<orator_axum::axum::routing::Route> + Clone + Send + Sync + 'static,
+                        L::Service: orator_axum::tower::Service<orator_axum::axum::http::Request<orator_axum::axum::body::Body>>
                             + Clone + Send + Sync + 'static,
-                        <L::Service as tower::Service<axum::http::Request<axum::body::Body>>>::Response:
-                            axum::response::IntoResponse + 'static,
-                        <L::Service as tower::Service<axum::http::Request<axum::body::Body>>>::Error:
+                        <L::Service as orator_axum::tower::Service<orator_axum::axum::http::Request<orator_axum::axum::body::Body>>>::Response:
+                            orator_axum::axum::response::IntoResponse + 'static,
+                        <L::Service as orator_axum::tower::Service<orator_axum::axum::http::Request<orator_axum::axum::body::Body>>>::Error:
                             Into<std::convert::Infallible> + 'static,
-                        <L::Service as tower::Service<axum::http::Request<axum::body::Body>>>::Future:
+                        <L::Service as orator_axum::tower::Service<orator_axum::axum::http::Request<orator_axum::axum::body::Body>>>::Future:
                             Send + 'static,
                     {
                         Self(self.0.layer(layer))
@@ -548,7 +626,7 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
 
     let builder_struct = quote! {
         pub struct ApiBuilder<#(#state_idents = Missing),*> {
-            router: axum::Router,
+            router: orator_axum::axum::Router,
             _phantom: std::marker::PhantomData<(#(#state_idents),*)>,
         }
     };
@@ -558,7 +636,7 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
         impl ApiBuilder {
             pub fn new() -> Self {
                 Self {
-                    router: axum::Router::new(),
+                    router: orator_axum::axum::Router::new(),
                     _phantom: std::marker::PhantomData,
                 }
             }
@@ -623,7 +701,7 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
     let all_registered: Vec<TokenStream> = infos.iter().map(|_| quote! { Registered }).collect();
     let build_impl = quote! {
         impl ApiBuilder<#(#all_registered),*> {
-            pub fn build(self) -> axum::Router {
+            pub fn build(self) -> orator_axum::axum::Router {
                 self.router
             }
         }
@@ -658,7 +736,7 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
                 let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
                 if i == 0 {
                     method_chain.push(quote! {
-                        axum::routing::#routing_fn(#handler_ident::<T, Ctx>)
+                        orator_axum::axum::routing::#routing_fn(#handler_ident::<T, Ctx>)
                     });
                 } else {
                     method_chain.push(quote! {
@@ -673,13 +751,13 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .collect();
 
     quote! {
-        pub fn #router_ident<T, Ctx>(api: std::sync::Arc<T>) -> axum::Router
+        pub fn #router_ident<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
         where
             T: #trait_ident<Ctx>,
-            T::Error: axum::response::IntoResponse,
-            Ctx: axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+            T::Error: orator_axum::axum::response::IntoResponse,
+            Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
         {
-            axum::Router::new()
+            orator_axum::axum::Router::new()
                 #(#route_calls)*
                 .with_state(api)
         }

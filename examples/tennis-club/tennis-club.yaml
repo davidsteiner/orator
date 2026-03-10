@@ -45,6 +45,12 @@ paths:
             type: integer
             format: int32
           description: Optional page size override via header
+        - name: session_id
+          in: cookie
+          required: true
+          schema:
+            type: string
+          description: Session identifier cookie
         - name: limit
           in: query
           required: false
