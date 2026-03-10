@@ -61,6 +61,19 @@ impl GeneratedModule {
         Ok(())
     }
 
+    /// Write the module files directly into the given directory.
+    ///
+    /// Creates `types.rs`, `operations.rs`, `handlers.rs`, and `mod.rs` in the
+    /// target directory. Intended for CLI use where files live in `src/`.
+    pub fn write_to_dir(&self, dir: &Path) -> io::Result<()> {
+        fs::create_dir_all(dir)?;
+        fs::write(dir.join("types.rs"), &self.types)?;
+        fs::write(dir.join("operations.rs"), &self.operations)?;
+        fs::write(dir.join("handlers.rs"), &self.handlers)?;
+        fs::write(dir.join("mod.rs"), self.mod_file())?;
+        Ok(())
+    }
+
     /// Generate a bridge entry file for `build.rs` (`include!`-based).
     pub fn build_rs_entry(&self) -> String {
         [
