@@ -68,8 +68,17 @@ impl GeneratedModule {
     pub fn write_to_dir(&self, dir: &Path) -> io::Result<()> {
         fs::create_dir_all(dir)?;
         fs::write(dir.join("types.rs"), &self.types)?;
-        fs::write(dir.join("operations.rs"), &self.operations)?;
-        fs::write(dir.join("handlers.rs"), &self.handlers)?;
+        fs::write(
+            dir.join("operations.rs"),
+            format!("use super::types::*;\n\n{}", self.operations),
+        )?;
+        fs::write(
+            dir.join("handlers.rs"),
+            format!(
+                "use super::types::*;\nuse super::operations::*;\n\n{}",
+                self.handlers
+            ),
+        )?;
         fs::write(dir.join("mod.rs"), self.mod_file())?;
         Ok(())
     }

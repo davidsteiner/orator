@@ -1,0 +1,62 @@
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "booking_type")]
+pub enum Booking {
+    #[serde(rename = "member")]
+    MemberBooking(MemberBooking),
+    #[serde(rename = "guest")]
+    GuestBooking(GuestBooking),
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Court {
+    pub id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub indoor: Option<bool>,
+    pub name: String,
+    pub surface: Surface,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Error {
+    pub code: i32,
+    pub message: String,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct GuestBooking {
+    pub booking_type: String,
+    pub court_id: i64,
+    pub date: String,
+    pub guest_name: String,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Member {
+    pub first_name: String,
+    pub id: i64,
+    pub last_name: String,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct MemberBooking {
+    pub booking_type: String,
+    pub court_id: i64,
+    pub date: String,
+    pub member_id: i64,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct NewMember {
+    pub first_name: String,
+    pub last_name: String,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum Surface {
+    #[serde(rename = "clay")]
+    Clay,
+    #[serde(rename = "grass")]
+    Grass,
+    #[serde(rename = "hard")]
+    Hard,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct UpdateMember {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_name: Option<String>,
+}

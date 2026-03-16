@@ -1230,12 +1230,33 @@ dependencies = [
 name = "tennis-club"
 version = "0.0.1"
 dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "tennis-club-build-rs"
+version = "0.0.1"
+dependencies = [
  "axum",
  "orator-axum",
  "orator-axum-build",
  "scalar_api_reference",
  "serde",
  "serde_json",
+ "tennis-club",
+ "tokio",
+]
+
+[[package]]
+name = "tennis-club-generated"
+version = "0.0.1"
+dependencies = [
+ "axum",
+ "orator-axum",
+ "scalar_api_reference",
+ "serde",
+ "serde_json",
+ "tennis-club",
  "tokio",
 ]
 
