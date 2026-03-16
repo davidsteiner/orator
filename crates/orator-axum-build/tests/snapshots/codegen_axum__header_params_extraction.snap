@@ -9,40 +9,69 @@ impl orator_axum::axum::response::IntoResponse for GetItemsResponse {
         }
     }
 }
+impl<S> orator_axum::axum::extract::FromRequestParts<S> for GetItemsHeader
+where
+    S: Send + Sync,
+{
+    type Rejection = orator_axum::ParamRejection;
+    async fn from_request_parts(
+        parts: &mut orator_axum::http::request::Parts,
+        _state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let headers = &parts.headers;
+        Ok(Self {
+            x_request_id: headers
+                .get("X-Request-ID")
+                .ok_or_else(|| orator_axum::ParamRejection::new(
+                    concat!("missing required header: ", "X-Request-ID"),
+                ))?
+                .to_str()
+                .map_err(|_| orator_axum::ParamRejection::new(
+                    concat!("non-ASCII header value: ", "X-Request-ID"),
+                ))?
+                .to_owned(),
+            x_rate_limit: match headers.get("X-Rate-Limit") {
+                Some(v) => {
+                    Some(
+                        v
+                            .to_str()
+                            .map_err(|_| orator_axum::ParamRejection::new(
+                                concat!("non-ASCII header value: ", "X-Rate-Limit"),
+                            ))?
+                            .parse::<i32>()
+                            .map_err(|_| orator_axum::ParamRejection::new(
+                                concat!("invalid header value: ", "X-Rate-Limit"),
+                            ))?,
+                    )
+                }
+                None => None,
+            },
+            x_trace_enabled: headers
+                .get("X-Trace-Enabled")
+                .ok_or_else(|| orator_axum::ParamRejection::new(
+                    concat!("missing required header: ", "X-Trace-Enabled"),
+                ))?
+                .to_str()
+                .map_err(|_| orator_axum::ParamRejection::new(
+                    concat!("non-ASCII header value: ", "X-Trace-Enabled"),
+                ))?
+                .parse::<bool>()
+                .map_err(|_| orator_axum::ParamRejection::new(
+                    concat!("invalid header value: ", "X-Trace-Enabled"),
+                ))?,
+        })
+    }
+}
 async fn handle_get_items<T, Ctx>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    headers: orator_axum::axum::http::HeaderMap,
+    header: GetItemsHeader,
 ) -> Result<GetItemsResponse, T::Error>
 where
     T: DefaultApi<Ctx>,
 {
-    let header = GetItemsHeader {
-        x_request_id: headers
-            .get("X-Request-ID")
-            .expect(concat!("missing required header: ", "X-Request-ID"))
-            .to_str()
-            .expect(concat!("non-ASCII header value: ", "X-Request-ID"))
-            .to_owned(),
-        x_rate_limit: headers
-            .get("X-Rate-Limit")
-            .map(|v| {
-                v
-                    .to_str()
-                    .expect(concat!("non-ASCII header value: ", "X-Rate-Limit"))
-                    .parse::<i32>()
-                    .expect(concat!("invalid header value: ", "X-Rate-Limit"))
-            }),
-        x_trace_enabled: headers
-            .get("X-Trace-Enabled")
-            .expect(concat!("missing required header: ", "X-Trace-Enabled"))
-            .to_str()
-            .expect(concat!("non-ASCII header value: ", "X-Trace-Enabled"))
-            .parse::<bool>()
-            .expect(concat!("invalid header value: ", "X-Trace-Enabled")),
-    };
     api.get_items(ctx, header).await
 }
 pub fn header_test_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router

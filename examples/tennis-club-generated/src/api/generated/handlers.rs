@@ -93,37 +93,91 @@ impl orator_axum::axum::response::IntoResponse for ListMembersResponse {
         }
     }
 }
+impl<S> orator_axum::axum::extract::FromRequestParts<S> for ListMembersHeader
+where
+    S: Send + Sync,
+{
+    type Rejection = orator_axum::ParamRejection;
+    async fn from_request_parts(
+        parts: &mut orator_axum::http::request::Parts,
+        _state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let headers = &parts.headers;
+        Ok(Self {
+            x_request_id: headers
+                .get("X-Request-ID")
+                .ok_or_else(|| {
+                    orator_axum::ParamRejection::new(concat!(
+                        "missing required header: ",
+                        "X-Request-ID"
+                    ))
+                })?
+                .to_str()
+                .map_err(|_| {
+                    orator_axum::ParamRejection::new(concat!(
+                        "non-ASCII header value: ",
+                        "X-Request-ID"
+                    ))
+                })?
+                .to_owned(),
+            x_page_size: match headers.get("X-Page-Size") {
+                Some(v) => Some(
+                    v.to_str()
+                        .map_err(|_| {
+                            orator_axum::ParamRejection::new(concat!(
+                                "non-ASCII header value: ",
+                                "X-Page-Size"
+                            ))
+                        })?
+                        .parse::<i32>()
+                        .map_err(|_| {
+                            orator_axum::ParamRejection::new(concat!(
+                                "invalid header value: ",
+                                "X-Page-Size"
+                            ))
+                        })?,
+                ),
+                None => None,
+            },
+        })
+    }
+}
+impl<S> orator_axum::axum::extract::FromRequestParts<S> for ListMembersCookie
+where
+    S: Send + Sync,
+{
+    type Rejection = orator_axum::ParamRejection;
+    async fn from_request_parts(
+        parts: &mut orator_axum::http::request::Parts,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let jar = orator_axum::axum_extra::extract::CookieJar::from_request_parts(parts, state)
+            .await
+            .unwrap();
+        Ok(Self {
+            session_id: jar
+                .get("session_id")
+                .ok_or_else(|| {
+                    orator_axum::ParamRejection::new(concat!(
+                        "missing required cookie: ",
+                        "session_id"
+                    ))
+                })?
+                .value()
+                .to_owned(),
+        })
+    }
+}
 async fn handle_list_members<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
     orator_axum::axum::extract::Query(query): orator_axum::axum::extract::Query<ListMembersQuery>,
-    headers: orator_axum::axum::http::HeaderMap,
-    jar: orator_axum::axum_extra::extract::CookieJar,
+    header: ListMembersHeader,
+    cookie: ListMembersCookie,
 ) -> Result<ListMembersResponse, T::Error>
 where
     T: MembersApi<Ctx>,
 {
-    let header = ListMembersHeader {
-        x_request_id: headers
-            .get("X-Request-ID")
-            .expect(concat!("missing required header: ", "X-Request-ID"))
-            .to_str()
-            .expect(concat!("non-ASCII header value: ", "X-Request-ID"))
-            .to_owned(),
-        x_page_size: headers.get("X-Page-Size").map(|v| {
-            v.to_str()
-                .expect(concat!("non-ASCII header value: ", "X-Page-Size"))
-                .parse::<i32>()
-                .expect(concat!("invalid header value: ", "X-Page-Size"))
-        }),
-    };
-    let cookie = ListMembersCookie {
-        session_id: jar
-            .get("session_id")
-            .expect(concat!("missing required cookie: ", "session_id"))
-            .value()
-            .to_owned(),
-    };
     api.list_members(ctx, query, header, cookie).await
 }
 impl orator_axum::axum::response::IntoResponse for CreateMemberResponse {

@@ -188,7 +188,9 @@ pub fn generate_axum_handlers_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_into_response_impl(op));
-            all_items.push(generate_handler_fn(op, config));
+            let handler_output = generate_handler_fn(op, config);
+            all_items.extend(handler_output.extractor_impls);
+            all_items.push(handler_output.handler_fn);
         }
         all_items.push(generate_router_fn(tag, ops));
     }
@@ -284,7 +286,7 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
     }
 }
 
-fn generate_header_extraction(
+fn generate_header_extractor(
     op: &OperationIr,
     header_params: &[&OperationParam],
 ) -> (TokenStream, TokenStream) {
@@ -304,16 +306,19 @@ fn generate_header_extraction(
             let value_expr = if is_string {
                 quote! {
                     .to_str()
-                    .expect(concat!("non-ASCII header value: ", #header_name))
+                    .map_err(|_| orator_axum::ParamRejection::new(
+                        concat!("non-ASCII header value: ", #header_name)))?
                     .to_owned()
                 }
             } else {
                 let ty = type_ref_to_tokens(&param.type_ref);
                 quote! {
                     .to_str()
-                    .expect(concat!("non-ASCII header value: ", #header_name))
+                    .map_err(|_| orator_axum::ParamRejection::new(
+                        concat!("non-ASCII header value: ", #header_name)))?
                     .parse::<#ty>()
-                    .expect(concat!("invalid header value: ", #header_name))
+                    .map_err(|_| orator_axum::ParamRejection::new(
+                        concat!("invalid header value: ", #header_name)))?
                 }
             };
 
@@ -321,30 +326,45 @@ fn generate_header_extraction(
                 quote! {
                     #field_name: headers
                         .get(#header_name)
-                        .expect(concat!("missing required header: ", #header_name))
+                        .ok_or_else(|| orator_axum::ParamRejection::new(
+                            concat!("missing required header: ", #header_name)))?
                         #value_expr,
                 }
             } else {
                 quote! {
-                    #field_name: headers
-                        .get(#header_name)
-                        .map(|v| v #value_expr),
+                    #field_name: match headers.get(#header_name) {
+                        Some(v) => Some(v #value_expr),
+                        None => None,
+                    },
                 }
             }
         })
         .collect();
 
-    let fn_param = quote! { headers: orator_axum::axum::http::HeaderMap };
-    let let_block = quote! {
-        let header = #header_struct {
-            #(#field_inits)*
-        };
+    let fn_param = quote! { header: #header_struct };
+    let impl_block = quote! {
+        impl<S> orator_axum::axum::extract::FromRequestParts<S> for #header_struct
+        where
+            S: Send + Sync,
+        {
+            type Rejection = orator_axum::ParamRejection;
+
+            async fn from_request_parts(
+                parts: &mut orator_axum::http::request::Parts,
+                _state: &S,
+            ) -> Result<Self, Self::Rejection> {
+                let headers = &parts.headers;
+                Ok(Self {
+                    #(#field_inits)*
+                })
+            }
+        }
     };
 
-    (fn_param, let_block)
+    (fn_param, impl_block)
 }
 
-fn generate_cookie_extraction(
+fn generate_cookie_extractor(
     op: &OperationIr,
     cookie_params: &[&OperationParam],
 ) -> (TokenStream, TokenStream) {
@@ -371,7 +391,8 @@ fn generate_cookie_extraction(
                 quote! {
                     .value()
                     .parse::<#ty>()
-                    .expect(concat!("invalid cookie value: ", #cookie_name))
+                    .map_err(|_| orator_axum::ParamRejection::new(
+                        concat!("invalid cookie value: ", #cookie_name)))?
                 }
             };
 
@@ -379,7 +400,8 @@ fn generate_cookie_extraction(
                 quote! {
                     #field_name: jar
                         .get(#cookie_name)
-                        .expect(concat!("missing required cookie: ", #cookie_name))
+                        .ok_or_else(|| orator_axum::ParamRejection::new(
+                            concat!("missing required cookie: ", #cookie_name)))?
                         #value_expr,
                 }
             } else {
@@ -392,21 +414,44 @@ fn generate_cookie_extraction(
         })
         .collect();
 
-    let fn_param = quote! { jar: orator_axum::axum_extra::extract::CookieJar };
-    let let_block = quote! {
-        let cookie = #cookie_struct {
-            #(#field_inits)*
-        };
+    let fn_param = quote! { cookie: #cookie_struct };
+    let impl_block = quote! {
+        impl<S> orator_axum::axum::extract::FromRequestParts<S> for #cookie_struct
+        where
+            S: Send + Sync,
+        {
+            type Rejection = orator_axum::ParamRejection;
+
+            async fn from_request_parts(
+                parts: &mut orator_axum::http::request::Parts,
+                state: &S,
+            ) -> Result<Self, Self::Rejection> {
+                let jar = orator_axum::axum_extra::extract::CookieJar::from_request_parts(parts, state)
+                    .await
+                    .unwrap();
+                Ok(Self {
+                    #(#field_inits)*
+                })
+            }
+        }
     };
 
-    (fn_param, let_block)
+    (fn_param, impl_block)
 }
 
-fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
+/// Result of generating a handler function and its associated extractor impls.
+struct HandlerOutput {
+    handler_fn: TokenStream,
+    extractor_impls: Vec<TokenStream>,
+}
+
+fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
     let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
     let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
     let method_ident = to_snake_ident(&op.operation_id);
     let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
+
+    let mut extractor_impls = Vec::new();
 
     // collect path parameters
     let path_params: Vec<_> = op
@@ -471,13 +516,11 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
         .filter(|p| p.location == ParamLocation::Header)
         .filter(|_| config.is_location_enabled(&ParamLocation::Header))
         .collect();
-    let header_extraction = if !header_params.is_empty() {
-        let (fn_param, let_block) = generate_header_extraction(op, &header_params);
+    if !header_params.is_empty() {
+        let (fn_param, impl_block) = generate_header_extractor(op, &header_params);
         fn_params.push(fn_param);
-        Some(let_block)
-    } else {
-        None
-    };
+        extractor_impls.push(impl_block);
+    }
 
     // cookie extractor
     let cookie_params: Vec<_> = op
@@ -486,13 +529,11 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
         .filter(|p| p.location == ParamLocation::Cookie)
         .filter(|_| config.is_location_enabled(&ParamLocation::Cookie))
         .collect();
-    let cookie_extraction = if !cookie_params.is_empty() {
-        let (fn_param, let_block) = generate_cookie_extraction(op, &cookie_params);
+    if !cookie_params.is_empty() {
+        let (fn_param, impl_block) = generate_cookie_extractor(op, &cookie_params);
         fn_params.push(fn_param);
-        Some(let_block)
-    } else {
-        None
-    };
+        extractor_impls.push(impl_block);
+    }
 
     // request body is last
     if let Some(body) = &op.request_body {
@@ -545,17 +586,20 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> TokenStream {
 
     let method_call = quote! { api.#method_ident(#(#call_args),*).await };
 
-    quote! {
+    let handler_fn = quote! {
         async fn #handler_ident<T, Ctx>(
             #(#fn_params),*
         ) -> Result<#response_ident, T::Error>
         where
             T: #trait_ident<Ctx>,
         {
-            #header_extraction
-            #cookie_extraction
             #method_call
         }
+    };
+
+    HandlerOutput {
+        handler_fn,
+        extractor_impls,
     }
 }
 

@@ -9,31 +9,52 @@ impl orator_axum::axum::response::IntoResponse for GetItemsResponse {
         }
     }
 }
+impl<S> orator_axum::axum::extract::FromRequestParts<S> for GetItemsCookie
+where
+    S: Send + Sync,
+{
+    type Rejection = orator_axum::ParamRejection;
+    async fn from_request_parts(
+        parts: &mut orator_axum::http::request::Parts,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let jar = orator_axum::axum_extra::extract::CookieJar::from_request_parts(
+                parts,
+                state,
+            )
+            .await
+            .unwrap();
+        Ok(Self {
+            session_id: jar
+                .get("session_id")
+                .ok_or_else(|| orator_axum::ParamRejection::new(
+                    concat!("missing required cookie: ", "session_id"),
+                ))?
+                .value()
+                .to_owned(),
+            max_results: jar
+                .get("max_results")
+                .map(|c| {
+                    c
+                        .value()
+                        .parse::<i32>()
+                        .map_err(|_| orator_axum::ParamRejection::new(
+                            concat!("invalid cookie value: ", "max_results"),
+                        ))?
+                }),
+        })
+    }
+}
 async fn handle_get_items<T, Ctx>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    jar: orator_axum::axum_extra::extract::CookieJar,
+    cookie: GetItemsCookie,
 ) -> Result<GetItemsResponse, T::Error>
 where
     T: DefaultApi<Ctx>,
 {
-    let cookie = GetItemsCookie {
-        session_id: jar
-            .get("session_id")
-            .expect(concat!("missing required cookie: ", "session_id"))
-            .value()
-            .to_owned(),
-        max_results: jar
-            .get("max_results")
-            .map(|c| {
-                c
-                    .value()
-                    .parse::<i32>()
-                    .expect(concat!("invalid cookie value: ", "max_results"))
-            }),
-    };
     api.get_items(ctx, cookie).await
 }
 pub fn cookie_test_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
