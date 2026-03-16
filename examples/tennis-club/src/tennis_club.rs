@@ -140,3 +140,9 @@ impl TennisClub {
         self.bookings.lock().unwrap().clone()
     }
 }
+
+impl Default for TennisClub {
+    fn default() -> Self {
+        Self::new()
+    }
+}
