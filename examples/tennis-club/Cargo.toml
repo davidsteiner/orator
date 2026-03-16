@@ -4,12 +4,4 @@ version = "0.0.1"
 edition = "2024"
 
 [dependencies]
-orator-axum = { path = "../../crates/orator-axum", features = ["cookies"] }
-axum = "0.8"
 serde = { version = "1", features = ["derive"] }
-scalar_api_reference = { version = "0.2", features = ["axum"] }
-serde_json = "1"
-tokio = { version = "1", features = ["full"] }
-
-[build-dependencies]
-orator-axum-build = { path = "../../crates/orator-axum-build" }

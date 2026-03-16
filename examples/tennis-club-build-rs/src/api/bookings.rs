@@ -1,0 +1,36 @@
+use crate::api::generated::{BookingsApi, ListBookingsResponse};
+use std::convert::Infallible;
+use tennis_club::TennisClub;
+
+impl BookingsApi for TennisClub {
+    type Error = Infallible;
+
+    async fn list_bookings(&self, _ctx: ()) -> Result<ListBookingsResponse, Self::Error> {
+        let bookings = self.list_bookings();
+        let bookings = bookings.into_iter().map(Into::into).collect();
+        Ok(ListBookingsResponse::Ok(bookings))
+    }
+}
+
+impl From<tennis_club::domain::Booking> for crate::api::generated::Booking {
+    fn from(b: tennis_club::domain::Booking) -> Self {
+        match b {
+            tennis_club::domain::Booking::MemberBooking(data) => {
+                Self::MemberBooking(crate::api::generated::MemberBooking {
+                    booking_type: "member".to_string(),
+                    court_id: data.court_id,
+                    member_id: data.member_id,
+                    date: data.date,
+                })
+            }
+            tennis_club::domain::Booking::GuestBooking(data) => {
+                Self::GuestBooking(crate::api::generated::GuestBooking {
+                    booking_type: "guest".to_string(),
+                    court_id: data.court_id,
+                    guest_name: data.guest_name,
+                    date: data.date,
+                })
+            }
+        }
+    }
+}

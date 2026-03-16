@@ -1,0 +1,141 @@
+use super::types::*;
+
+/// List all bookings
+#[derive(Debug)]
+pub enum ListBookingsResponse {
+    /// A list of bookings
+    Ok(Vec<Booking>),
+    /// Unauthorized
+    Unauthorized(Error),
+}
+pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// List all bookings
+    fn list_bookings(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<Output = Result<ListBookingsResponse, Self::Error>> + Send;
+}
+/// List all courts
+#[derive(Debug)]
+pub enum ListCourtsResponse {
+    /// A list of courts
+    Ok(Vec<Court>),
+    /// Unauthorized
+    Unauthorized(Error),
+}
+pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// List all courts
+    fn list_courts(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<Output = Result<ListCourtsResponse, Self::Error>> + Send;
+}
+/// List all members
+#[derive(Debug)]
+pub enum ListMembersResponse {
+    /// A list of members
+    Ok(Vec<Member>),
+    /// Unauthorized
+    Unauthorized(Error),
+}
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct ListMembersQuery {
+    /// Maximum number of members to return
+    pub limit: Option<i32>,
+    /// Number of members to skip
+    pub offset: Option<i32>,
+}
+#[derive(Debug, Clone)]
+pub struct ListMembersHeader {
+    /// Unique request identifier for tracing
+    pub x_request_id: String,
+    /// Optional page size override via header
+    pub x_page_size: Option<i32>,
+}
+#[derive(Debug, Clone)]
+pub struct ListMembersCookie {
+    /// Session identifier cookie
+    pub session_id: String,
+}
+/// Create a new member
+#[derive(Debug)]
+pub enum CreateMemberResponse {
+    /// The created member
+    Created(Member),
+    /// Validation error
+    UnprocessableEntity(Error),
+}
+/// Get a member by ID
+#[derive(Debug)]
+pub enum GetMemberResponse {
+    /// The member
+    Ok(Member),
+    /// Member not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct GetMemberPath {
+    pub member_id: i64,
+}
+/// Update a member
+#[derive(Debug)]
+pub enum UpdateMemberResponse {
+    /// The updated member
+    Ok(Member),
+    /// Member not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct UpdateMemberPath {
+    pub member_id: i64,
+}
+/// Delete a member
+#[derive(Debug)]
+pub enum DeleteMemberResponse {
+    /// Member deleted
+    NoContent,
+    /// Member not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct DeleteMemberPath {
+    pub member_id: i64,
+}
+pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// List all members
+    fn list_members(
+        &self,
+        ctx: Ctx,
+        query: ListMembersQuery,
+        header: ListMembersHeader,
+        cookie: ListMembersCookie,
+    ) -> impl std::future::Future<Output = Result<ListMembersResponse, Self::Error>> + Send;
+    /// Create a new member
+    fn create_member(
+        &self,
+        ctx: Ctx,
+        body: NewMember,
+    ) -> impl std::future::Future<Output = Result<CreateMemberResponse, Self::Error>> + Send;
+    /// Get a member by ID
+    fn get_member(
+        &self,
+        ctx: Ctx,
+        path: GetMemberPath,
+    ) -> impl std::future::Future<Output = Result<GetMemberResponse, Self::Error>> + Send;
+    /// Update a member
+    fn update_member(
+        &self,
+        ctx: Ctx,
+        path: UpdateMemberPath,
+        body: UpdateMember,
+    ) -> impl std::future::Future<Output = Result<UpdateMemberResponse, Self::Error>> + Send;
+    /// Delete a member
+    fn delete_member(
+        &self,
+        ctx: Ctx,
+        path: DeleteMemberPath,
+    ) -> impl std::future::Future<Output = Result<DeleteMemberResponse, Self::Error>> + Send;
+}

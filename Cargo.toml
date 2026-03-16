@@ -17,6 +17,7 @@ keywords = ["openapi", "api", "web", "axum"]
 categories = ["web-programming", "web-programming::http-server"]
 
 [workspace.dependencies]
+clap = { version = "4", features = ["derive"] }
 heck = "0.5"
 insta = "1"
 oas3 = { version = "0.20", features = ["yaml-spec"] }
