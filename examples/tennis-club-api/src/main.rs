@@ -3,7 +3,7 @@ mod api;
 use api::generated::*;
 use serde_json::json;
 use std::sync::Arc;
-use tennis_club::TennisClub;
+use tennis_club_core::TennisClub;
 
 #[tokio::main]
 async fn main() {
@@ -20,7 +20,7 @@ async fn main() {
             axum::routing::get(|| async {
                 (
                     [("content-type", "application/yaml")],
-                    include_str!("../../tennis-club/tennis-club.yaml"),
+                    include_str!("../../tennis-club-core/tennis-club.yaml"),
                 )
             }),
         )

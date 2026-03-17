@@ -9,7 +9,7 @@ fn load_and_lower_ops(yaml: &str) -> Vec<OperationIr> {
 #[test]
 fn tennis_club_operations() {
     let ops = load_and_lower_ops(include_str!(
-        "../../../examples/tennis-club/tennis-club.yaml"
+        "../../../examples/tennis-club-core/tennis-club.yaml"
     ));
     insta::assert_debug_snapshot!(ops);
 }

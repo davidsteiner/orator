@@ -1,4 +1,4 @@
-use orator_axum_build::codegen::{Config, generate, generate_axum_handlers};
+use orator_axum_codegen::codegen::{Config, generate, generate_axum_handlers};
 use orator_core::lower::{lower_operations, lower_schemas};
 
 fn generate_axum_from_yaml(yaml: &str, default_tag: &str) -> String {
@@ -14,7 +14,7 @@ fn generate_axum_from_yaml_with_config(yaml: &str, default_tag: &str, config: &C
 #[test]
 fn tennis_club_axum_handlers() {
     let code = generate_axum_from_yaml(
-        include_str!("../../../examples/tennis-club/tennis-club.yaml"),
+        include_str!("../../../examples/tennis-club-core/tennis-club.yaml"),
         "TennisClub",
     );
     insta::assert_snapshot!(code);
@@ -22,7 +22,7 @@ fn tennis_club_axum_handlers() {
 
 #[test]
 fn tennis_club_generated_module() {
-    let yaml = include_str!("../../../examples/tennis-club/tennis-club.yaml");
+    let yaml = include_str!("../../../examples/tennis-club-core/tennis-club.yaml");
     let spec = oas3::from_yaml(yaml).unwrap();
     let types = lower_schemas(&spec).unwrap();
     let ops = lower_operations(&spec).unwrap();
@@ -32,7 +32,6 @@ fn tennis_club_generated_module() {
     insta::assert_snapshot!("module_types", module.types);
     insta::assert_snapshot!("module_operations", module.operations);
     insta::assert_snapshot!("module_handlers", module.handlers);
-    insta::assert_snapshot!("module_build_rs_entry", module.build_rs_entry());
     insta::assert_snapshot!("module_mod_file", module.mod_file());
 }
 

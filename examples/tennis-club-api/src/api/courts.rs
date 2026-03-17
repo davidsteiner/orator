@@ -1,6 +1,6 @@
 use crate::api::generated::{CourtsApi, ListCourtsResponse};
 use std::convert::Infallible;
-use tennis_club::TennisClub;
+use tennis_club_core::{TennisClub, domain};
 
 impl CourtsApi for TennisClub {
     type Error = Infallible;
@@ -12,8 +12,8 @@ impl CourtsApi for TennisClub {
     }
 }
 
-impl From<tennis_club::domain::Court> for crate::api::generated::Court {
-    fn from(c: tennis_club::domain::Court) -> Self {
+impl From<domain::Court> for crate::api::generated::Court {
+    fn from(c: domain::Court) -> Self {
         Self {
             id: c.id,
             name: c.name,
@@ -23,12 +23,12 @@ impl From<tennis_club::domain::Court> for crate::api::generated::Court {
     }
 }
 
-impl From<tennis_club::domain::Surface> for crate::api::generated::Surface {
-    fn from(s: tennis_club::domain::Surface) -> Self {
+impl From<domain::Surface> for crate::api::generated::Surface {
+    fn from(s: domain::Surface) -> Self {
         match s {
-            tennis_club::domain::Surface::Clay => Self::Clay,
-            tennis_club::domain::Surface::Grass => Self::Grass,
-            tennis_club::domain::Surface::Hard => Self::Hard,
+            domain::Surface::Clay => Self::Clay,
+            domain::Surface::Grass => Self::Grass,
+            domain::Surface::Hard => Self::Hard,
         }
     }
 }

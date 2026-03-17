@@ -4,7 +4,7 @@ use crate::api::generated::{
     UpdateMemberPath, UpdateMemberResponse,
 };
 use std::convert::Infallible;
-use tennis_club::TennisClub;
+use tennis_club_core::{TennisClub, domain};
 
 impl MembersApi for TennisClub {
     type Error = Infallible;
@@ -26,7 +26,7 @@ impl MembersApi for TennisClub {
         _ctx: (),
         body: crate::api::generated::NewMember,
     ) -> Result<CreateMemberResponse, Self::Error> {
-        let new = tennis_club::domain::NewMember {
+        let new = domain::NewMember {
             first_name: body.first_name,
             last_name: body.last_name,
         };
@@ -54,7 +54,7 @@ impl MembersApi for TennisClub {
         path: UpdateMemberPath,
         body: crate::api::generated::UpdateMember,
     ) -> Result<UpdateMemberResponse, Self::Error> {
-        let update = tennis_club::domain::UpdateMember {
+        let update = domain::UpdateMember {
             first_name: body.first_name,
             last_name: body.last_name,
         };
@@ -87,8 +87,8 @@ impl MembersApi for TennisClub {
     }
 }
 
-impl From<tennis_club::domain::Member> for crate::api::generated::Member {
-    fn from(m: tennis_club::domain::Member) -> Self {
+impl From<domain::Member> for crate::api::generated::Member {
+    fn from(m: domain::Member) -> Self {
         Self {
             id: m.id,
             first_name: m.first_name,

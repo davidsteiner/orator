@@ -1,6 +1,6 @@
 use crate::api::generated::{BookingsApi, ListBookingsResponse};
 use std::convert::Infallible;
-use tennis_club::TennisClub;
+use tennis_club_core::{TennisClub, domain};
 
 impl BookingsApi for TennisClub {
     type Error = Infallible;
@@ -12,10 +12,10 @@ impl BookingsApi for TennisClub {
     }
 }
 
-impl From<tennis_club::domain::Booking> for crate::api::generated::Booking {
-    fn from(b: tennis_club::domain::Booking) -> Self {
+impl From<domain::Booking> for crate::api::generated::Booking {
+    fn from(b: domain::Booking) -> Self {
         match b {
-            tennis_club::domain::Booking::MemberBooking(data) => {
+            domain::Booking::MemberBooking(data) => {
                 Self::MemberBooking(crate::api::generated::MemberBooking {
                     booking_type: "member".to_string(),
                     court_id: data.court_id,
@@ -23,7 +23,7 @@ impl From<tennis_club::domain::Booking> for crate::api::generated::Booking {
                     date: data.date,
                 })
             }
-            tennis_club::domain::Booking::GuestBooking(data) => {
+            domain::Booking::GuestBooking(data) => {
                 Self::GuestBooking(crate::api::generated::GuestBooking {
                     booking_type: "guest".to_string(),
                     court_id: data.court_id,
