@@ -1,0 +1,23 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+/// Upload a document with metadata
+#[derive(Debug)]
+pub enum UploadDocumentResponse {
+    /// Document uploaded
+    Created(Document),
+    /// Bad request
+    BadRequest,
+}
+pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// Upload a document with metadata
+    fn upload_document(
+        &self,
+        ctx: Ctx,
+        body: orator_axum::axum::extract::Multipart,
+    ) -> impl std::future::Future<
+        Output = Result<UploadDocumentResponse, Self::Error>,
+    > + Send;
+}

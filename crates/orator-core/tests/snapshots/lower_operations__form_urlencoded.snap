@@ -1,0 +1,52 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "login",
+        description: Some(
+            "Login with form credentials",
+        ),
+        method: Post,
+        path: "/login",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: FormUrlEncoded,
+                type_ref: Named(
+                    "LoginForm",
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Login successful",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Token",
+                        ),
+                    },
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    401,
+                ),
+                description: Some(
+                    "Invalid credentials",
+                ),
+                body: None,
+            },
+        ],
+    },
+]

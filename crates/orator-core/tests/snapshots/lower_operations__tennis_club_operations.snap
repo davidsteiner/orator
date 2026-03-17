@@ -24,11 +24,14 @@ expression: ops
                     "A list of bookings",
                 ),
                 body: Some(
-                    Array(
-                        Named(
-                            "Booking",
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Booking",
+                            ),
                         ),
-                    ),
+                    },
                 ),
             },
             OperationResponse {
@@ -39,9 +42,12 @@ expression: ops
                     "Unauthorized",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -67,11 +73,14 @@ expression: ops
                     "A list of courts",
                 ),
                 body: Some(
-                    Array(
-                        Named(
-                            "Court",
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Court",
+                            ),
                         ),
-                    ),
+                    },
                 ),
             },
             OperationResponse {
@@ -82,9 +91,101 @@ expression: ops
                     "Unauthorized",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "uploadCourtPhoto",
+        description: Some(
+            "Upload a court photo with metadata",
+        ),
+        method: Put,
+        path: "/courts/{court_id}/photo",
+        tag: Some(
+            "courts",
+        ),
+        parameters: [
+            OperationParam {
+                name: "court_id",
+                description: None,
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: MultipartFormData,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    204,
+                ),
+                description: Some(
+                    "Photo uploaded",
+                ),
+                body: None,
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Court not found",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "healthCheck",
+        description: Some(
+            "Check API health",
+        ),
+        method: Get,
+        path: "/health",
+        tag: Some(
+            "health",
+        ),
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Service is healthy",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: TextPlain,
+                        type_ref: Primitive(
+                            String,
+                        ),
+                    },
                 ),
             },
         ],
@@ -166,11 +267,14 @@ expression: ops
                     "A list of members",
                 ),
                 body: Some(
-                    Array(
-                        Named(
-                            "Member",
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Member",
+                            ),
                         ),
-                    ),
+                    },
                 ),
             },
             OperationResponse {
@@ -181,9 +285,12 @@ expression: ops
                     "Unauthorized",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -201,6 +308,7 @@ expression: ops
         parameters: [],
         request_body: Some(
             RequestBodyIr {
+                content_type: Json,
                 type_ref: Named(
                     "NewMember",
                 ),
@@ -216,9 +324,12 @@ expression: ops
                     "The created member",
                 ),
                 body: Some(
-                    Named(
-                        "Member",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Member",
+                        ),
+                    },
                 ),
             },
             OperationResponse {
@@ -229,9 +340,12 @@ expression: ops
                     "Validation error",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -267,9 +381,12 @@ expression: ops
                     "The member",
                 ),
                 body: Some(
-                    Named(
-                        "Member",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Member",
+                        ),
+                    },
                 ),
             },
             OperationResponse {
@@ -280,9 +397,12 @@ expression: ops
                     "Member not found",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -310,6 +430,7 @@ expression: ops
         ],
         request_body: Some(
             RequestBodyIr {
+                content_type: Json,
                 type_ref: Named(
                     "UpdateMember",
                 ),
@@ -325,9 +446,12 @@ expression: ops
                     "The updated member",
                 ),
                 body: Some(
-                    Named(
-                        "Member",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Member",
+                        ),
+                    },
                 ),
             },
             OperationResponse {
@@ -338,9 +462,12 @@ expression: ops
                     "Member not found",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -385,9 +512,127 @@ expression: ops
                     "Member not found",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "getMemberPhoto",
+        description: Some(
+            "Download a member's profile photo",
+        ),
+        method: Get,
+        path: "/members/{member_id}/photo",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                description: None,
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "The profile photo",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: OctetStream,
+                        type_ref: Primitive(
+                            Bytes,
+                        ),
+                    },
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member or photo not found",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "uploadMemberPhoto",
+        description: Some(
+            "Upload a member's profile photo",
+        ),
+        method: Put,
+        path: "/members/{member_id}/photo",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                description: None,
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: OctetStream,
+                type_ref: Primitive(
+                    Bytes,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    204,
+                ),
+                description: Some(
+                    "Photo uploaded",
+                ),
+                body: None,
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member not found",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],

@@ -1,0 +1,21 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+/// Echo text back
+#[derive(Debug)]
+pub enum EchoTextResponse {
+    /// Echoed text
+    Ok(String),
+    /// Bad request
+    BadRequest,
+}
+pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// Echo text back
+    fn echo_text(
+        &self,
+        ctx: Ctx,
+        body: String,
+    ) -> impl std::future::Future<Output = Result<EchoTextResponse, Self::Error>> + Send;
+}

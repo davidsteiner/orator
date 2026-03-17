@@ -2,8 +2,8 @@ use oas3::spec::{ObjectOrReference, Parameter, ParameterIn, Response};
 
 use crate::error::Error;
 use crate::ir::{
-    HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation, RequestBodyIr,
-    ResponseStatusCode, TypeRef,
+    ContentType, HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation,
+    PrimitiveType, RequestBodyIr, ResponseBody, ResponseStatusCode, TypeRef,
 };
 
 use super::schemas::lower_type_ref;
@@ -131,6 +131,23 @@ fn lower_parameter(param: &Parameter) -> Result<OperationParam, Error> {
     })
 }
 
+const REQUEST_CONTENT_TYPE_PRIORITY: &[(&str, ContentType)] = &[
+    ("application/json", ContentType::Json),
+    ("text/plain", ContentType::TextPlain),
+    ("application/octet-stream", ContentType::OctetStream),
+    (
+        "application/x-www-form-urlencoded",
+        ContentType::FormUrlEncoded,
+    ),
+    ("multipart/form-data", ContentType::MultipartFormData),
+];
+
+const RESPONSE_CONTENT_TYPE_PRIORITY: &[(&str, ContentType)] = &[
+    ("application/json", ContentType::Json),
+    ("text/plain", ContentType::TextPlain),
+    ("application/octet-stream", ContentType::OctetStream),
+];
+
 fn lower_request_body(
     operation_id: &str,
     body: &Option<ObjectOrReference<oas3::spec::RequestBody>>,
@@ -149,18 +166,29 @@ fn lower_request_body(
         }
     };
 
-    let json_content = resolved.content.get("application/json").ok_or_else(|| {
-        Error::UnsupportedRequestBodyMediaType {
-            operation_id: operation_id.to_string(),
-        }
-    })?;
+    let (content_type, media_type) = REQUEST_CONTENT_TYPE_PRIORITY
+        .iter()
+        .find_map(|(mime, ct)| resolved.content.get(*mime).map(|mt| (ct.clone(), mt)))
+        .ok_or_else(|| {
+            let found: Vec<_> = resolved.content.keys().cloned().collect();
+            Error::UnsupportedRequestBodyMediaType {
+                operation_id: operation_id.to_string(),
+                media_types: found,
+            }
+        })?;
 
-    let type_ref = match &json_content.schema {
-        Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
-        None => TypeRef::Primitive(crate::ir::PrimitiveType::String),
+    let type_ref = match &content_type {
+        ContentType::TextPlain => TypeRef::Primitive(PrimitiveType::String),
+        ContentType::OctetStream => TypeRef::Primitive(PrimitiveType::Bytes),
+        ContentType::MultipartFormData => TypeRef::Primitive(PrimitiveType::String), // placeholder, ignored by codegen
+        ContentType::Json | ContentType::FormUrlEncoded => match &media_type.schema {
+            Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
+            None => TypeRef::Primitive(PrimitiveType::String),
+        },
     };
 
     Ok(Some(RequestBodyIr {
+        content_type,
         type_ref,
         required: resolved.required.unwrap_or(false),
     }))
@@ -197,11 +225,27 @@ fn lower_responses(
             ResponseStatusCode::Code(code)
         };
 
-        let body = match resolved.content.get("application/json") {
-            Some(media_type) => match &media_type.schema {
-                Some(schema_or_ref) => Some(lower_type_ref(schema_or_ref)?),
-                None => None,
-            },
+        let body = RESPONSE_CONTENT_TYPE_PRIORITY
+            .iter()
+            .find_map(|(mime, ct)| resolved.content.get(*mime).map(|mt| (ct.clone(), mt)));
+
+        let body = match body {
+            Some((content_type, media_type)) => {
+                let type_ref = match &content_type {
+                    ContentType::TextPlain => TypeRef::Primitive(PrimitiveType::String),
+                    ContentType::OctetStream => TypeRef::Primitive(PrimitiveType::Bytes),
+                    ContentType::Json => match &media_type.schema {
+                        Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
+                        None => TypeRef::Primitive(PrimitiveType::String),
+                    },
+                    // These are request-only content types, won't appear in response priority list
+                    ContentType::FormUrlEncoded | ContentType::MultipartFormData => unreachable!(),
+                };
+                Some(ResponseBody {
+                    content_type,
+                    type_ref,
+                })
+            }
             None => None,
         };
 

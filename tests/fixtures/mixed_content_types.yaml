@@ -1,0 +1,111 @@
+openapi: "3.1.0"
+info:
+  title: Mixed Content Types Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: listItems
+      summary: List items as JSON
+      responses:
+        "200":
+          description: A list of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+    post:
+      operationId: createItem
+      summary: Create item via JSON
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewItem"
+      responses:
+        "201":
+          description: Created item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+  /items/import:
+    post:
+      operationId: importItems
+      summary: Upload items as a file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Import result
+          content:
+            text/plain:
+              schema:
+                type: string
+  /items/export:
+    get:
+      operationId: exportItems
+      summary: Export items as binary
+      responses:
+        "200":
+          description: Binary export
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /items/search:
+    post:
+      operationId: searchItems
+      summary: Search with form data
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SearchQuery"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+
+components:
+  schemas:
+    Item:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    NewItem:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+    SearchQuery:
+      type: object
+      properties:
+        q:
+          type: string
+        category:
+          type: string

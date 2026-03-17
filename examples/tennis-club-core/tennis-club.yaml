@@ -24,6 +24,19 @@ security:
   - bearerAuth: [ ]
 
 paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Check API health
+      tags: [ health ]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+
   /members:
     get:
       operationId: listMembers
@@ -188,6 +201,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{member_id}/photo:
+    get:
+      operationId: getMemberPhoto
+      summary: Download a member's profile photo
+      tags: [ members ]
+      parameters:
+        - name: member_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: The profile photo
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Member or photo not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: uploadMemberPhoto
+      summary: Upload a member's profile photo
+      tags: [ members ]
+      parameters:
+        - name: member_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "204":
+          description: Photo uploaded
+        "404":
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /bookings:
     get:
       operationId: listBookings
@@ -206,6 +273,40 @@ paths:
                   $ref: "#/components/schemas/Booking"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /courts/{court_id}/photo:
+    put:
+      operationId: uploadCourtPhoto
+      summary: Upload a court photo with metadata
+      tags: [ courts ]
+      parameters:
+        - name: court_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                caption:
+                  type: string
+      responses:
+        "204":
+          description: Photo uploaded
+        "404":
+          description: Court not found
           content:
             application/json:
               schema:

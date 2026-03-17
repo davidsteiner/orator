@@ -1,7 +1,8 @@
 use crate::api::generated::{
-    CreateMemberResponse, DeleteMemberPath, DeleteMemberResponse, GetMemberPath, GetMemberResponse,
-    ListMembersCookie, ListMembersHeader, ListMembersQuery, ListMembersResponse, MembersApi,
-    UpdateMemberPath, UpdateMemberResponse,
+    CreateMemberResponse, DeleteMemberPath, DeleteMemberResponse, GetMemberPath,
+    GetMemberPhotoPath, GetMemberPhotoResponse, GetMemberResponse, ListMembersCookie,
+    ListMembersHeader, ListMembersQuery, ListMembersResponse, MembersApi, UpdateMemberPath,
+    UpdateMemberResponse, UploadMemberPhotoPath, UploadMemberPhotoResponse,
 };
 use std::convert::Infallible;
 use tennis_club_core::{TennisClub, domain};
@@ -84,6 +85,28 @@ impl MembersApi for TennisClub {
                 },
             ))
         }
+    }
+
+    async fn get_member_photo(
+        &self,
+        _ctx: (),
+        path: GetMemberPhotoPath,
+    ) -> Result<GetMemberPhotoResponse, Self::Error> {
+        Ok(GetMemberPhotoResponse::NotFound(
+            crate::api::generated::Error {
+                code: 404,
+                message: format!("No photo for member {}", path.member_id),
+            },
+        ))
+    }
+
+    async fn upload_member_photo(
+        &self,
+        _ctx: (),
+        _path: UploadMemberPhotoPath,
+        _body: orator_axum::bytes::Bytes,
+    ) -> Result<UploadMemberPhotoResponse, Self::Error> {
+        Ok(UploadMemberPhotoResponse::NoContent)
     }
 }
 

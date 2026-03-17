@@ -1,0 +1,24 @@
+openapi: "3.1.0"
+info:
+  title: Text Plain Test
+  version: "0.1.0"
+paths:
+  /echo:
+    post:
+      operationId: echoText
+      summary: Echo text back
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Echoed text
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          description: Bad request

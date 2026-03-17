@@ -1,0 +1,83 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "downloadFile",
+        description: Some(
+            "Download a binary file",
+        ),
+        method: Get,
+        path: "/download",
+        tag: None,
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "File content",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: OctetStream,
+                        type_ref: Primitive(
+                            Bytes,
+                        ),
+                    },
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Not found",
+                ),
+                body: None,
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "uploadFile",
+        description: Some(
+            "Upload a binary file",
+        ),
+        method: Post,
+        path: "/upload",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: OctetStream,
+                type_ref: Primitive(
+                    Bytes,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Upload successful",
+                ),
+                body: None,
+            },
+            OperationResponse {
+                status_code: Code(
+                    400,
+                ),
+                description: Some(
+                    "Bad request",
+                ),
+                body: None,
+            },
+        ],
+    },
+]
