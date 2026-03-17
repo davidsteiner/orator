@@ -79,6 +79,26 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         });
     }
 
+    // top-level schema with only additionalProperties
+    if let Some(additional) = &schema.additional_properties {
+        return match lower_additional_properties(additional)? {
+            Some(type_ref) => Ok(TypeDef {
+                name: name.to_string(),
+                description,
+                kind: TypeDefKind::Alias(type_ref),
+            }),
+            None => Ok(TypeDef {
+                name: name.to_string(),
+                description,
+                kind: TypeDefKind::Struct(StructDef {
+                    bases: vec![],
+                    fields: vec![],
+                    deny_unknown_fields: true,
+                }),
+            }),
+        };
+    }
+
     Err(Error::UnsupportedSchema {
         context: format!("schema '{name}'"),
     })
@@ -122,10 +142,19 @@ fn lower_composite(
 
     lower_properties_into(&mut fields, schema)?;
 
+    let deny_unknown_fields = matches!(
+        &schema.additional_properties,
+        Some(oas3::spec::Schema::Boolean(BooleanSchema(false)))
+    );
+
     Ok(TypeDef {
         name: name.to_string(),
         description,
-        kind: TypeDefKind::Struct(StructDef { bases, fields }),
+        kind: TypeDefKind::Struct(StructDef {
+            bases,
+            fields,
+            deny_unknown_fields,
+        }),
     })
 }
 
@@ -205,7 +234,11 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
     let Some(SchemaTypeSet::Single(schema_type)) = &schema.schema_type else {
         // object with additionalProperties but no explicit type
         if let Some(additional) = &schema.additional_properties {
-            return lower_additional_properties(additional);
+            return lower_additional_properties(additional)?.ok_or_else(|| {
+                Error::UnsupportedSchema {
+                    context: "inline schema with additionalProperties: false — use a $ref to a named schema instead".to_string(),
+                }
+            });
         }
         return Err(Error::UnsupportedSchema {
             context: format!("inline schema with no type: {schema:?}"),
@@ -229,7 +262,9 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
         }
         SchemaType::Object => {
             if let Some(additional) = &schema.additional_properties {
-                lower_additional_properties(additional)
+                lower_additional_properties(additional)?.ok_or_else(|| Error::UnsupportedSchema {
+                    context: "inline object with additionalProperties: false — use a $ref to a named schema instead".to_string(),
+                })
             } else {
                 Err(Error::UnsupportedSchema {
                     context: "inline object without additionalProperties".to_string(),
@@ -256,18 +291,16 @@ fn lower_items(schema: &ObjectSchema) -> Result<TypeRef, Error> {
     }
 }
 
-fn lower_additional_properties(schema: &oas3::spec::Schema) -> Result<TypeRef, Error> {
+fn lower_additional_properties(schema: &oas3::spec::Schema) -> Result<Option<TypeRef>, Error> {
     match schema {
         oas3::spec::Schema::Object(inner) => {
             let value_type = lower_type_ref(inner)?;
-            Ok(TypeRef::Map(Box::new(value_type)))
+            Ok(Some(TypeRef::Map(Box::new(value_type))))
         }
-        oas3::spec::Schema::Boolean(BooleanSchema(true)) => Ok(TypeRef::Map(Box::new(
+        oas3::spec::Schema::Boolean(BooleanSchema(true)) => Ok(Some(TypeRef::Map(Box::new(
             TypeRef::Primitive(PrimitiveType::String),
-        ))),
-        oas3::spec::Schema::Boolean(BooleanSchema(false)) => Err(Error::UnsupportedSchema {
-            context: "additionalProperties: false".to_string(),
-        }),
+        )))),
+        oas3::spec::Schema::Boolean(BooleanSchema(false)) => Ok(None),
     }
 }
 

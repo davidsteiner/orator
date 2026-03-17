@@ -54,3 +54,11 @@ fn petstore() {
     let types = load_and_lower(include_str!("../../../tests/fixtures/petstore.yaml"));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn additional_properties() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_additional_properties.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}

@@ -1,0 +1,28 @@
+openapi: "3.1.0"
+info:
+  title: AdditionalProperties Test
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    ClosedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+        - id
+        - name
+      additionalProperties: false
+
+    EmptyClosedObject:
+      additionalProperties: false
+
+    StringMap:
+      additionalProperties:
+        type: string
+
+    OpenObject:
+      additionalProperties: true
