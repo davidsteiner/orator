@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.0.4...orator-axum-codegen-v0.1.0) - 2026-03-17
+
+### Other
+
+- bump version to 0.1.0 ([#48](https://github.com/davidsteiner/orator/pull/48))
+
 ## [0.0.3](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.0.2...orator-axum-codegen-v0.0.3) - 2026-03-17
 
 ### Added
