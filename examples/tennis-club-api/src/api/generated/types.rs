@@ -7,6 +7,7 @@ pub enum Booking {
     GuestBooking(GuestBooking),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Court {
     pub id: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -15,6 +16,7 @@ pub struct Court {
     pub surface: Surface,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Error {
     pub code: i32,
     pub message: String,
@@ -27,6 +29,7 @@ pub struct GuestBooking {
     pub guest_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Member {
     pub first_name: String,
     pub id: i64,
@@ -40,6 +43,7 @@ pub struct MemberBooking {
     pub member_id: i64,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct NewMember {
     pub first_name: String,
     pub last_name: String,
