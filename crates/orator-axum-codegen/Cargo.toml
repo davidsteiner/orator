@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-orator-core = { version = "0.0.2", path = "../orator-core" }
+orator-core = { version = "0.0.3", path = "../orator-core" }
 
 prettyplease.workspace = true
 proc-macro2.workspace = true
