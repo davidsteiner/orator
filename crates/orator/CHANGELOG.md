@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/davidsteiner/orator/compare/orator-v0.1.0...orator-v0.1.1) - 2026-03-17
+
+### Other
+
+- release v0.1.0 ([#47](https://github.com/davidsteiner/orator/pull/47))
+
 ## [0.1.0](https://github.com/davidsteiner/orator/compare/orator-v0.0.4...orator-v0.1.0) - 2026-03-17
 
 ### Other
