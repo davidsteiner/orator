@@ -11,8 +11,8 @@ use orator_core::codegen::{
 };
 pub use orator_core::config::Config;
 use orator_core::ir::{
-    HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation, PrimitiveType,
-    ResponseStatusCode, TypeDef, TypeRef,
+    ContentType, HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation,
+    PrimitiveType, ResponseStatusCode, TypeDef, TypeRef,
 };
 
 /// The result of generating a complete API module.
@@ -187,9 +187,21 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
             let variant_ident = to_pascal_ident(&variant_name);
             let status = status_code_to_tokens(resp);
 
-            if resp.body.is_some() {
+            if let Some(body) = &resp.body {
+                let response_expr = match &body.content_type {
+                    ContentType::Json => {
+                        quote! { (#status, orator_axum::axum::Json(body)).into_response() }
+                    }
+                    ContentType::TextPlain | ContentType::OctetStream => {
+                        quote! { (#status, body).into_response() }
+                    }
+                    ContentType::FormUrlEncoded | ContentType::MultipartFormData => {
+                        // These are request-only; responses won't have them
+                        unreachable!()
+                    }
+                };
                 quote! {
-                    Self::#variant_ident(body) => (#status, orator_axum::axum::Json(body)).into_response(),
+                    Self::#variant_ident(body) => #response_expr,
                 }
             } else {
                 quote! {
@@ -462,9 +474,29 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
     // request body is last
     if let Some(body) = &op.request_body {
         let body_type = type_ref_to_tokens(&body.type_ref);
-        fn_params.push(quote! {
-            orator_axum::axum::Json(body): orator_axum::axum::Json<#body_type>
-        });
+        match &body.content_type {
+            ContentType::Json => {
+                fn_params.push(quote! {
+                    orator_axum::axum::Json(body): orator_axum::axum::Json<#body_type>
+                });
+            }
+            ContentType::TextPlain => {
+                fn_params.push(quote! { body: String });
+            }
+            ContentType::OctetStream => {
+                fn_params.push(quote! { body: orator_axum::axum::body::Bytes });
+            }
+            ContentType::FormUrlEncoded => {
+                fn_params.push(quote! {
+                    orator_axum::axum::Form(body): orator_axum::axum::Form<#body_type>
+                });
+            }
+            ContentType::MultipartFormData => {
+                fn_params.push(quote! {
+                    body: orator_axum::axum::extract::Multipart
+                });
+            }
+        }
     }
 
     // build trait method call arguments

@@ -1,0 +1,21 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+/// Login with form credentials
+#[derive(Debug)]
+pub enum LoginResponse {
+    /// Login successful
+    Ok(Token),
+    /// Invalid credentials
+    Unauthorized,
+}
+pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// Login with form credentials
+    fn login(
+        &self,
+        ctx: Ctx,
+        body: LoginForm,
+    ) -> impl std::future::Future<Output = Result<LoginResponse, Self::Error>> + Send;
+}

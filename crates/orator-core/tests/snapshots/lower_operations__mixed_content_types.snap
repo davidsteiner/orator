@@ -1,0 +1,179 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "listItems",
+        description: Some(
+            "List items as JSON",
+        ),
+        method: Get,
+        path: "/items",
+        tag: None,
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "A list of items",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Item",
+                            ),
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "createItem",
+        description: Some(
+            "Create item via JSON",
+        ),
+        method: Post,
+        path: "/items",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: Json,
+                type_ref: Named(
+                    "NewItem",
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    201,
+                ),
+                description: Some(
+                    "Created item",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Item",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "exportItems",
+        description: Some(
+            "Export items as binary",
+        ),
+        method: Get,
+        path: "/items/export",
+        tag: None,
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Binary export",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: OctetStream,
+                        type_ref: Primitive(
+                            Bytes,
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "importItems",
+        description: Some(
+            "Upload items as a file",
+        ),
+        method: Post,
+        path: "/items/import",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: MultipartFormData,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Import result",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: TextPlain,
+                        type_ref: Primitive(
+                            String,
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "searchItems",
+        description: Some(
+            "Search with form data",
+        ),
+        method: Post,
+        path: "/items/search",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: FormUrlEncoded,
+                type_ref: Named(
+                    "SearchQuery",
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Search results",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Item",
+                            ),
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+]

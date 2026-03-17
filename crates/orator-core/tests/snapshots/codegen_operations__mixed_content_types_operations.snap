@@ -1,0 +1,75 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+/// List items as JSON
+#[derive(Debug)]
+pub enum ListItemsResponse {
+    /// A list of items
+    Ok(Vec<Item>),
+}
+/// Create item via JSON
+#[derive(Debug)]
+pub enum CreateItemResponse {
+    /// Created item
+    Created(Item),
+}
+/// Export items as binary
+#[derive(Debug)]
+pub enum ExportItemsResponse {
+    /// Binary export
+    Ok(bytes::Bytes),
+}
+/// Upload items as a file
+#[derive(Debug)]
+pub enum ImportItemsResponse {
+    /// Import result
+    Ok(String),
+}
+/// Search with form data
+#[derive(Debug)]
+pub enum SearchItemsResponse {
+    /// Search results
+    Ok(Vec<Item>),
+}
+pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// List items as JSON
+    fn list_items(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<
+        Output = Result<ListItemsResponse, Self::Error>,
+    > + Send;
+    /// Create item via JSON
+    fn create_item(
+        &self,
+        ctx: Ctx,
+        body: NewItem,
+    ) -> impl std::future::Future<
+        Output = Result<CreateItemResponse, Self::Error>,
+    > + Send;
+    /// Export items as binary
+    fn export_items(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<
+        Output = Result<ExportItemsResponse, Self::Error>,
+    > + Send;
+    /// Upload items as a file
+    fn import_items(
+        &self,
+        ctx: Ctx,
+        body: orator_axum::axum::extract::Multipart,
+    ) -> impl std::future::Future<
+        Output = Result<ImportItemsResponse, Self::Error>,
+    > + Send;
+    /// Search with form data
+    fn search_items(
+        &self,
+        ctx: Ctx,
+        body: SearchQuery,
+    ) -> impl std::future::Future<
+        Output = Result<SearchItemsResponse, Self::Error>,
+    > + Send;
+}

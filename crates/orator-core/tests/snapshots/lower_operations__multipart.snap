@@ -1,0 +1,52 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "uploadDocument",
+        description: Some(
+            "Upload a document with metadata",
+        ),
+        method: Post,
+        path: "/upload",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: MultipartFormData,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    201,
+                ),
+                description: Some(
+                    "Document uploaded",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Document",
+                        ),
+                    },
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    400,
+                ),
+                description: Some(
+                    "Bad request",
+                ),
+                body: None,
+            },
+        ],
+    },
+]

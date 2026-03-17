@@ -24,11 +24,14 @@ expression: ops
                     "A list of bookings",
                 ),
                 body: Some(
-                    Array(
-                        Named(
-                            "Booking",
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Booking",
+                            ),
                         ),
-                    ),
+                    },
                 ),
             },
             OperationResponse {
@@ -39,9 +42,12 @@ expression: ops
                     "Unauthorized",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -67,11 +73,14 @@ expression: ops
                     "A list of courts",
                 ),
                 body: Some(
-                    Array(
-                        Named(
-                            "Court",
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Court",
+                            ),
                         ),
-                    ),
+                    },
                 ),
             },
             OperationResponse {
@@ -82,9 +91,12 @@ expression: ops
                     "Unauthorized",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -166,11 +178,14 @@ expression: ops
                     "A list of members",
                 ),
                 body: Some(
-                    Array(
-                        Named(
-                            "Member",
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Named(
+                                "Member",
+                            ),
                         ),
-                    ),
+                    },
                 ),
             },
             OperationResponse {
@@ -181,9 +196,12 @@ expression: ops
                     "Unauthorized",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -201,6 +219,7 @@ expression: ops
         parameters: [],
         request_body: Some(
             RequestBodyIr {
+                content_type: Json,
                 type_ref: Named(
                     "NewMember",
                 ),
@@ -216,9 +235,12 @@ expression: ops
                     "The created member",
                 ),
                 body: Some(
-                    Named(
-                        "Member",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Member",
+                        ),
+                    },
                 ),
             },
             OperationResponse {
@@ -229,9 +251,12 @@ expression: ops
                     "Validation error",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -267,9 +292,12 @@ expression: ops
                     "The member",
                 ),
                 body: Some(
-                    Named(
-                        "Member",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Member",
+                        ),
+                    },
                 ),
             },
             OperationResponse {
@@ -280,9 +308,12 @@ expression: ops
                     "Member not found",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -310,6 +341,7 @@ expression: ops
         ],
         request_body: Some(
             RequestBodyIr {
+                content_type: Json,
                 type_ref: Named(
                     "UpdateMember",
                 ),
@@ -325,9 +357,12 @@ expression: ops
                     "The updated member",
                 ),
                 body: Some(
-                    Named(
-                        "Member",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Member",
+                        ),
+                    },
                 ),
             },
             OperationResponse {
@@ -338,9 +373,12 @@ expression: ops
                     "Member not found",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
@@ -385,9 +423,12 @@ expression: ops
                     "Member not found",
                 ),
                 body: Some(
-                    Named(
-                        "Error",
-                    ),
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
                 ),
             },
         ],
