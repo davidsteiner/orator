@@ -1,0 +1,15 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClosedUser {
+    pub id: i32,
+    pub name: String,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EmptyClosedObject {}
+pub type OpenObject = std::collections::HashMap<String, String>;
+pub type StringMap = std::collections::HashMap<String, String>;

@@ -56,3 +56,11 @@ fn petstore() {
     let code = generate_from_yaml(include_str!("../../../tests/fixtures/petstore.yaml"));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn additional_properties() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_additional_properties.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

@@ -27,6 +27,7 @@ pub enum TypeDefKind {
 pub struct StructDef {
     pub bases: Vec<TypeRef>,
     pub fields: Vec<Field>,
+    pub deny_unknown_fields: bool,
 }
 
 /// The representation of an enum in Rust.

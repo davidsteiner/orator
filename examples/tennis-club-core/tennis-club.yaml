@@ -356,6 +356,7 @@ components:
           type: string
         last_name:
           type: string
+      additionalProperties: false
 
     NewMember:
       type: object
@@ -367,6 +368,7 @@ components:
           type: string
         last_name:
           type: string
+      additionalProperties: false
 
     UpdateMember:
       type: object
@@ -393,6 +395,7 @@ components:
           $ref: "#/components/schemas/Surface"
         indoor:
           type: boolean
+      additionalProperties: false
 
     MemberBooking:
       type: object
@@ -444,3 +447,4 @@ components:
           format: int32
         message:
           type: string
+      additionalProperties: false
