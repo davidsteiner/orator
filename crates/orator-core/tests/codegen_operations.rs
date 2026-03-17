@@ -10,7 +10,7 @@ fn generate_ops_from_yaml(yaml: &str, default_tag: &str) -> String {
 #[test]
 fn tennis_club_operations() {
     let code = generate_ops_from_yaml(
-        include_str!("../../../examples/tennis-club/tennis-club.yaml"),
+        include_str!("../../../examples/tennis-club-core/tennis-club.yaml"),
         "TennisClub",
     );
     insta::assert_snapshot!(code);

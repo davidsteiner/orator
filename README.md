@@ -33,13 +33,12 @@ Please refer to the example's README for more detail.
     - [x] Per-tag traits
     - [x] Generic context propagation to handlers for flexibility
 - [x] Axum router generation
-- [x] Build script integration
 - [x] Parameter extraction
     - [x] Path parameters
     - [x] Query parameters
     - [x] Headers
     - [x] Cookie parameter support
-- [ ] CLI tool for explicit code generation into your project
+- [x] CLI tool for explicit code generation into your project
 - [ ] Default response handling
 - [ ] Support for security schemes
 - [ ] Support for webhooks

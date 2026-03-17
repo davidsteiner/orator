@@ -14,5 +14,5 @@ categories.workspace = true
 [dependencies]
 clap = { workspace = true }
 oas3 = { workspace = true }
-orator-axum-build = { version = "0.0.1", path = "../orator-axum-build" }
+orator-axum-codegen = { version = "0.0.1", path = "../orator-axum-codegen" }
 orator-core = { version = "0.0.1", path = "../orator-core" }

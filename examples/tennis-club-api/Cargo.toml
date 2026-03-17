@@ -1,10 +1,10 @@
 [package]
-name = "tennis-club-generated"
+name = "tennis-club-api"
 version = "0.0.1"
 edition = "2024"
 
 [dependencies]
-tennis-club = { path = "../tennis-club" }
+tennis-club-core = { path = "../tennis-club-core" }
 orator-axum = { path = "../../crates/orator-axum", features = ["cookies"] }
 axum = "0.8"
 serde = { version = "1", features = ["derive"] }

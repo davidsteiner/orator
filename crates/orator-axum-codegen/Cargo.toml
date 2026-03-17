@@ -1,6 +1,6 @@
 [package]
-name = "orator-axum-build"
-description = "Axum build-time codegen for orator"
+name = "orator-axum-codegen"
+description = "Axum code generation for orator"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -14,7 +14,6 @@ categories.workspace = true
 [dependencies]
 orator-core = { version = "0.0.1", path = "../orator-core" }
 
-oas3.workspace = true
 prettyplease.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
@@ -22,3 +21,4 @@ syn.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+oas3.workspace = true

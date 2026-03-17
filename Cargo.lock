@@ -779,7 +779,7 @@ version = "0.0.1"
 dependencies = [
  "clap",
  "oas3",
- "orator-axum-build",
+ "orator-axum-codegen",
  "orator-core",
 ]
 
@@ -794,7 +794,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "orator-axum-build"
+name = "orator-axum-codegen"
 version = "0.0.1"
 dependencies = [
  "insta",
@@ -1227,28 +1227,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tennis-club"
-version = "0.0.1"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "tennis-club-build-rs"
-version = "0.0.1"
-dependencies = [
- "axum",
- "orator-axum",
- "orator-axum-build",
- "scalar_api_reference",
- "serde",
- "serde_json",
- "tennis-club",
- "tokio",
-]
-
-[[package]]
-name = "tennis-club-generated"
+name = "tennis-club-api"
 version = "0.0.1"
 dependencies = [
  "axum",
@@ -1256,8 +1235,15 @@ dependencies = [
  "scalar_api_reference",
  "serde",
  "serde_json",
- "tennis-club",
+ "tennis-club-core",
  "tokio",
+]
+
+[[package]]
+name = "tennis-club-core"
+version = "0.0.1"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
