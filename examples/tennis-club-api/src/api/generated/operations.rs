@@ -51,6 +51,20 @@ pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
         body: orator_axum::axum::extract::Multipart,
     ) -> impl std::future::Future<Output = Result<UploadCourtPhotoResponse, Self::Error>> + Send;
 }
+/// Check API health
+#[derive(Debug)]
+pub enum HealthCheckResponse {
+    /// Service is healthy
+    Ok(String),
+}
+pub trait HealthApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// Check API health
+    fn health_check(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<Output = Result<HealthCheckResponse, Self::Error>> + Send;
+}
 /// List all members
 #[derive(Debug)]
 pub enum ListMembersResponse {

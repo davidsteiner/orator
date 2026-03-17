@@ -24,6 +24,19 @@ security:
   - bearerAuth: [ ]
 
 paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Check API health
+      tags: [ health ]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+
   /members:
     get:
       operationId: listMembers

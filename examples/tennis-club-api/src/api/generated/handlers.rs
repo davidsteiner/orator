@@ -105,6 +105,35 @@ where
         )
         .with_state(api)
 }
+impl orator_axum::axum::response::IntoResponse for HealthCheckResponse {
+    fn into_response(self) -> orator_axum::axum::response::Response {
+        match self {
+            Self::Ok(body) => (orator_axum::http::StatusCode::OK, body).into_response(),
+        }
+    }
+}
+async fn handle_health_check<T, Ctx>(
+    orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+) -> Result<HealthCheckResponse, T::Error>
+where
+    T: HealthApi<Ctx>,
+{
+    api.health_check(ctx).await
+}
+pub fn health_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+where
+    T: HealthApi<Ctx>,
+    T::Error: orator_axum::axum::response::IntoResponse,
+    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+{
+    orator_axum::axum::Router::new()
+        .route(
+            "/health",
+            orator_axum::axum::routing::get(handle_health_check::<T, Ctx>),
+        )
+        .with_state(api)
+}
 impl orator_axum::axum::response::IntoResponse for ListMembersResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
@@ -456,6 +485,42 @@ impl CourtsRouter {
         Self(self.0.layer(layer))
     }
 }
+pub struct HealthRouter(orator_axum::axum::Router);
+impl HealthRouter {
+    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    where
+        T: HealthApi<Ctx>,
+        T::Error: orator_axum::axum::response::IntoResponse,
+        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+    {
+        Self(health_router(api))
+    }
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: orator_axum::tower::Layer<orator_axum::axum::routing::Route>
+            + Clone
+            + Send
+            + Sync
+            + 'static,
+        L::Service: orator_axum::tower::Service<
+                orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+            > + Clone
+            + Send
+            + Sync
+            + 'static,
+        <L::Service as orator_axum::tower::Service<
+            orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        >>::Response: orator_axum::axum::response::IntoResponse + 'static,
+        <L::Service as orator_axum::tower::Service<
+            orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        >>::Error: Into<std::convert::Infallible> + 'static,
+        <L::Service as orator_axum::tower::Service<
+            orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        >>::Future: Send + 'static,
+    {
+        Self(self.0.layer(layer))
+    }
+}
 pub struct MembersRouter(orator_axum::axum::Router);
 impl MembersRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
@@ -492,9 +557,14 @@ impl MembersRouter {
         Self(self.0.layer(layer))
     }
 }
-pub struct ApiBuilder<BookingsState = Missing, CourtsState = Missing, MembersState = Missing> {
+pub struct ApiBuilder<
+    BookingsState = Missing,
+    CourtsState = Missing,
+    HealthState = Missing,
+    MembersState = Missing,
+> {
     router: orator_axum::axum::Router,
-    _phantom: std::marker::PhantomData<(BookingsState, CourtsState, MembersState)>,
+    _phantom: std::marker::PhantomData<(BookingsState, CourtsState, HealthState, MembersState)>,
 }
 impl ApiBuilder {
     pub fn new() -> Self {
@@ -504,40 +574,59 @@ impl ApiBuilder {
         }
     }
 }
-impl<CourtsState, MembersState> ApiBuilder<Missing, CourtsState, MembersState> {
+impl<CourtsState, HealthState, MembersState>
+    ApiBuilder<Missing, CourtsState, HealthState, MembersState>
+{
     pub fn bookings(
         self,
         router: BookingsRouter,
-    ) -> ApiBuilder<Registered, CourtsState, MembersState> {
+    ) -> ApiBuilder<Registered, CourtsState, HealthState, MembersState> {
         ApiBuilder {
             router: self.router.merge(router.0),
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<BookingsState, MembersState> ApiBuilder<BookingsState, Missing, MembersState> {
+impl<BookingsState, HealthState, MembersState>
+    ApiBuilder<BookingsState, Missing, HealthState, MembersState>
+{
     pub fn courts(
         self,
         router: CourtsRouter,
-    ) -> ApiBuilder<BookingsState, Registered, MembersState> {
+    ) -> ApiBuilder<BookingsState, Registered, HealthState, MembersState> {
         ApiBuilder {
             router: self.router.merge(router.0),
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<BookingsState, CourtsState> ApiBuilder<BookingsState, CourtsState, Missing> {
+impl<BookingsState, CourtsState, MembersState>
+    ApiBuilder<BookingsState, CourtsState, Missing, MembersState>
+{
+    pub fn health(
+        self,
+        router: HealthRouter,
+    ) -> ApiBuilder<BookingsState, CourtsState, Registered, MembersState> {
+        ApiBuilder {
+            router: self.router.merge(router.0),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<BookingsState, CourtsState, HealthState>
+    ApiBuilder<BookingsState, CourtsState, HealthState, Missing>
+{
     pub fn members(
         self,
         router: MembersRouter,
-    ) -> ApiBuilder<BookingsState, CourtsState, Registered> {
+    ) -> ApiBuilder<BookingsState, CourtsState, HealthState, Registered> {
         ApiBuilder {
             router: self.router.merge(router.0),
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl ApiBuilder<Registered, Registered, Registered> {
+impl ApiBuilder<Registered, Registered, Registered, Registered> {
     pub fn build(self) -> orator_axum::axum::Router {
         self.router
     }

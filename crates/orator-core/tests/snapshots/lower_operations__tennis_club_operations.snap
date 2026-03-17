@@ -160,6 +160,37 @@ expression: ops
         ],
     },
     OperationIr {
+        operation_id: "healthCheck",
+        description: Some(
+            "Check API health",
+        ),
+        method: Get,
+        path: "/health",
+        tag: Some(
+            "health",
+        ),
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Service is healthy",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: TextPlain,
+                        type_ref: Primitive(
+                            String,
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
         operation_id: "listMembers",
         description: Some(
             "List all members",

@@ -11,6 +11,7 @@ async fn main() {
 
     let scalar_config = json!({ "url": "/openapi.yaml", "theme": "kepler" });
     let app = ApiBuilder::new()
+        .health(HealthRouter::new(api.clone()))
         .members(MembersRouter::new(api.clone()))
         .courts(CourtsRouter::new(api.clone()))
         .bookings(BookingsRouter::new(api))
