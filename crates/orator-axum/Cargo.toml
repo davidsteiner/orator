@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 axum = "0.8"
+bytes = "1"
 http = "1"
 tower = "0.5"
 

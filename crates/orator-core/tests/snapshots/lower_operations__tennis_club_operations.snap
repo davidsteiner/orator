@@ -433,4 +433,119 @@ expression: ops
             },
         ],
     },
+    OperationIr {
+        operation_id: "getMemberPhoto",
+        description: Some(
+            "Download a member's profile photo",
+        ),
+        method: Get,
+        path: "/members/{member_id}/photo",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                description: None,
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "The profile photo",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: OctetStream,
+                        type_ref: Primitive(
+                            Bytes,
+                        ),
+                    },
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member or photo not found",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
+        operation_id: "uploadMemberPhoto",
+        description: Some(
+            "Upload a member's profile photo",
+        ),
+        method: Put,
+        path: "/members/{member_id}/photo",
+        tag: Some(
+            "members",
+        ),
+        parameters: [
+            OperationParam {
+                name: "member_id",
+                description: None,
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: OctetStream,
+                type_ref: Primitive(
+                    Bytes,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    204,
+                ),
+                description: Some(
+                    "Photo uploaded",
+                ),
+                body: None,
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Member not found",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
 ]

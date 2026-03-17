@@ -188,6 +188,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{member_id}/photo:
+    get:
+      operationId: getMemberPhoto
+      summary: Download a member's profile photo
+      tags: [ members ]
+      parameters:
+        - name: member_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: The profile photo
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Member or photo not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: uploadMemberPhoto
+      summary: Upload a member's profile photo
+      tags: [ members ]
+      parameters:
+        - name: member_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "204":
+          description: Photo uploaded
+        "404":
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /bookings:
     get:
       operationId: listBookings

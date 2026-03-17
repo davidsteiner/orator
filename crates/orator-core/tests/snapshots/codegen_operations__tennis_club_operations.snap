@@ -109,6 +109,30 @@ pub enum DeleteMemberResponse {
 pub struct DeleteMemberPath {
     pub member_id: i64,
 }
+/// Download a member's profile photo
+#[derive(Debug)]
+pub enum GetMemberPhotoResponse {
+    /// The profile photo
+    Ok(orator_axum::bytes::Bytes),
+    /// Member or photo not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct GetMemberPhotoPath {
+    pub member_id: i64,
+}
+/// Upload a member's profile photo
+#[derive(Debug)]
+pub enum UploadMemberPhotoResponse {
+    /// Photo uploaded
+    NoContent,
+    /// Member not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct UploadMemberPhotoPath {
+    pub member_id: i64,
+}
 pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     /// List all members
@@ -153,5 +177,22 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
         path: DeleteMemberPath,
     ) -> impl std::future::Future<
         Output = Result<DeleteMemberResponse, Self::Error>,
+    > + Send;
+    /// Download a member's profile photo
+    fn get_member_photo(
+        &self,
+        ctx: Ctx,
+        path: GetMemberPhotoPath,
+    ) -> impl std::future::Future<
+        Output = Result<GetMemberPhotoResponse, Self::Error>,
+    > + Send;
+    /// Upload a member's profile photo
+    fn upload_member_photo(
+        &self,
+        ctx: Ctx,
+        path: UploadMemberPhotoPath,
+        body: orator_axum::bytes::Bytes,
+    ) -> impl std::future::Future<
+        Output = Result<UploadMemberPhotoResponse, Self::Error>,
     > + Send;
 }

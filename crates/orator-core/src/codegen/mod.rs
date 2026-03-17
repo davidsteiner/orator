@@ -66,7 +66,7 @@ pub fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
         PrimitiveType::I64 => quote! { i64 },
         PrimitiveType::F32 => quote! { f32 },
         PrimitiveType::F64 => quote! { f64 },
-        PrimitiveType::Bytes => quote! { bytes::Bytes },
+        PrimitiveType::Bytes => quote! { orator_axum::bytes::Bytes },
     }
 }
 
