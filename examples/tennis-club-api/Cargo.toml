@@ -2,6 +2,7 @@
 name = "tennis-club-api"
 version = "0.0.1"
 edition = "2024"
+publish = false
 
 [dependencies]
 tennis-club-core = { path = "../tennis-club-core" }
