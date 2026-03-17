@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::config::Config;
-use crate::ir::{OperationIr, OperationResponse, ParamLocation, ResponseStatusCode};
+use crate::ir::{ContentType, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode};
 
 use heck::ToSnakeCase;
 
@@ -122,7 +122,7 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
             let variant_doc = generate_doc_comment(&resp.description);
 
             if let Some(body) = &resp.body {
-                let body_type = type_ref_to_tokens(body);
+                let body_type = type_ref_to_tokens(&body.type_ref);
                 quote! { #variant_doc #variant_ident(#body_type), }
             } else {
                 quote! { #variant_doc #variant_ident, }
@@ -228,7 +228,9 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -
             }
 
             if let Some(body) = &op.request_body {
-                let body_type = if body.required {
+                let body_type = if body.content_type == ContentType::MultipartFormData {
+                    quote! { orator_axum::axum::extract::Multipart }
+                } else if body.required {
                     type_ref_to_tokens(&body.type_ref)
                 } else {
                     let inner = type_ref_to_tokens(&body.type_ref);

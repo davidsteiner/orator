@@ -92,4 +92,5 @@ pub enum PrimitiveType {
     I64,
     F32,
     F64,
+    Bytes,
 }

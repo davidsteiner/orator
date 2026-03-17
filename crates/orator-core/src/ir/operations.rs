@@ -43,16 +43,32 @@ pub enum ParamLocation {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum ContentType {
+    Json,
+    TextPlain,
+    OctetStream,
+    FormUrlEncoded,
+    MultipartFormData,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct RequestBodyIr {
+    pub content_type: ContentType,
     pub type_ref: TypeRef,
     pub required: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ResponseBody {
+    pub content_type: ContentType,
+    pub type_ref: TypeRef,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct OperationResponse {
     pub status_code: ResponseStatusCode,
     pub description: Option<String>,
-    pub body: Option<TypeRef>,
+    pub body: Option<ResponseBody>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

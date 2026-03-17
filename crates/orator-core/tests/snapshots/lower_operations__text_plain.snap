@@ -1,0 +1,52 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "echoText",
+        description: Some(
+            "Echo text back",
+        ),
+        method: Post,
+        path: "/echo",
+        tag: None,
+        parameters: [],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: TextPlain,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "Echoed text",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: TextPlain,
+                        type_ref: Primitive(
+                            String,
+                        ),
+                    },
+                ),
+            },
+            OperationResponse {
+                status_code: Code(
+                    400,
+                ),
+                description: Some(
+                    "Bad request",
+                ),
+                body: None,
+            },
+        ],
+    },
+]

@@ -24,6 +24,18 @@ pub enum ListCourtsResponse {
     /// Unauthorized
     Unauthorized(Error),
 }
+/// Upload a court photo with metadata
+#[derive(Debug)]
+pub enum UploadCourtPhotoResponse {
+    /// Photo uploaded
+    NoContent,
+    /// Court not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct UploadCourtPhotoPath {
+    pub court_id: i64,
+}
 pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     /// List all courts
@@ -31,6 +43,27 @@ pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
         &self,
         ctx: Ctx,
     ) -> impl std::future::Future<Output = Result<ListCourtsResponse, Self::Error>> + Send;
+    /// Upload a court photo with metadata
+    fn upload_court_photo(
+        &self,
+        ctx: Ctx,
+        path: UploadCourtPhotoPath,
+        body: orator_axum::axum::extract::Multipart,
+    ) -> impl std::future::Future<Output = Result<UploadCourtPhotoResponse, Self::Error>> + Send;
+}
+/// Check API health
+#[derive(Debug)]
+pub enum HealthCheckResponse {
+    /// Service is healthy
+    Ok(String),
+}
+pub trait HealthApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// Check API health
+    fn health_check(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<Output = Result<HealthCheckResponse, Self::Error>> + Send;
 }
 /// List all members
 #[derive(Debug)]
@@ -103,6 +136,30 @@ pub enum DeleteMemberResponse {
 pub struct DeleteMemberPath {
     pub member_id: i64,
 }
+/// Download a member's profile photo
+#[derive(Debug)]
+pub enum GetMemberPhotoResponse {
+    /// The profile photo
+    Ok(orator_axum::bytes::Bytes),
+    /// Member or photo not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct GetMemberPhotoPath {
+    pub member_id: i64,
+}
+/// Upload a member's profile photo
+#[derive(Debug)]
+pub enum UploadMemberPhotoResponse {
+    /// Photo uploaded
+    NoContent,
+    /// Member not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct UploadMemberPhotoPath {
+    pub member_id: i64,
+}
 pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     /// List all members
@@ -138,4 +195,17 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
         ctx: Ctx,
         path: DeleteMemberPath,
     ) -> impl std::future::Future<Output = Result<DeleteMemberResponse, Self::Error>> + Send;
+    /// Download a member's profile photo
+    fn get_member_photo(
+        &self,
+        ctx: Ctx,
+        path: GetMemberPhotoPath,
+    ) -> impl std::future::Future<Output = Result<GetMemberPhotoResponse, Self::Error>> + Send;
+    /// Upload a member's profile photo
+    fn upload_member_photo(
+        &self,
+        ctx: Ctx,
+        path: UploadMemberPhotoPath,
+        body: orator_axum::bytes::Bytes,
+    ) -> impl std::future::Future<Output = Result<UploadMemberPhotoResponse, Self::Error>> + Send;
 }

@@ -1,4 +1,5 @@
 pub use axum;
+pub use bytes;
 pub use http;
 pub use tower;
 

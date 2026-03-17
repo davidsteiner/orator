@@ -1,0 +1,38 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+/// Download a binary file
+#[derive(Debug)]
+pub enum DownloadFileResponse {
+    /// File content
+    Ok(orator_axum::bytes::Bytes),
+    /// Not found
+    NotFound,
+}
+/// Upload a binary file
+#[derive(Debug)]
+pub enum UploadFileResponse {
+    /// Upload successful
+    Ok,
+    /// Bad request
+    BadRequest,
+}
+pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// Download a binary file
+    fn download_file(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<
+        Output = Result<DownloadFileResponse, Self::Error>,
+    > + Send;
+    /// Upload a binary file
+    fn upload_file(
+        &self,
+        ctx: Ctx,
+        body: orator_axum::bytes::Bytes,
+    ) -> impl std::future::Future<
+        Output = Result<UploadFileResponse, Self::Error>,
+    > + Send;
+}
