@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3](https://github.com/davidsteiner/orator/compare/orator-axum-v0.0.2...orator-axum-v0.0.3) - 2026-03-17
+
+### Added
+
+- support major non-json content types ([#33](https://github.com/davidsteiner/orator/pull/33))
+
 ## [0.0.2](https://github.com/davidsteiner/orator/compare/orator-axum-v0.0.1...orator-axum-v0.0.2) - 2026-03-17
 
 ### Added
