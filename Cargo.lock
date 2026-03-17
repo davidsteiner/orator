@@ -1227,14 +1227,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tennis-club"
-version = "0.0.1"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "tennis-club-generated"
+name = "tennis-club-api"
 version = "0.0.1"
 dependencies = [
  "axum",
@@ -1242,8 +1235,15 @@ dependencies = [
  "scalar_api_reference",
  "serde",
  "serde_json",
- "tennis-club",
+ "tennis-club-core",
  "tokio",
+]
+
+[[package]]
+name = "tennis-club-core"
+version = "0.0.1"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
