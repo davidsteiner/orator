@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process;
 
 use clap::Parser;
-use orator_axum_build::codegen::{Config, generate};
+use orator_axum_codegen::codegen::{Config, generate};
 use orator_core::lower::{lower_operations, lower_schemas};
 
 /// Orator — generate Rust server stubs from OpenAPI 3.1 specs
