@@ -1,0 +1,20 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.0.2](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.0.1...orator-axum-codegen-v0.0.2) - 2026-03-17
+
+### Added
+
+- remove support for implicitly built modules using build.rs ([#29](https://github.com/davidsteiner/orator/pull/29))
+- opt-in extraction of cookie params ([#25](https://github.com/davidsteiner/orator/pull/25))
+- add typesafe builder for full API using typestate pattern ([#20](https://github.com/davidsteiner/orator/pull/20))
+- improve path parameter handling ([#8](https://github.com/davidsteiner/orator/pull/8))
+- more interesting types in example app ([#7](https://github.com/davidsteiner/orator/pull/7))
+- add code generation for routes in axum ([#5](https://github.com/davidsteiner/orator/pull/5))
+- first cut of object parsing logic
