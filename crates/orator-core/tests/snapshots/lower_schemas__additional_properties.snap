@@ -4,7 +4,7 @@ expression: types
 ---
 [
     TypeDef {
-        name: "Base",
+        name: "ClosedUser",
         description: None,
         kind: Struct(
             StructDef {
@@ -13,27 +13,11 @@ expression: types
                     Field {
                         name: "id",
                         type_ref: Primitive(
-                            I64,
+                            I32,
                         ),
                         required: true,
                         description: None,
                     },
-                ],
-                deny_unknown_fields: false,
-            },
-        ),
-    },
-    TypeDef {
-        name: "Extended",
-        description: None,
-        kind: Struct(
-            StructDef {
-                bases: [
-                    Named(
-                        "Base",
-                    ),
-                ],
-                fields: [
                     Field {
                         name: "name",
                         type_ref: Primitive(
@@ -43,8 +27,41 @@ expression: types
                         description: None,
                     },
                 ],
-                deny_unknown_fields: false,
+                deny_unknown_fields: true,
             },
+        ),
+    },
+    TypeDef {
+        name: "EmptyClosedObject",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [],
+                deny_unknown_fields: true,
+            },
+        ),
+    },
+    TypeDef {
+        name: "OpenObject",
+        description: None,
+        kind: Alias(
+            Map(
+                Primitive(
+                    String,
+                ),
+            ),
+        ),
+    },
+    TypeDef {
+        name: "StringMap",
+        description: None,
+        kind: Alias(
+            Map(
+                Primitive(
+                    String,
+                ),
+            ),
         ),
     },
 ]

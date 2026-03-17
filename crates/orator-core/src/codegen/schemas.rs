@@ -91,9 +91,17 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
         })
         .collect();
 
+    // serde does not support deny_unknown_fields with flatten, so suppress when bases are present
+    let deny_attr = if def.deny_unknown_fields && def.bases.is_empty() {
+        quote! { #[serde(deny_unknown_fields)] }
+    } else {
+        quote! {}
+    };
+
     quote! {
         #doc
         #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+        #deny_attr
         pub struct #struct_ident {
             #(#base_fields)*
             #(#regular_fields)*

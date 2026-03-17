@@ -67,6 +67,7 @@ expression: types
                         description: None,
                     },
                 ],
+                deny_unknown_fields: false,
             },
         ),
     },
