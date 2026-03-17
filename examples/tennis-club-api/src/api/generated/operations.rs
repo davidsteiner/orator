@@ -24,6 +24,18 @@ pub enum ListCourtsResponse {
     /// Unauthorized
     Unauthorized(Error),
 }
+/// Upload a court photo with metadata
+#[derive(Debug)]
+pub enum UploadCourtPhotoResponse {
+    /// Photo uploaded
+    NoContent,
+    /// Court not found
+    NotFound(Error),
+}
+#[derive(Debug, Clone)]
+pub struct UploadCourtPhotoPath {
+    pub court_id: i64,
+}
 pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     /// List all courts
@@ -31,6 +43,13 @@ pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
         &self,
         ctx: Ctx,
     ) -> impl std::future::Future<Output = Result<ListCourtsResponse, Self::Error>> + Send;
+    /// Upload a court photo with metadata
+    fn upload_court_photo(
+        &self,
+        ctx: Ctx,
+        path: UploadCourtPhotoPath,
+        body: orator_axum::axum::extract::Multipart,
+    ) -> impl std::future::Future<Output = Result<UploadCourtPhotoResponse, Self::Error>> + Send;
 }
 /// List all members
 #[derive(Debug)]

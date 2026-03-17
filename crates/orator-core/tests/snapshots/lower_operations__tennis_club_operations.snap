@@ -102,6 +102,64 @@ expression: ops
         ],
     },
     OperationIr {
+        operation_id: "uploadCourtPhoto",
+        description: Some(
+            "Upload a court photo with metadata",
+        ),
+        method: Put,
+        path: "/courts/{court_id}/photo",
+        tag: Some(
+            "courts",
+        ),
+        parameters: [
+            OperationParam {
+                name: "court_id",
+                description: None,
+                location: Path,
+                type_ref: Primitive(
+                    I64,
+                ),
+                required: true,
+            },
+        ],
+        request_body: Some(
+            RequestBodyIr {
+                content_type: MultipartFormData,
+                type_ref: Primitive(
+                    String,
+                ),
+                required: true,
+            },
+        ),
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    204,
+                ),
+                description: Some(
+                    "Photo uploaded",
+                ),
+                body: None,
+            },
+            OperationResponse {
+                status_code: Code(
+                    404,
+                ),
+                description: Some(
+                    "Court not found",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+    OperationIr {
         operation_id: "listMembers",
         description: Some(
             "List all members",

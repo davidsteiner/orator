@@ -64,6 +64,30 @@ where
 {
     api.list_courts(ctx).await
 }
+impl orator_axum::axum::response::IntoResponse for UploadCourtPhotoResponse {
+    fn into_response(self) -> orator_axum::axum::response::Response {
+        match self {
+            Self::NoContent => orator_axum::http::StatusCode::NO_CONTENT.into_response(),
+            Self::NotFound(body) => (
+                orator_axum::http::StatusCode::NOT_FOUND,
+                orator_axum::axum::Json(body),
+            )
+                .into_response(),
+        }
+    }
+}
+async fn handle_upload_court_photo<T, Ctx>(
+    orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
+    ctx: Ctx,
+    orator_axum::axum::extract::Path(court_id): orator_axum::axum::extract::Path<i64>,
+    body: orator_axum::axum::extract::Multipart,
+) -> Result<UploadCourtPhotoResponse, T::Error>
+where
+    T: CourtsApi<Ctx>,
+{
+    api.upload_court_photo(ctx, UploadCourtPhotoPath { court_id }, body)
+        .await
+}
 pub fn courts_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
     T: CourtsApi<Ctx>,
@@ -74,6 +98,10 @@ where
         .route(
             "/courts",
             orator_axum::axum::routing::get(handle_list_courts::<T, Ctx>),
+        )
+        .route(
+            "/courts/{court_id}/photo",
+            orator_axum::axum::routing::put(handle_upload_court_photo::<T, Ctx>),
         )
         .with_state(api)
 }
