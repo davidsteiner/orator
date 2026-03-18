@@ -1,0 +1,73 @@
+/* Orator docs theme — deep navy + warm gold */
+
+/* Dark mode (default) — white is lightest, black is darkest */
+:root {
+	--sl-color-accent-low: #1a1a3e;
+	--sl-color-accent: #e0a020;
+	--sl-color-accent-high: #f5e6c8;
+
+	--sl-color-white: #faf8fc;
+	--sl-color-gray-1: #f0edf5;
+	--sl-color-gray-2: #ddd9e8;
+	--sl-color-gray-3: #b5b0c6;
+	--sl-color-gray-4: #7a7591;
+	--sl-color-gray-5: #4a4660;
+	--sl-color-gray-6: #2e2b45;
+	--sl-color-black: #1a1832;
+
+	--sl-color-text-accent: #e0a020;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #f5e6c8;
+	--sl-color-accent: #b8841a;
+	--sl-color-accent-high: #1a1a3e;
+
+	--sl-color-white: #1a1832;
+	--sl-color-gray-1: #2e2b45;
+	--sl-color-gray-2: #4a4660;
+	--sl-color-gray-3: #7a7591;
+	--sl-color-gray-4: #b5b0c6;
+	--sl-color-gray-5: #ddd9e8;
+	--sl-color-gray-6: #f0edf5;
+	--sl-color-black: #faf8fc;
+
+	--sl-color-text-accent: #b8841a;
+}
+
+/* Keep site title and social icons neutral instead of accent gold */
+.site-title {
+	color: var(--sl-color-white);
+}
+
+.social-icons a {
+	color: var(--sl-color-gray-3);
+}
+
+.social-icons a:hover {
+	color: var(--sl-color-white);
+}
+
+/* Landing page — gradient background + transparent navbar */
+:root {
+	--overlay-glow: hsla(252, 40%, 35%, 0.4);
+}
+
+:root[data-theme='light'] {
+	--overlay-glow: hsla(30, 14%, 91%, 0.4);
+}
+
+[data-has-hero] .page {
+	background:
+		linear-gradient(215deg, var(--overlay-glow), transparent 40%),
+		radial-gradient(var(--overlay-glow), transparent 40%) no-repeat -60vw -40vh / 105vw 200vh,
+		radial-gradient(var(--overlay-glow), transparent 65%) no-repeat 50% calc(100% + 20rem) /
+			60rem 30rem;
+}
+
+[data-has-hero] header {
+	border-bottom: 1px solid transparent;
+	background-color: transparent;
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+}

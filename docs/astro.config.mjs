@@ -9,6 +9,7 @@ export default defineConfig({
     integrations: [
         starlight({
             title: 'Orator',
+            customCss: ['./src/styles/custom.css'],
             social: [{icon: 'github', label: 'GitHub', href: 'https://github.com/davidsteiner/orator'}],
             sidebar: [
                 {
