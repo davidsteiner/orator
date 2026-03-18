@@ -4,6 +4,8 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
+    site: "https://davidsteiner.github.io",
+    base: "/orator",
     integrations: [
         starlight({
             title: 'Orator',
