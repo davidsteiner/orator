@@ -4,9 +4,11 @@ description: Server stub generation from OpenAPI 3.1 specs.
 template: splash
 hero:
   tagline: Generate type-safe Rust server stubs from your OpenAPI 3.1 specs.
+  image:
+      file: ../../assets/orator-magic.png 
   actions:
     - text: Get started
-      link: /guides/getting-started/
+      link: /orator/guides/getting-started/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/davidsteiner/orator
@@ -18,7 +20,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## Why Orator?
 
-<CardGrid>
+<CardGrid stagger>
 	<Card title="Spec-first" icon="document">
 		Write your OpenAPI spec, then generate the server code. Your spec is the source of truth.
 	</Card>
