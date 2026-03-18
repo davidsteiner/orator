@@ -72,8 +72,6 @@
 }
 
 .hero > img {
-	width: 100% !important;
-	max-width: none !important;
 	filter: drop-shadow(0 0 3rem var(--overlay-glow));
 	-webkit-mask-image:
 		linear-gradient(to bottom, black 60%, transparent 100%),
