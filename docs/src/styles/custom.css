@@ -34,3 +34,16 @@
 
 	--sl-color-text-accent: #9b7120;
 }
+
+/* Keep site title and social icons neutral instead of accent gold */
+.site-title {
+	color: var(--sl-color-white);
+}
+
+.social-icons a {
+	color: var(--sl-color-gray-3);
+}
+
+.social-icons a:hover {
+	color: var(--sl-color-white);
+}
