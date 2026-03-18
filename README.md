@@ -11,6 +11,8 @@
 [![Crates.io](https://img.shields.io/crates/l/orator)](LICENSE)
 [![status](https://img.shields.io/badge/status-experimental-orange)](https://github.com/davidsteiner/orator)
 
+[Documentation](https://davidsteiner.github.io/orator/)
+
 </div>
 
 > [!WARNING]
