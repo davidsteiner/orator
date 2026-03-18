@@ -293,6 +293,20 @@ expression: ops
                     },
                 ),
             },
+            OperationResponse {
+                status_code: Default,
+                description: Some(
+                    "Unexpected error",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Named(
+                            "Error",
+                        ),
+                    },
+                ),
+            },
         ],
     },
     OperationIr {

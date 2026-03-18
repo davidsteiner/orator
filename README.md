@@ -39,7 +39,7 @@ Please refer to the example's README for more detail.
     - [x] Headers
     - [x] Cookie parameter support
 - [x] CLI tool for explicit code generation into your project
-- [ ] Default response handling
+- [x] Default response handling
 - [ ] Support for security schemes
 - [ ] Support for webhooks
 
