@@ -18,19 +18,21 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Why Orator?
-
 <CardGrid stagger>
-	<Card title="Spec-first" icon="document">
-		Write your OpenAPI spec, then generate the server code. Your spec is the source of truth.
+	<Card title="Spec-first" icon="add-document">
+		No proc macro gymnastics or serde attributes doubling as schema definitions.
+		Define your API contract in OpenAPI, generate the Rust types and routing from it.
 	</Card>
 	<Card title="Type-safe" icon="approve-check-circle">
-		Every operation gets a trait method with proper request and response types — no stringly-typed nonsense.
+		Request types, response enums, parameter structs, and error variants are all generated.
+		Miss a status code or pass the wrong type and the compiler catches it.
 	</Card>
-	<Card title="Framework layers" icon="puzzle">
-		Core generation is framework-agnostic. Axum support ships out of the box, with more frameworks to follow.
+	<Card title="Readable output" icon="seti:rust">
+		The generated code lives in your project as readable Rust.
+		You can read it, step through it in a debugger, and go to definition just works.
 	</Card>
-	<Card title="Just the boring bits" icon="setting">
-		Orator generates the routing, parameter extraction, and serialisation. You write the interesting part — your business logic.
+	<Card title="Escape hatches built in" icon="puzzle">
+		The generated trait is generic over a context type you define — pull auth details or DB connections out of the request however you like.
+		Add tower middleware per route group with `.layer()`.
 	</Card>
 </CardGrid>
