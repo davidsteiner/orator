@@ -147,6 +147,7 @@ impl orator_axum::axum::response::IntoResponse for ListMembersResponse {
                 orator_axum::axum::Json(body),
             )
                 .into_response(),
+            Self::Default(status, body) => (status, orator_axum::axum::Json(body)).into_response(),
         }
     }
 }
