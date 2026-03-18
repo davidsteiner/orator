@@ -1,0 +1,34 @@
+---
+title: Orator
+description: Server stub generation from OpenAPI 3.1 specs.
+template: splash
+hero:
+  tagline: Generate type-safe Rust server stubs from your OpenAPI 3.1 specs.
+  actions:
+    - text: Get started
+      link: /guides/getting-started/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/davidsteiner/orator
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Why Orator?
+
+<CardGrid>
+	<Card title="Spec-first" icon="document">
+		Write your OpenAPI spec, then generate the server code. Your spec is the source of truth.
+	</Card>
+	<Card title="Type-safe" icon="approve-check-circle">
+		Every operation gets a trait method with proper request and response types — no stringly-typed nonsense.
+	</Card>
+	<Card title="Framework layers" icon="puzzle">
+		Core generation is framework-agnostic. Axum support ships out of the box, with more frameworks to follow.
+	</Card>
+	<Card title="Just the boring bits" icon="setting">
+		Orator generates the routing, parameter extraction, and serialisation. You write the interesting part — your business logic.
+	</Card>
+</CardGrid>
