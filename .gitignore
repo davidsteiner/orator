@@ -1,6 +1,5 @@
 /target
 /.idea
-/docs
 **/.DS_Store
 *.db
 /data/*
