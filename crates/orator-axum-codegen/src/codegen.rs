@@ -141,7 +141,7 @@ pub fn generate_axum_handlers(
 fn status_code_to_tokens(response: &OperationResponse) -> TokenStream {
     match &response.status_code {
         ResponseStatusCode::Default => {
-            quote! { orator_axum::http::StatusCode::INTERNAL_SERVER_ERROR }
+            unreachable!("default responses use runtime status codes")
         }
         ResponseStatusCode::Code(code) => {
             let constant = match code {
@@ -185,27 +185,51 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
         .map(|resp| {
             let variant_name = status_code_variant_name(resp);
             let variant_ident = to_pascal_ident(&variant_name);
-            let status = status_code_to_tokens(resp);
+            let is_default = matches!(&resp.status_code, ResponseStatusCode::Default);
 
-            if let Some(body) = &resp.body {
-                let response_expr = match &body.content_type {
-                    ContentType::Json => {
-                        quote! { (#status, orator_axum::axum::Json(body)).into_response() }
+            if is_default {
+                if let Some(body) = &resp.body {
+                    let response_expr = match &body.content_type {
+                        ContentType::Json => {
+                            quote! { (status, orator_axum::axum::Json(body)).into_response() }
+                        }
+                        ContentType::TextPlain | ContentType::OctetStream => {
+                            quote! { (status, body).into_response() }
+                        }
+                        ContentType::FormUrlEncoded | ContentType::MultipartFormData => {
+                            unreachable!()
+                        }
+                    };
+                    quote! {
+                        Self::#variant_ident(status, body) => #response_expr,
                     }
-                    ContentType::TextPlain | ContentType::OctetStream => {
-                        quote! { (#status, body).into_response() }
+                } else {
+                    quote! {
+                        Self::#variant_ident(status) => status.into_response(),
                     }
-                    ContentType::FormUrlEncoded | ContentType::MultipartFormData => {
-                        // These are request-only; responses won't have them
-                        unreachable!()
-                    }
-                };
-                quote! {
-                    Self::#variant_ident(body) => #response_expr,
                 }
             } else {
-                quote! {
-                    Self::#variant_ident => #status.into_response(),
+                let status = status_code_to_tokens(resp);
+
+                if let Some(body) = &resp.body {
+                    let response_expr = match &body.content_type {
+                        ContentType::Json => {
+                            quote! { (#status, orator_axum::axum::Json(body)).into_response() }
+                        }
+                        ContentType::TextPlain | ContentType::OctetStream => {
+                            quote! { (#status, body).into_response() }
+                        }
+                        ContentType::FormUrlEncoded | ContentType::MultipartFormData => {
+                            unreachable!()
+                        }
+                    };
+                    quote! {
+                        Self::#variant_ident(body) => #response_expr,
+                    }
+                } else {
+                    quote! {
+                        Self::#variant_ident => #status.into_response(),
+                    }
                 }
             }
         })

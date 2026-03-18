@@ -207,6 +207,15 @@ paths:
 }
 
 #[test]
+fn default_response_axum_handlers() {
+    let code = generate_axum_from_yaml(
+        include_str!("../../../tests/fixtures/default_response.yaml"),
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn header_params_disabled_by_config() {
     let yaml = r#"
 openapi: "3.1.0"

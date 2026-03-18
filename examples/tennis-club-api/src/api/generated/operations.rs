@@ -72,6 +72,8 @@ pub enum ListMembersResponse {
     Ok(Vec<Member>),
     /// Unauthorized
     Unauthorized(Error),
+    /// Unexpected error
+    Default(orator_axum::http::StatusCode, Error),
 }
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ListMembersQuery {
