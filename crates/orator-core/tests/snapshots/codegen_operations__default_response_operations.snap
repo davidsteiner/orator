@@ -1,0 +1,37 @@
+---
+source: crates/orator-core/tests/codegen_operations.rs
+expression: code
+---
+/// List items with a default error response (with body)
+#[derive(Debug)]
+pub enum ListItemsResponse {
+    /// A list of items
+    Ok(Vec<Item>),
+    /// unexpected error
+    Default(orator_axum::http::StatusCode, Error),
+}
+/// Delete all items with a default response (no body)
+#[derive(Debug)]
+pub enum DeleteAllItemsResponse {
+    /// Items deleted
+    NoContent,
+    /// unexpected error
+    Default(orator_axum::http::StatusCode),
+}
+pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
+    type Error: Send;
+    /// List items with a default error response (with body)
+    fn list_items(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<
+        Output = Result<ListItemsResponse, Self::Error>,
+    > + Send;
+    /// Delete all items with a default response (no body)
+    fn delete_all_items(
+        &self,
+        ctx: Ctx,
+    ) -> impl std::future::Future<
+        Output = Result<DeleteAllItemsResponse, Self::Error>,
+    > + Send;
+}

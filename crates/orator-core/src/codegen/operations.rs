@@ -121,9 +121,17 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
             let variant_ident = to_pascal_ident(&variant_name);
             let variant_doc = generate_doc_comment(&resp.description);
 
+            let is_default = matches!(&resp.status_code, ResponseStatusCode::Default);
+
             if let Some(body) = &resp.body {
                 let body_type = type_ref_to_tokens(&body.type_ref);
-                quote! { #variant_doc #variant_ident(#body_type), }
+                if is_default {
+                    quote! { #variant_doc #variant_ident(orator_axum::http::StatusCode, #body_type), }
+                } else {
+                    quote! { #variant_doc #variant_ident(#body_type), }
+                }
+            } else if is_default {
+                quote! { #variant_doc #variant_ident(orator_axum::http::StatusCode), }
             } else {
                 quote! { #variant_doc #variant_ident, }
             }
