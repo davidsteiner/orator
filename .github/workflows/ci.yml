@@ -10,7 +10,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            rust:
+              - 'crates/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - '.github/workflows/ci.yml'
+
   code-quality-checks:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,6 +43,8 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -Dclippy::all -D warnings
 
   coverage:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,3 +60,19 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: core
           files: lcov.info
+
+  ci-status:
+    name: CI Status
+    needs: [ code-quality-checks, coverage ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        run: |
+          if [[ "${{ needs.code-quality-checks.result }}" =~ ^(success|skipped)$ ]] && \
+             [[ "${{ needs.coverage.result }}" =~ ^(success|skipped)$ ]]; then
+            echo "All checks passed or were skipped"
+          else
+            echo "Some checks failed"
+            exit 1
+          fi
