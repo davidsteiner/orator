@@ -3,6 +3,15 @@ source: crates/orator-core/tests/codegen_types.rs
 expression: code
 ---
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum Priority {
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum Status {
     #[serde(rename = "active")]
     Active,

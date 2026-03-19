@@ -6,3 +6,4 @@
 flamegraph.svg
 tracing*
 lcov.info
+/testing
