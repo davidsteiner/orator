@@ -64,3 +64,11 @@ fn additional_properties() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn json_value() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_json_value.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

@@ -1,0 +1,39 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "ErrorDetail",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "code",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "value",
+                        type_ref: Any,
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "JsonNode",
+        description: None,
+        kind: Alias(
+            Any,
+        ),
+    },
+]

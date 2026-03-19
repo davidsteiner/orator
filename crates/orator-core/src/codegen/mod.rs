@@ -55,6 +55,7 @@ pub fn type_ref_to_tokens(type_ref: &TypeRef) -> TokenStream {
             let inner_tokens = type_ref_to_tokens(inner);
             quote! { std::collections::HashMap<String, #inner_tokens> }
         }
+        TypeRef::Any => quote! { orator_axum::serde_json::Value },
     }
 }
 

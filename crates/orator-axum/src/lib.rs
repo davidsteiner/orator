@@ -1,6 +1,7 @@
 pub use axum;
 pub use bytes;
 pub use http;
+pub use serde_json;
 pub use tower;
 
 #[cfg(feature = "cookies")]
