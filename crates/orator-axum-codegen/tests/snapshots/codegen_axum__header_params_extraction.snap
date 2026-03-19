@@ -1,5 +1,5 @@
 ---
-source: crates/orator-axum-build/tests/codegen_axum.rs
+source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
 impl orator_axum::axum::response::IntoResponse for GetItemsResponse {
@@ -22,12 +22,14 @@ where
         Ok(Self {
             x_request_id: headers
                 .get("X-Request-ID")
-                .ok_or_else(|| orator_axum::ParamRejection::new(
-                    concat!("missing required header: ", "X-Request-ID"),
+                .ok_or_else(|| orator_axum::ParamRejection::missing(
+                    orator_axum::ParamLocation::Header,
+                    "X-Request-ID",
                 ))?
                 .to_str()
-                .map_err(|_| orator_axum::ParamRejection::new(
-                    concat!("non-ASCII header value: ", "X-Request-ID"),
+                .map_err(|_| orator_axum::ParamRejection::non_ascii(
+                    orator_axum::ParamLocation::Header,
+                    "X-Request-ID",
                 ))?
                 .to_owned(),
             x_rate_limit: match headers.get("X-Rate-Limit") {
@@ -35,12 +37,15 @@ where
                     Some(
                         v
                             .to_str()
-                            .map_err(|_| orator_axum::ParamRejection::new(
-                                concat!("non-ASCII header value: ", "X-Rate-Limit"),
+                            .map_err(|_| orator_axum::ParamRejection::non_ascii(
+                                orator_axum::ParamLocation::Header,
+                                "X-Rate-Limit",
                             ))?
                             .parse::<i32>()
-                            .map_err(|_| orator_axum::ParamRejection::new(
-                                concat!("invalid header value: ", "X-Rate-Limit"),
+                            .map_err(|e| orator_axum::ParamRejection::invalid(
+                                orator_axum::ParamLocation::Header,
+                                "X-Rate-Limit",
+                                e,
                             ))?,
                     )
                 }
@@ -48,16 +53,20 @@ where
             },
             x_trace_enabled: headers
                 .get("X-Trace-Enabled")
-                .ok_or_else(|| orator_axum::ParamRejection::new(
-                    concat!("missing required header: ", "X-Trace-Enabled"),
+                .ok_or_else(|| orator_axum::ParamRejection::missing(
+                    orator_axum::ParamLocation::Header,
+                    "X-Trace-Enabled",
                 ))?
                 .to_str()
-                .map_err(|_| orator_axum::ParamRejection::new(
-                    concat!("non-ASCII header value: ", "X-Trace-Enabled"),
+                .map_err(|_| orator_axum::ParamRejection::non_ascii(
+                    orator_axum::ParamLocation::Header,
+                    "X-Trace-Enabled",
                 ))?
                 .parse::<bool>()
-                .map_err(|_| orator_axum::ParamRejection::new(
-                    concat!("invalid header value: ", "X-Trace-Enabled"),
+                .map_err(|e| orator_axum::ParamRejection::invalid(
+                    orator_axum::ParamLocation::Header,
+                    "X-Trace-Enabled",
+                    e,
                 ))?,
         })
     }
