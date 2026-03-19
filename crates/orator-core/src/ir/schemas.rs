@@ -82,6 +82,7 @@ pub enum TypeRef {
     Array(Box<TypeRef>),
     Option(Box<TypeRef>),
     Map(Box<TypeRef>),
+    Any,
 }
 
 /// A Rust primitive type, derived from the `type` and `format` fields in the OpenAPI spec.

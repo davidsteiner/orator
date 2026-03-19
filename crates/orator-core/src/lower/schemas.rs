@@ -99,8 +99,11 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         };
     }
 
-    Err(Error::UnsupportedSchema {
-        context: format!("schema '{name}'"),
+    // empty schema: no type, no structure, no constraints — represents any JSON value
+    Ok(TypeDef {
+        name: name.to_string(),
+        description,
+        kind: TypeDefKind::Alias(TypeRef::Any),
     })
 }
 
@@ -239,6 +242,15 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
                     context: "inline schema with additionalProperties: false — use a $ref to a named schema instead".to_string(),
                 }
             });
+        }
+        // empty inline schema: no type, no additionalProperties — any JSON value
+        if schema.properties.is_empty()
+            && schema.all_of.is_empty()
+            && schema.one_of.is_empty()
+            && schema.any_of.is_empty()
+            && schema.enum_values.is_empty()
+        {
+            return Ok(TypeRef::Any);
         }
         return Err(Error::UnsupportedSchema {
             context: format!("inline schema with no type: {schema:?}"),

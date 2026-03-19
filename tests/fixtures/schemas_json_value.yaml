@@ -1,0 +1,17 @@
+openapi: "3.1.0"
+info:
+  title: JSON Value Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    JsonNode: {}
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - value
+      properties:
+        code:
+          type: string
+        value: {}

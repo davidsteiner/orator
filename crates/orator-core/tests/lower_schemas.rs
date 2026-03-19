@@ -62,3 +62,11 @@ fn additional_properties() {
     ));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn json_value() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_json_value.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}
