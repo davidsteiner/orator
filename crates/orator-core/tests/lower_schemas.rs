@@ -70,3 +70,11 @@ fn json_value() {
     ));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn oneof_nullable() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_oneof_nullable.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}

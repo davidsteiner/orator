@@ -234,6 +234,11 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
         }
     }
 
+    // nullable: oneOf with exactly [{type: "null"}, {$ref or inline type}]
+    if let Some(inner) = try_lower_oneof_nullable(schema)? {
+        return Ok(TypeRef::Option(Box::new(inner)));
+    }
+
     let Some(SchemaTypeSet::Single(schema_type)) = &schema.schema_type else {
         // object with additionalProperties but no explicit type
         if let Some(additional) = &schema.additional_properties {
@@ -342,6 +347,37 @@ pub(crate) fn extract_schema_name(ref_path: &str) -> Result<String, Error> {
         .ok_or_else(|| Error::UnresolvedRef {
             ref_path: ref_path.to_string(),
         })
+}
+
+fn try_lower_oneof_nullable(schema: &ObjectSchema) -> Result<Option<TypeRef>, Error> {
+    if schema.one_of.len() != 2 {
+        return Ok(None);
+    }
+
+    let is_null_variant = |entry: &ObjectOrReference<ObjectSchema>| -> bool {
+        matches!(
+            entry,
+            ObjectOrReference::Object(s)
+                if matches!(s.schema_type, Some(SchemaTypeSet::Single(SchemaType::Null)))
+                    && s.properties.is_empty()
+                    && s.one_of.is_empty()
+                    && s.any_of.is_empty()
+                    && s.all_of.is_empty()
+                    && s.enum_values.is_empty()
+        )
+    };
+
+    let (null_idx, other_idx) = if is_null_variant(&schema.one_of[0]) {
+        (0, 1)
+    } else if is_null_variant(&schema.one_of[1]) {
+        (1, 0)
+    } else {
+        return Ok(None);
+    };
+    let _ = null_idx;
+
+    let inner = lower_type_ref(&schema.one_of[other_idx])?;
+    Ok(Some(inner))
 }
 
 fn is_string_type(schema: &ObjectSchema) -> bool {
