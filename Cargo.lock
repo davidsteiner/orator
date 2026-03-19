@@ -1397,6 +1397,7 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "serde",
+ "uuid",
 ]
 
 [[package]]
@@ -1597,6 +1598,7 @@ version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a68d3c8f01c0cfa54a75291d83601161799e4a89a39e0929f4b0354d88757a37"
 dependencies = [
+ "getrandom",
  "js-sys",
  "serde_core",
  "wasm-bindgen",

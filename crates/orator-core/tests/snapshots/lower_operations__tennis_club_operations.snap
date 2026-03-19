@@ -117,7 +117,7 @@ expression: ops
                 description: None,
                 location: Path,
                 type_ref: Primitive(
-                    I64,
+                    Uuid,
                 ),
                 required: true,
             },
@@ -401,7 +401,7 @@ expression: ops
                 description: None,
                 location: Path,
                 type_ref: Primitive(
-                    I64,
+                    Uuid,
                 ),
                 required: true,
             },
@@ -458,7 +458,7 @@ expression: ops
                 description: None,
                 location: Path,
                 type_ref: Primitive(
-                    I64,
+                    Uuid,
                 ),
                 required: true,
             },
@@ -524,7 +524,7 @@ expression: ops
                 description: None,
                 location: Path,
                 type_ref: Primitive(
-                    I64,
+                    Uuid,
                 ),
                 required: true,
             },
@@ -574,7 +574,7 @@ expression: ops
                 description: None,
                 location: Path,
                 type_ref: Primitive(
-                    I64,
+                    Uuid,
                 ),
                 required: true,
             },
@@ -631,7 +631,7 @@ expression: ops
                 description: None,
                 location: Path,
                 type_ref: Primitive(
-                    I64,
+                    Uuid,
                 ),
                 required: true,
             },

@@ -126,7 +126,9 @@ where
 async fn handle_upload_court_photo<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Path(court_id): orator_axum::axum::extract::Path<i64>,
+    orator_axum::axum::extract::Path(court_id): orator_axum::axum::extract::Path<
+        orator_axum::uuid::Uuid,
+    >,
     body: UploadCourtPhotoBody,
 ) -> Result<UploadCourtPhotoResponse, T::Error>
 where
@@ -331,7 +333,9 @@ impl orator_axum::axum::response::IntoResponse for GetMemberResponse {
 async fn handle_get_member<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<i64>,
+    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
+        orator_axum::uuid::Uuid,
+    >,
 ) -> Result<GetMemberResponse, T::Error>
 where
     T: MembersApi<Ctx>,
@@ -357,7 +361,9 @@ impl orator_axum::axum::response::IntoResponse for UpdateMemberResponse {
 async fn handle_update_member<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<i64>,
+    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
+        orator_axum::uuid::Uuid,
+    >,
     orator_axum::axum::Json(body): orator_axum::axum::Json<UpdateMember>,
 ) -> Result<UpdateMemberResponse, T::Error>
 where
@@ -381,7 +387,9 @@ impl orator_axum::axum::response::IntoResponse for DeleteMemberResponse {
 async fn handle_delete_member<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<i64>,
+    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
+        orator_axum::uuid::Uuid,
+    >,
 ) -> Result<DeleteMemberResponse, T::Error>
 where
     T: MembersApi<Ctx>,
@@ -403,7 +411,9 @@ impl orator_axum::axum::response::IntoResponse for GetMemberPhotoResponse {
 async fn handle_get_member_photo<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<i64>,
+    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
+        orator_axum::uuid::Uuid,
+    >,
 ) -> Result<GetMemberPhotoResponse, T::Error>
 where
     T: MembersApi<Ctx>,
@@ -426,7 +436,9 @@ impl orator_axum::axum::response::IntoResponse for UploadMemberPhotoResponse {
 async fn handle_upload_member_photo<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<i64>,
+    orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
+        orator_axum::uuid::Uuid,
+    >,
     body: orator_axum::axum::body::Bytes,
 ) -> Result<UploadMemberPhotoResponse, T::Error>
 where

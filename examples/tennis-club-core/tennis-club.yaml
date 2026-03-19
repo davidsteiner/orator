@@ -137,8 +137,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         "200":
           description: The member
@@ -163,8 +163,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -195,8 +195,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         "204":
           description: Member deleted
@@ -217,8 +217,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         "200":
           description: The profile photo
@@ -242,8 +242,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -294,8 +294,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -357,8 +357,8 @@ components:
         - joined_at
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         first_name:
           type: string
         last_name:
@@ -397,8 +397,8 @@ components:
       required: [ id, name, surface ]
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         name:
           type: string
         surface:
@@ -414,11 +414,11 @@ components:
         booking_type:
           type: string
         court_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         member_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         date:
           type: string
           format: date
@@ -430,8 +430,8 @@ components:
         booking_type:
           type: string
         court_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         guest_name:
           type: string
         date:

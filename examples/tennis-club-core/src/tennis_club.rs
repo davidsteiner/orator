@@ -1,4 +1,5 @@
 use chrono::{NaiveDate, Utc};
+use uuid::Uuid;
 
 use crate::domain::*;
 use std::sync::Mutex;
@@ -7,39 +8,41 @@ pub struct TennisClub {
     members: Mutex<Vec<Member>>,
     courts: Mutex<Vec<Court>>,
     bookings: Mutex<Vec<Booking>>,
-    next_id: Mutex<i64>,
 }
 
 impl TennisClub {
     pub fn new() -> Self {
         let now = Utc::now();
+        let member_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
+        let court_ids: Vec<Uuid> = (0..3).map(|_| Uuid::new_v4()).collect();
+
         let members = vec![
             Member {
-                id: 1,
+                id: member_ids[0],
                 first_name: "Lobelia".to_string(),
                 last_name: "Sackville-Baggins".to_string(),
                 joined_at: now,
             },
             Member {
-                id: 2,
+                id: member_ids[1],
                 first_name: "Fredegar".to_string(),
                 last_name: "Bolger".to_string(),
                 joined_at: now,
             },
             Member {
-                id: 3,
+                id: member_ids[2],
                 first_name: "Folco".to_string(),
                 last_name: "Boffin".to_string(),
                 joined_at: now,
             },
             Member {
-                id: 4,
+                id: member_ids[3],
                 first_name: "Estella".to_string(),
                 last_name: "Brandybuck".to_string(),
                 joined_at: now,
             },
             Member {
-                id: 5,
+                id: member_ids[4],
                 first_name: "Elanor".to_string(),
                 last_name: "Gamgee".to_string(),
                 joined_at: now,
@@ -48,19 +51,19 @@ impl TennisClub {
 
         let courts = vec![
             Court {
-                id: 1,
+                id: court_ids[0],
                 name: "Court 1".to_string(),
                 surface: Surface::Clay,
                 indoor: Some(false),
             },
             Court {
-                id: 2,
+                id: court_ids[1],
                 name: "Court 2".to_string(),
                 surface: Surface::Hard,
                 indoor: Some(true),
             },
             Court {
-                id: 3,
+                id: court_ids[2],
                 name: "Court 3".to_string(),
                 surface: Surface::Grass,
                 indoor: Some(false),
@@ -69,12 +72,12 @@ impl TennisClub {
 
         let bookings = vec![
             Booking::MemberBooking(MemberBookingData {
-                court_id: 1,
-                member_id: 1,
+                court_id: court_ids[0],
+                member_id: member_ids[0],
                 date: NaiveDate::from_ymd_opt(2026, 3, 10).unwrap(),
             }),
             Booking::GuestBooking(GuestBookingData {
-                court_id: 2,
+                court_id: court_ids[1],
                 guest_name: "Radagast the Brown".to_string(),
                 date: NaiveDate::from_ymd_opt(2026, 3, 11).unwrap(),
             }),
@@ -84,7 +87,6 @@ impl TennisClub {
             members: Mutex::new(members),
             courts: Mutex::new(courts),
             bookings: Mutex::new(bookings),
-            next_id: Mutex::new(6),
         }
     }
 
@@ -101,26 +103,24 @@ impl TennisClub {
 
     pub fn create_member(&self, new: NewMember) -> Member {
         let mut members = self.members.lock().unwrap();
-        let mut next_id = self.next_id.lock().unwrap();
 
         let member = Member {
-            id: *next_id,
+            id: Uuid::new_v4(),
             first_name: new.first_name,
             last_name: new.last_name,
             joined_at: Utc::now(),
         };
 
-        *next_id += 1;
         members.push(member.clone());
         member
     }
 
-    pub fn get_member(&self, id: i64) -> Option<Member> {
+    pub fn get_member(&self, id: Uuid) -> Option<Member> {
         let members = self.members.lock().unwrap();
         members.iter().find(|m| m.id == id).cloned()
     }
 
-    pub fn update_member(&self, id: i64, update: UpdateMember) -> Option<Member> {
+    pub fn update_member(&self, id: Uuid, update: UpdateMember) -> Option<Member> {
         let mut members = self.members.lock().unwrap();
         let member = members.iter_mut().find(|m| m.id == id)?;
 
@@ -134,7 +134,7 @@ impl TennisClub {
         Some(member.clone())
     }
 
-    pub fn delete_member(&self, id: i64) -> bool {
+    pub fn delete_member(&self, id: Uuid) -> bool {
         let mut members = self.members.lock().unwrap();
         let len_before = members.len();
         members.retain(|m| m.id != id);

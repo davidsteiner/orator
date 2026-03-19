@@ -38,7 +38,7 @@ pub enum UploadCourtPhotoResponse {
 }
 #[derive(Debug, Clone)]
 pub struct UploadCourtPhotoPath {
-    pub court_id: i64,
+    pub court_id: orator_axum::uuid::Uuid,
 }
 #[derive(Debug)]
 pub struct UploadCourtPhotoBody {
@@ -127,7 +127,7 @@ pub enum GetMemberResponse {
 }
 #[derive(Debug, Clone)]
 pub struct GetMemberPath {
-    pub member_id: i64,
+    pub member_id: orator_axum::uuid::Uuid,
 }
 /// Update a member
 #[derive(Debug)]
@@ -139,7 +139,7 @@ pub enum UpdateMemberResponse {
 }
 #[derive(Debug, Clone)]
 pub struct UpdateMemberPath {
-    pub member_id: i64,
+    pub member_id: orator_axum::uuid::Uuid,
 }
 /// Delete a member
 #[derive(Debug)]
@@ -151,7 +151,7 @@ pub enum DeleteMemberResponse {
 }
 #[derive(Debug, Clone)]
 pub struct DeleteMemberPath {
-    pub member_id: i64,
+    pub member_id: orator_axum::uuid::Uuid,
 }
 /// Download a member's profile photo
 #[derive(Debug)]
@@ -163,7 +163,7 @@ pub enum GetMemberPhotoResponse {
 }
 #[derive(Debug, Clone)]
 pub struct GetMemberPhotoPath {
-    pub member_id: i64,
+    pub member_id: orator_axum::uuid::Uuid,
 }
 /// Upload a member's profile photo
 #[derive(Debug)]
@@ -175,7 +175,7 @@ pub enum UploadMemberPhotoResponse {
 }
 #[derive(Debug, Clone)]
 pub struct UploadMemberPhotoPath {
-    pub member_id: i64,
+    pub member_id: orator_axum::uuid::Uuid,
 }
 pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
