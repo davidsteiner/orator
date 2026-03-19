@@ -1,4 +1,4 @@
-use crate::api::generated::{
+use crate::api::generated::operations::{
     CreateMemberResponse, DeleteMemberPath, DeleteMemberResponse, GetMemberPath,
     GetMemberPhotoPath, GetMemberPhotoResponse, GetMemberResponse, ListMembersCookie,
     ListMembersHeader, ListMembersQuery, ListMembersResponse, MembersApi, UpdateMemberPath,
@@ -25,7 +25,7 @@ impl MembersApi for TennisClub {
     async fn create_member(
         &self,
         _ctx: (),
-        body: crate::api::generated::NewMember,
+        body: crate::api::generated::types::NewMember,
     ) -> Result<CreateMemberResponse, Self::Error> {
         let new = domain::NewMember {
             first_name: body.first_name,
@@ -42,10 +42,12 @@ impl MembersApi for TennisClub {
     ) -> Result<GetMemberResponse, Self::Error> {
         match self.get_member(path.member_id) {
             Some(member) => Ok(GetMemberResponse::Ok(member.into())),
-            None => Ok(GetMemberResponse::NotFound(crate::api::generated::Error {
-                code: 404,
-                message: format!("Member {} not found", path.member_id),
-            })),
+            None => Ok(GetMemberResponse::NotFound(
+                crate::api::generated::types::Error {
+                    code: 404,
+                    message: format!("Member {} not found", path.member_id),
+                },
+            )),
         }
     }
 
@@ -53,7 +55,7 @@ impl MembersApi for TennisClub {
         &self,
         _ctx: (),
         path: UpdateMemberPath,
-        body: crate::api::generated::UpdateMember,
+        body: crate::api::generated::types::UpdateMember,
     ) -> Result<UpdateMemberResponse, Self::Error> {
         let update = domain::UpdateMember {
             first_name: body.first_name,
@@ -62,7 +64,7 @@ impl MembersApi for TennisClub {
         match self.update_member(path.member_id, update) {
             Some(member) => Ok(UpdateMemberResponse::Ok(member.into())),
             None => Ok(UpdateMemberResponse::NotFound(
-                crate::api::generated::Error {
+                crate::api::generated::types::Error {
                     code: 404,
                     message: format!("Member {} not found", path.member_id),
                 },
@@ -79,7 +81,7 @@ impl MembersApi for TennisClub {
             Ok(DeleteMemberResponse::NoContent)
         } else {
             Ok(DeleteMemberResponse::NotFound(
-                crate::api::generated::Error {
+                crate::api::generated::types::Error {
                     code: 404,
                     message: format!("Member {} not found", path.member_id),
                 },
@@ -93,7 +95,7 @@ impl MembersApi for TennisClub {
         path: GetMemberPhotoPath,
     ) -> Result<GetMemberPhotoResponse, Self::Error> {
         Ok(GetMemberPhotoResponse::NotFound(
-            crate::api::generated::Error {
+            crate::api::generated::types::Error {
                 code: 404,
                 message: format!("No photo for member {}", path.member_id),
             },
@@ -110,7 +112,7 @@ impl MembersApi for TennisClub {
     }
 }
 
-impl From<domain::Member> for crate::api::generated::Member {
+impl From<domain::Member> for crate::api::generated::types::Member {
     fn from(m: domain::Member) -> Self {
         Self {
             id: m.id,

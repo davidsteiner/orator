@@ -6,9 +6,9 @@ expression: code
 #[derive(Debug)]
 pub enum ListItemsResponse {
     /// A list of items
-    Ok(Vec<Item>),
+    Ok(Vec<super::types::Item>),
     /// unexpected error
-    Default(orator_axum::http::StatusCode, Error),
+    Default(orator_axum::http::StatusCode, super::types::Error),
 }
 /// Delete all items with a default response (no body)
 #[derive(Debug)]

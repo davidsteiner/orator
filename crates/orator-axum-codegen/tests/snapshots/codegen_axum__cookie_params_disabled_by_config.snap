@@ -1,8 +1,8 @@
 ---
-source: crates/orator-axum-build/tests/codegen_axum.rs
+source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
-impl orator_axum::axum::response::IntoResponse for GetItemsResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::GetItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok => orator_axum::http::StatusCode::OK.into_response(),
@@ -14,15 +14,15 @@ async fn handle_get_items<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<GetItemsResponse, T::Error>
+) -> Result<super::operations::GetItemsResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.get_items(ctx).await
 }
 pub fn cookie_test_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: CookieTestApi<Ctx>,
+    T: super::operations::CookieTestApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
         + 'static,
@@ -37,7 +37,7 @@ pub struct CookieTestRouter(orator_axum::axum::Router);
 impl CookieTestRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: CookieTestApi<Ctx>,
+        T: super::operations::CookieTestApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
             + 'static,

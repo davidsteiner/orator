@@ -6,13 +6,13 @@ expression: code
 #[derive(Debug)]
 pub enum ListItemsResponse {
     /// A list of items
-    Ok(Vec<Item>),
+    Ok(Vec<super::types::Item>),
 }
 /// Create item via JSON
 #[derive(Debug)]
 pub enum CreateItemResponse {
     /// Created item
-    Created(Item),
+    Created(super::types::Item),
 }
 /// Export items as binary
 #[derive(Debug)]
@@ -34,7 +34,7 @@ pub struct ImportItemsBody {
 #[derive(Debug)]
 pub enum SearchItemsResponse {
     /// Search results
-    Ok(Vec<Item>),
+    Ok(Vec<super::types::Item>),
 }
 pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
@@ -49,7 +49,7 @@ pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
     fn create_item(
         &self,
         ctx: Ctx,
-        body: NewItem,
+        body: super::types::NewItem,
     ) -> impl std::future::Future<
         Output = Result<CreateItemResponse, Self::Error>,
     > + Send;
@@ -72,7 +72,7 @@ pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
     fn search_items(
         &self,
         ctx: Ctx,
-        body: SearchQuery,
+        body: super::types::SearchQuery,
     ) -> impl std::future::Future<
         Output = Result<SearchItemsResponse, Self::Error>,
     > + Send;

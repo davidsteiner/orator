@@ -41,23 +41,27 @@ pub fn to_pascal_ident(s: &str) -> Ident {
     Ident::new(&pascal, Span::call_site())
 }
 
-pub fn type_ref_to_tokens(type_ref: &TypeRef) -> TokenStream {
+pub fn type_ref_to_tokens(type_ref: &TypeRef, module_prefix: Option<&TokenStream>) -> TokenStream {
     match type_ref {
         TypeRef::Named(name) => {
             let ident = to_pascal_ident(name);
-            quote! { #ident }
+            if let Some(prefix) = module_prefix {
+                quote! { #prefix :: #ident }
+            } else {
+                quote! { #ident }
+            }
         }
         TypeRef::Primitive(p) => primitive_to_tokens(p),
         TypeRef::Array(inner) => {
-            let inner_tokens = type_ref_to_tokens(inner);
+            let inner_tokens = type_ref_to_tokens(inner, module_prefix);
             quote! { Vec<#inner_tokens> }
         }
         TypeRef::Option(inner) => {
-            let inner_tokens = type_ref_to_tokens(inner);
+            let inner_tokens = type_ref_to_tokens(inner, module_prefix);
             quote! { Option<#inner_tokens> }
         }
         TypeRef::Map(inner) => {
-            let inner_tokens = type_ref_to_tokens(inner);
+            let inner_tokens = type_ref_to_tokens(inner, module_prefix);
             quote! { std::collections::HashMap<String, #inner_tokens> }
         }
         TypeRef::Any => quote! { orator_axum::serde_json::Value },

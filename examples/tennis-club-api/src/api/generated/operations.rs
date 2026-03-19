@@ -1,12 +1,10 @@
-use super::types::*;
-
 /// List all bookings
 #[derive(Debug)]
 pub enum ListBookingsResponse {
     /// A list of bookings
-    Ok(Vec<Booking>),
+    Ok(Vec<super::types::Booking>),
     /// Unauthorized
-    Unauthorized(Error),
+    Unauthorized(super::types::Error),
 }
 pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
@@ -20,9 +18,9 @@ pub trait BookingsApi<Ctx = ()>: Send + Sync + 'static {
 #[derive(Debug)]
 pub enum ListCourtsResponse {
     /// A list of courts
-    Ok(Vec<Court>),
+    Ok(Vec<super::types::Court>),
     /// Unauthorized
-    Unauthorized(Error),
+    Unauthorized(super::types::Error),
 }
 /// Upload a court photo with metadata
 #[derive(Debug)]
@@ -30,7 +28,7 @@ pub enum UploadCourtPhotoResponse {
     /// Photo uploaded
     NoContent,
     /// Court not found
-    NotFound(Error),
+    NotFound(super::types::Error),
 }
 #[derive(Debug, Clone)]
 pub struct UploadCourtPhotoPath {
@@ -74,11 +72,11 @@ pub trait HealthApi<Ctx = ()>: Send + Sync + 'static {
 #[derive(Debug)]
 pub enum ListMembersResponse {
     /// A list of members
-    Ok(Vec<Member>),
+    Ok(Vec<super::types::Member>),
     /// Unauthorized
-    Unauthorized(Error),
+    Unauthorized(super::types::Error),
     /// Unexpected error
-    Default(orator_axum::http::StatusCode, Error),
+    Default(orator_axum::http::StatusCode, super::types::Error),
 }
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ListMembersQuery {
@@ -103,17 +101,17 @@ pub struct ListMembersCookie {
 #[derive(Debug)]
 pub enum CreateMemberResponse {
     /// The created member
-    Created(Member),
+    Created(super::types::Member),
     /// Validation error
-    UnprocessableEntity(Error),
+    UnprocessableEntity(super::types::Error),
 }
 /// Get a member by ID
 #[derive(Debug)]
 pub enum GetMemberResponse {
     /// The member
-    Ok(Member),
+    Ok(super::types::Member),
     /// Member not found
-    NotFound(Error),
+    NotFound(super::types::Error),
 }
 #[derive(Debug, Clone)]
 pub struct GetMemberPath {
@@ -123,9 +121,9 @@ pub struct GetMemberPath {
 #[derive(Debug)]
 pub enum UpdateMemberResponse {
     /// The updated member
-    Ok(Member),
+    Ok(super::types::Member),
     /// Member not found
-    NotFound(Error),
+    NotFound(super::types::Error),
 }
 #[derive(Debug, Clone)]
 pub struct UpdateMemberPath {
@@ -137,7 +135,7 @@ pub enum DeleteMemberResponse {
     /// Member deleted
     NoContent,
     /// Member not found
-    NotFound(Error),
+    NotFound(super::types::Error),
 }
 #[derive(Debug, Clone)]
 pub struct DeleteMemberPath {
@@ -149,7 +147,7 @@ pub enum GetMemberPhotoResponse {
     /// The profile photo
     Ok(orator_axum::bytes::Bytes),
     /// Member or photo not found
-    NotFound(Error),
+    NotFound(super::types::Error),
 }
 #[derive(Debug, Clone)]
 pub struct GetMemberPhotoPath {
@@ -161,7 +159,7 @@ pub enum UploadMemberPhotoResponse {
     /// Photo uploaded
     NoContent,
     /// Member not found
-    NotFound(Error),
+    NotFound(super::types::Error),
 }
 #[derive(Debug, Clone)]
 pub struct UploadMemberPhotoPath {
@@ -181,7 +179,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
     fn create_member(
         &self,
         ctx: Ctx,
-        body: NewMember,
+        body: super::types::NewMember,
     ) -> impl std::future::Future<Output = Result<CreateMemberResponse, Self::Error>> + Send;
     /// Get a member by ID
     fn get_member(
@@ -194,7 +192,7 @@ pub trait MembersApi<Ctx = ()>: Send + Sync + 'static {
         &self,
         ctx: Ctx,
         path: UpdateMemberPath,
-        body: UpdateMember,
+        body: super::types::UpdateMember,
     ) -> impl std::future::Future<Output = Result<UpdateMemberResponse, Self::Error>> + Send;
     /// Delete a member
     fn delete_member(

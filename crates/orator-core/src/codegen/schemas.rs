@@ -39,7 +39,7 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
         .bases
         .iter()
         .map(|base| {
-            let base_type = type_ref_to_tokens(base);
+            let base_type = type_ref_to_tokens(base, None);
             let field_ident = match base {
                 TypeRef::Named(n) => to_snake_ident(n),
                 _ => unreachable!("bases are always Named refs"),
@@ -67,12 +67,12 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
             };
 
             let (field_type, skip_attr) = if field.required {
-                (type_ref_to_tokens(&field.type_ref), quote! {})
+                (type_ref_to_tokens(&field.type_ref, None), quote! {})
             } else {
                 let wrapped = match &field.type_ref {
-                    TypeRef::Option(_) => type_ref_to_tokens(&field.type_ref),
+                    TypeRef::Option(_) => type_ref_to_tokens(&field.type_ref, None),
                     other => {
-                        let inner = type_ref_to_tokens(other);
+                        let inner = type_ref_to_tokens(other, None);
                         quote! { Option<#inner> }
                     }
                 };
@@ -124,7 +124,7 @@ fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
         .iter()
         .map(|variant| {
             let variant_ident = variant_name_for_type_ref(&variant.type_ref);
-            let variant_type = type_ref_to_tokens(&variant.type_ref);
+            let variant_type = type_ref_to_tokens(&variant.type_ref, None);
 
             let rename_attr = variant_rename_attr(variant, &def.discriminator, &variant_ident);
 
@@ -202,7 +202,7 @@ fn generate_string_enum(name: &str, def: &StringEnumDef, doc: TokenStream) -> To
 
 fn generate_alias(name: &str, type_ref: &TypeRef, doc: TokenStream) -> TokenStream {
     let alias_ident = to_pascal_ident(name);
-    let aliased_type = type_ref_to_tokens(type_ref);
+    let aliased_type = type_ref_to_tokens(type_ref, None);
     quote! {
         #doc
         pub type #alias_ident = #aliased_type;

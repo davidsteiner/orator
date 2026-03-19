@@ -1,4 +1,4 @@
-use crate::api::generated::{HealthApi, HealthCheckResponse};
+use crate::api::generated::operations::{HealthApi, HealthCheckResponse};
 use std::convert::Infallible;
 use tennis_club_core::TennisClub;
 

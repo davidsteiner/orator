@@ -16,6 +16,16 @@ use orator_core::ir::{
     PrimitiveType, ResponseStatusCode, TypeDef, TypeRef,
 };
 
+/// Module prefix for schema types referenced from handlers.
+fn types_prefix() -> TokenStream {
+    quote! { super::types }
+}
+
+/// Module prefix for operation types (response enums, param structs, traits) referenced from handlers.
+fn ops_prefix() -> TokenStream {
+    quote! { super::operations }
+}
+
 /// The result of generating a complete API module.
 ///
 /// Contains the formatted Rust source for each file in the module.
@@ -32,16 +42,9 @@ impl GeneratedModule {
     /// Generate a `mod.rs` for the module.
     pub fn mod_file(&self) -> String {
         [
-            "#[allow(dead_code)]",
-            "mod types;",
-            "#[allow(dead_code)]",
-            "mod operations;",
-            "#[allow(dead_code)]",
-            "mod handlers;",
-            "",
-            "pub use types::*;",
-            "pub use operations::*;",
-            "pub use handlers::*;",
+            "pub mod types;",
+            "pub mod operations;",
+            "pub mod handlers;",
             "",
         ]
         .join("\n")
@@ -54,17 +57,8 @@ impl GeneratedModule {
     pub fn write_to_dir(&self, dir: &Path) -> io::Result<()> {
         fs::create_dir_all(dir)?;
         fs::write(dir.join("types.rs"), &self.types)?;
-        fs::write(
-            dir.join("operations.rs"),
-            format!("use super::types::*;\n\n{}", self.operations),
-        )?;
-        fs::write(
-            dir.join("handlers.rs"),
-            format!(
-                "use super::types::*;\nuse super::operations::*;\n\n{}",
-                self.handlers
-            ),
-        )?;
+        fs::write(dir.join("operations.rs"), &self.operations)?;
+        fs::write(dir.join("handlers.rs"), &self.handlers)?;
         fs::write(dir.join("mod.rs"), self.mod_file())?;
         Ok(())
     }
@@ -179,6 +173,7 @@ fn status_code_to_tokens(response: &OperationResponse) -> TokenStream {
 }
 
 fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
+    let ops = ops_prefix();
     let enum_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
 
     let arms: Vec<TokenStream> = op
@@ -238,7 +233,7 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
         .collect();
 
     quote! {
-        impl orator_axum::axum::response::IntoResponse for #enum_ident {
+        impl orator_axum::axum::response::IntoResponse for #ops::#enum_ident {
             fn into_response(self) -> orator_axum::axum::response::Response {
                 match self {
                     #(#arms)*
@@ -252,6 +247,7 @@ fn generate_header_extractor(
     op: &OperationIr,
     header_params: &[&OperationParam],
 ) -> (TokenStream, TokenStream) {
+    let ops = ops_prefix();
     let header_struct = to_pascal_ident(&format!(
         "{}{}",
         op.operation_id,
@@ -273,7 +269,7 @@ fn generate_header_extractor(
                     .to_owned()
                 }
             } else {
-                let ty = type_ref_to_tokens(&param.type_ref);
+                let ty = type_ref_to_tokens(&param.type_ref, Some(&types_prefix()));
                 quote! {
                     .to_str()
                     .map_err(|_| orator_axum::ParamRejection::non_ascii(
@@ -303,9 +299,9 @@ fn generate_header_extractor(
         })
         .collect();
 
-    let fn_param = quote! { header: #header_struct };
+    let fn_param = quote! { header: #ops::#header_struct };
     let impl_block = quote! {
-        impl<S> orator_axum::axum::extract::FromRequestParts<S> for #header_struct
+        impl<S> orator_axum::axum::extract::FromRequestParts<S> for #ops::#header_struct
         where
             S: Send + Sync,
         {
@@ -330,6 +326,7 @@ fn generate_cookie_extractor(
     op: &OperationIr,
     cookie_params: &[&OperationParam],
 ) -> (TokenStream, TokenStream) {
+    let ops = ops_prefix();
     let cookie_struct = to_pascal_ident(&format!(
         "{}{}",
         op.operation_id,
@@ -349,7 +346,7 @@ fn generate_cookie_extractor(
                     .to_owned()
                 }
             } else {
-                let ty = type_ref_to_tokens(&param.type_ref);
+                let ty = type_ref_to_tokens(&param.type_ref, Some(&types_prefix()));
                 quote! {
                     .value()
                     .parse::<#ty>()
@@ -376,9 +373,9 @@ fn generate_cookie_extractor(
         })
         .collect();
 
-    let fn_param = quote! { cookie: #cookie_struct };
+    let fn_param = quote! { cookie: #ops::#cookie_struct };
     let impl_block = quote! {
-        impl<S> orator_axum::axum::extract::FromRequestParts<S> for #cookie_struct
+        impl<S> orator_axum::axum::extract::FromRequestParts<S> for #ops::#cookie_struct
         where
             S: Send + Sync,
         {
@@ -406,6 +403,7 @@ fn generate_multipart_from_request_impl(op: &OperationIr) -> Option<TokenStream>
     let body = op.request_body.as_ref()?;
     let fields = body.fields.as_ref()?;
 
+    let ops = ops_prefix();
     let struct_ident = to_pascal_ident(&struct_name);
 
     // For each field, generate:
@@ -475,7 +473,7 @@ fn generate_multipart_from_request_impl(op: &OperationIr) -> Option<TokenStream>
         .collect();
 
     Some(quote! {
-        impl<S> orator_axum::axum::extract::FromRequest<S> for #struct_ident
+        impl<S> orator_axum::axum::extract::FromRequest<S> for #ops::#struct_ident
         where
             S: Send + Sync,
         {
@@ -522,6 +520,7 @@ struct HandlerOutput {
 }
 
 fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
+    let ops = ops_prefix();
     let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
     let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
     let method_ident = to_snake_ident(&op.operation_id);
@@ -550,7 +549,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
     if path_params.len() == 1 {
         let p = &path_params[0];
         let name = to_snake_ident(&p.name);
-        let ty = type_ref_to_tokens(&p.type_ref);
+        let ty = type_ref_to_tokens(&p.type_ref, Some(&types_prefix()));
         fn_params.push(quote! {
             orator_axum::axum::extract::Path(#name): orator_axum::axum::extract::Path<#ty>
         });
@@ -561,7 +560,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
             .collect();
         let types: Vec<_> = path_params
             .iter()
-            .map(|p| type_ref_to_tokens(&p.type_ref))
+            .map(|p| type_ref_to_tokens(&p.type_ref, Some(&types_prefix())))
             .collect();
         fn_params.push(quote! {
             orator_axum::axum::extract::Path((#(#names),*)): orator_axum::axum::extract::Path<(#(#types),*)>
@@ -581,7 +580,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
             location_suffix(&ParamLocation::Query)
         ));
         fn_params.push(quote! {
-            orator_axum::axum::extract::Query(query): orator_axum::axum::extract::Query<#query_struct>
+            orator_axum::axum::extract::Query(query): orator_axum::axum::extract::Query<#ops::#query_struct>
         });
     }
 
@@ -613,7 +612,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
 
     // request body is last
     if let Some(body) = &op.request_body {
-        let body_type = type_ref_to_tokens(&body.type_ref);
+        let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
         match &body.content_type {
             ContentType::Json => {
                 fn_params.push(quote! {
@@ -635,7 +634,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
                 if let Some(struct_name) = multipart_body_struct_name(op) {
                     let body_struct = to_pascal_ident(&struct_name);
                     fn_params.push(quote! {
-                        body: #body_struct
+                        body: #ops::#body_struct
                     });
                 } else {
                     fn_params.push(quote! {
@@ -678,7 +677,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
                 .map(|param| to_snake_ident(&param.name))
                 .map(|name| quote! { #name })
                 .collect();
-            let params_expr = quote! { #params_ident { #(#field_inits),* } };
+            let params_expr = quote! { #ops::#params_ident { #(#field_inits),* } };
             call_args.push(params_expr);
         }
     }
@@ -692,9 +691,9 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
     let handler_fn = quote! {
         async fn #handler_ident<T, Ctx>(
             #(#fn_params),*
-        ) -> Result<#response_ident, T::Error>
+        ) -> Result<#ops::#response_ident, T::Error>
         where
-            T: #trait_ident<Ctx>,
+            T: #ops::#trait_ident<Ctx>,
         {
             #method_call
         }
@@ -724,6 +723,7 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
         return quote! {};
     }
 
+    let ops = ops_prefix();
     let tag_names: Vec<&String> = tags.keys().collect();
 
     struct TagInfo {
@@ -764,7 +764,7 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
                 impl #wrapper {
                     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
                     where
-                        T: #trait_ident<Ctx>,
+                        T: #ops::#trait_ident<Ctx>,
                         T::Error: orator_axum::axum::response::IntoResponse,
                         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
                     {
@@ -887,6 +887,7 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
 }
 
 fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
+    let ops = ops_prefix();
     let router_ident = to_snake_ident(&format!("{tag}_router"));
     let trait_ident = to_pascal_ident(&format!("{tag}Api"));
 
@@ -922,7 +923,7 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
     quote! {
         pub fn #router_ident<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
         where
-            T: #trait_ident<Ctx>,
+            T: #ops::#trait_ident<Ctx>,
             T::Error: orator_axum::axum::response::IntoResponse,
             Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
         {

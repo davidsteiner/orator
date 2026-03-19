@@ -1,7 +1,4 @@
-use super::operations::*;
-use super::types::*;
-
-impl orator_axum::axum::response::IntoResponse for ListBookingsResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::ListBookingsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (
@@ -20,15 +17,15 @@ impl orator_axum::axum::response::IntoResponse for ListBookingsResponse {
 async fn handle_list_bookings<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<ListBookingsResponse, T::Error>
+) -> Result<super::operations::ListBookingsResponse, T::Error>
 where
-    T: BookingsApi<Ctx>,
+    T: super::operations::BookingsApi<Ctx>,
 {
     api.list_bookings(ctx).await
 }
 pub fn bookings_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: BookingsApi<Ctx>,
+    T: super::operations::BookingsApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
 {
@@ -39,7 +36,7 @@ where
         )
         .with_state(api)
 }
-impl orator_axum::axum::response::IntoResponse for ListCourtsResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::ListCourtsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (
@@ -58,13 +55,13 @@ impl orator_axum::axum::response::IntoResponse for ListCourtsResponse {
 async fn handle_list_courts<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<ListCourtsResponse, T::Error>
+) -> Result<super::operations::ListCourtsResponse, T::Error>
 where
-    T: CourtsApi<Ctx>,
+    T: super::operations::CourtsApi<Ctx>,
 {
     api.list_courts(ctx).await
 }
-impl orator_axum::axum::response::IntoResponse for UploadCourtPhotoResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::UploadCourtPhotoResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::NoContent => orator_axum::http::StatusCode::NO_CONTENT.into_response(),
@@ -76,7 +73,7 @@ impl orator_axum::axum::response::IntoResponse for UploadCourtPhotoResponse {
         }
     }
 }
-impl<S> orator_axum::axum::extract::FromRequest<S> for UploadCourtPhotoBody
+impl<S> orator_axum::axum::extract::FromRequest<S> for super::operations::UploadCourtPhotoBody
 where
     S: Send + Sync,
 {
@@ -120,7 +117,10 @@ where
                 _ => {}
             }
         }
-        Ok(Self { caption, photo })
+        Ok(Self {
+            caption: caption,
+            photo: photo,
+        })
     }
 }
 async fn handle_upload_court_photo<T, Ctx>(
@@ -129,17 +129,21 @@ async fn handle_upload_court_photo<T, Ctx>(
     orator_axum::axum::extract::Path(court_id): orator_axum::axum::extract::Path<
         orator_axum::uuid::Uuid,
     >,
-    body: UploadCourtPhotoBody,
-) -> Result<UploadCourtPhotoResponse, T::Error>
+    body: super::operations::UploadCourtPhotoBody,
+) -> Result<super::operations::UploadCourtPhotoResponse, T::Error>
 where
-    T: CourtsApi<Ctx>,
+    T: super::operations::CourtsApi<Ctx>,
 {
-    api.upload_court_photo(ctx, UploadCourtPhotoPath { court_id }, body)
-        .await
+    api.upload_court_photo(
+        ctx,
+        super::operations::UploadCourtPhotoPath { court_id },
+        body,
+    )
+    .await
 }
 pub fn courts_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: CourtsApi<Ctx>,
+    T: super::operations::CourtsApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
 {
@@ -154,7 +158,7 @@ where
         )
         .with_state(api)
 }
-impl orator_axum::axum::response::IntoResponse for HealthCheckResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::HealthCheckResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (orator_axum::http::StatusCode::OK, body).into_response(),
@@ -164,15 +168,15 @@ impl orator_axum::axum::response::IntoResponse for HealthCheckResponse {
 async fn handle_health_check<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<HealthCheckResponse, T::Error>
+) -> Result<super::operations::HealthCheckResponse, T::Error>
 where
-    T: HealthApi<Ctx>,
+    T: super::operations::HealthApi<Ctx>,
 {
     api.health_check(ctx).await
 }
 pub fn health_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: HealthApi<Ctx>,
+    T: super::operations::HealthApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
 {
@@ -183,7 +187,7 @@ where
         )
         .with_state(api)
 }
-impl orator_axum::axum::response::IntoResponse for ListMembersResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::ListMembersResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (
@@ -200,7 +204,7 @@ impl orator_axum::axum::response::IntoResponse for ListMembersResponse {
         }
     }
 }
-impl<S> orator_axum::axum::extract::FromRequestParts<S> for ListMembersHeader
+impl<S> orator_axum::axum::extract::FromRequestParts<S> for super::operations::ListMembersHeader
 where
     S: Send + Sync,
 {
@@ -250,7 +254,7 @@ where
         })
     }
 }
-impl<S> orator_axum::axum::extract::FromRequestParts<S> for ListMembersCookie
+impl<S> orator_axum::axum::extract::FromRequestParts<S> for super::operations::ListMembersCookie
 where
     S: Send + Sync,
 {
@@ -279,16 +283,18 @@ where
 async fn handle_list_members<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::extract::Query(query): orator_axum::axum::extract::Query<ListMembersQuery>,
-    header: ListMembersHeader,
-    cookie: ListMembersCookie,
-) -> Result<ListMembersResponse, T::Error>
+    orator_axum::axum::extract::Query(query): orator_axum::axum::extract::Query<
+        super::operations::ListMembersQuery,
+    >,
+    header: super::operations::ListMembersHeader,
+    cookie: super::operations::ListMembersCookie,
+) -> Result<super::operations::ListMembersResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
     api.list_members(ctx, query, header, cookie).await
 }
-impl orator_axum::axum::response::IntoResponse for CreateMemberResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::CreateMemberResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Created(body) => (
@@ -307,14 +313,14 @@ impl orator_axum::axum::response::IntoResponse for CreateMemberResponse {
 async fn handle_create_member<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::Json(body): orator_axum::axum::Json<NewMember>,
-) -> Result<CreateMemberResponse, T::Error>
+    orator_axum::axum::Json(body): orator_axum::axum::Json<super::types::NewMember>,
+) -> Result<super::operations::CreateMemberResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
     api.create_member(ctx, body).await
 }
-impl orator_axum::axum::response::IntoResponse for GetMemberResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::GetMemberResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (
@@ -336,13 +342,14 @@ async fn handle_get_member<T, Ctx>(
     orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
         orator_axum::uuid::Uuid,
     >,
-) -> Result<GetMemberResponse, T::Error>
+) -> Result<super::operations::GetMemberResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
-    api.get_member(ctx, GetMemberPath { member_id }).await
+    api.get_member(ctx, super::operations::GetMemberPath { member_id })
+        .await
 }
-impl orator_axum::axum::response::IntoResponse for UpdateMemberResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::UpdateMemberResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (
@@ -364,15 +371,15 @@ async fn handle_update_member<T, Ctx>(
     orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
         orator_axum::uuid::Uuid,
     >,
-    orator_axum::axum::Json(body): orator_axum::axum::Json<UpdateMember>,
-) -> Result<UpdateMemberResponse, T::Error>
+    orator_axum::axum::Json(body): orator_axum::axum::Json<super::types::UpdateMember>,
+) -> Result<super::operations::UpdateMemberResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
-    api.update_member(ctx, UpdateMemberPath { member_id }, body)
+    api.update_member(ctx, super::operations::UpdateMemberPath { member_id }, body)
         .await
 }
-impl orator_axum::axum::response::IntoResponse for DeleteMemberResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::DeleteMemberResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::NoContent => orator_axum::http::StatusCode::NO_CONTENT.into_response(),
@@ -390,13 +397,14 @@ async fn handle_delete_member<T, Ctx>(
     orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
         orator_axum::uuid::Uuid,
     >,
-) -> Result<DeleteMemberResponse, T::Error>
+) -> Result<super::operations::DeleteMemberResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
-    api.delete_member(ctx, DeleteMemberPath { member_id }).await
+    api.delete_member(ctx, super::operations::DeleteMemberPath { member_id })
+        .await
 }
-impl orator_axum::axum::response::IntoResponse for GetMemberPhotoResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::GetMemberPhotoResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (orator_axum::http::StatusCode::OK, body).into_response(),
@@ -414,14 +422,14 @@ async fn handle_get_member_photo<T, Ctx>(
     orator_axum::axum::extract::Path(member_id): orator_axum::axum::extract::Path<
         orator_axum::uuid::Uuid,
     >,
-) -> Result<GetMemberPhotoResponse, T::Error>
+) -> Result<super::operations::GetMemberPhotoResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
-    api.get_member_photo(ctx, GetMemberPhotoPath { member_id })
+    api.get_member_photo(ctx, super::operations::GetMemberPhotoPath { member_id })
         .await
 }
-impl orator_axum::axum::response::IntoResponse for UploadMemberPhotoResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::UploadMemberPhotoResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::NoContent => orator_axum::http::StatusCode::NO_CONTENT.into_response(),
@@ -440,16 +448,20 @@ async fn handle_upload_member_photo<T, Ctx>(
         orator_axum::uuid::Uuid,
     >,
     body: orator_axum::axum::body::Bytes,
-) -> Result<UploadMemberPhotoResponse, T::Error>
+) -> Result<super::operations::UploadMemberPhotoResponse, T::Error>
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
 {
-    api.upload_member_photo(ctx, UploadMemberPhotoPath { member_id }, body)
-        .await
+    api.upload_member_photo(
+        ctx,
+        super::operations::UploadMemberPhotoPath { member_id },
+        body,
+    )
+    .await
 }
 pub fn members_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: MembersApi<Ctx>,
+    T: super::operations::MembersApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
 {
@@ -478,7 +490,7 @@ pub struct BookingsRouter(orator_axum::axum::Router);
 impl BookingsRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: BookingsApi<Ctx>,
+        T: super::operations::BookingsApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
     {
@@ -514,7 +526,7 @@ pub struct CourtsRouter(orator_axum::axum::Router);
 impl CourtsRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: CourtsApi<Ctx>,
+        T: super::operations::CourtsApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
     {
@@ -550,7 +562,7 @@ pub struct HealthRouter(orator_axum::axum::Router);
 impl HealthRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: HealthApi<Ctx>,
+        T: super::operations::HealthApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
     {
@@ -586,7 +598,7 @@ pub struct MembersRouter(orator_axum::axum::Router);
 impl MembersRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: MembersApi<Ctx>,
+        T: super::operations::MembersApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
     {
