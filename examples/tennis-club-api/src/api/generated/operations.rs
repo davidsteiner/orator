@@ -36,6 +36,11 @@ pub enum UploadCourtPhotoResponse {
 pub struct UploadCourtPhotoPath {
     pub court_id: i64,
 }
+#[derive(Debug)]
+pub struct UploadCourtPhotoBody {
+    pub caption: Option<String>,
+    pub photo: Option<orator_axum::bytes::Bytes>,
+}
 pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     /// List all courts
@@ -48,7 +53,7 @@ pub trait CourtsApi<Ctx = ()>: Send + Sync + 'static {
         &self,
         ctx: Ctx,
         path: UploadCourtPhotoPath,
-        body: orator_axum::axum::extract::Multipart,
+        body: UploadCourtPhotoBody,
     ) -> impl std::future::Future<Output = Result<UploadCourtPhotoResponse, Self::Error>> + Send;
 }
 /// Check API health
