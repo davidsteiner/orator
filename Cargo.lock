@@ -902,7 +902,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "orator"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "clap",
  "oas3",
@@ -912,7 +912,7 @@ dependencies = [
 
 [[package]]
 name = "orator-axum"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "axum",
  "axum-extra",
@@ -929,7 +929,7 @@ dependencies = [
 
 [[package]]
 name = "orator-axum-codegen"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "insta",
  "oas3",
@@ -942,7 +942,7 @@ dependencies = [
 
 [[package]]
 name = "orator-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "heck",
  "insta",
