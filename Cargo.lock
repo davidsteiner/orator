@@ -1394,6 +1394,7 @@ dependencies = [
 name = "tennis-club-core"
 version = "0.0.1"
 dependencies = [
+ "chrono",
  "serde",
 ]
 

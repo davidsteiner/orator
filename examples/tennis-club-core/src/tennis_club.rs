@@ -1,3 +1,5 @@
+use chrono::{NaiveDate, Utc};
+
 use crate::domain::*;
 use std::sync::Mutex;
 
@@ -10,31 +12,37 @@ pub struct TennisClub {
 
 impl TennisClub {
     pub fn new() -> Self {
+        let now = Utc::now();
         let members = vec![
             Member {
                 id: 1,
                 first_name: "Lobelia".to_string(),
                 last_name: "Sackville-Baggins".to_string(),
+                joined_at: now,
             },
             Member {
                 id: 2,
                 first_name: "Fredegar".to_string(),
                 last_name: "Bolger".to_string(),
+                joined_at: now,
             },
             Member {
                 id: 3,
                 first_name: "Folco".to_string(),
                 last_name: "Boffin".to_string(),
+                joined_at: now,
             },
             Member {
                 id: 4,
                 first_name: "Estella".to_string(),
                 last_name: "Brandybuck".to_string(),
+                joined_at: now,
             },
             Member {
                 id: 5,
                 first_name: "Elanor".to_string(),
                 last_name: "Gamgee".to_string(),
+                joined_at: now,
             },
         ];
 
@@ -63,12 +71,12 @@ impl TennisClub {
             Booking::MemberBooking(MemberBookingData {
                 court_id: 1,
                 member_id: 1,
-                date: "2026-03-10".to_string(),
+                date: NaiveDate::from_ymd_opt(2026, 3, 10).unwrap(),
             }),
             Booking::GuestBooking(GuestBookingData {
                 court_id: 2,
                 guest_name: "Radagast the Brown".to_string(),
-                date: "2026-03-11".to_string(),
+                date: NaiveDate::from_ymd_opt(2026, 3, 11).unwrap(),
             }),
         ];
 
@@ -99,6 +107,7 @@ impl TennisClub {
             id: *next_id,
             first_name: new.first_name,
             last_name: new.last_name,
+            joined_at: Utc::now(),
         };
 
         *next_id += 1;

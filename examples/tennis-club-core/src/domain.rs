@@ -1,3 +1,4 @@
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -5,6 +6,7 @@ pub struct Member {
     pub id: i64,
     pub first_name: String,
     pub last_name: String,
+    pub joined_at: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -48,14 +50,14 @@ pub enum Booking {
 pub struct MemberBookingData {
     pub court_id: i64,
     pub member_id: i64,
-    pub date: String,
+    pub date: NaiveDate,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GuestBookingData {
     pub court_id: i64,
     pub guest_name: String,
-    pub date: String,
+    pub date: NaiveDate,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
