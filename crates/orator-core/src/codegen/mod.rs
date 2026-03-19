@@ -77,6 +77,7 @@ pub fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
         PrimitiveType::DateTime => {
             quote! { orator_axum::chrono::DateTime<orator_axum::chrono::Utc> }
         }
+        PrimitiveType::Uuid => quote! { orator_axum::uuid::Uuid },
     }
 }
 

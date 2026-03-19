@@ -4,6 +4,7 @@ pub use chrono;
 pub use http;
 pub use serde_json;
 pub use tower;
+pub use uuid;
 
 pub use axum_extra;
 

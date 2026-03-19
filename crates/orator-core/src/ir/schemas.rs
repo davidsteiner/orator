@@ -97,4 +97,5 @@ pub enum PrimitiveType {
     Bytes,
     Date,
     DateTime,
+    Uuid,
 }

@@ -13,7 +13,7 @@ pub enum Booking {
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Court {
-    pub id: i64,
+    pub id: orator_axum::uuid::Uuid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indoor: Option<bool>,
     pub name: String,
@@ -28,7 +28,7 @@ pub struct Error {
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GuestBooking {
     pub booking_type: String,
-    pub court_id: i64,
+    pub court_id: orator_axum::uuid::Uuid,
     pub date: orator_axum::chrono::NaiveDate,
     pub guest_name: String,
 }
@@ -36,16 +36,16 @@ pub struct GuestBooking {
 #[serde(deny_unknown_fields)]
 pub struct Member {
     pub first_name: String,
-    pub id: i64,
+    pub id: orator_axum::uuid::Uuid,
     pub joined_at: orator_axum::chrono::DateTime<orator_axum::chrono::Utc>,
     pub last_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MemberBooking {
     pub booking_type: String,
-    pub court_id: i64,
+    pub court_id: orator_axum::uuid::Uuid,
     pub date: orator_axum::chrono::NaiveDate,
-    pub member_id: i64,
+    pub member_id: orator_axum::uuid::Uuid,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]

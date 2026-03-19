@@ -266,6 +266,7 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
         SchemaType::String => match schema.format.as_deref() {
             Some("date") => Ok(TypeRef::Primitive(PrimitiveType::Date)),
             Some("date-time") => Ok(TypeRef::Primitive(PrimitiveType::DateTime)),
+            Some("uuid") => Ok(TypeRef::Primitive(PrimitiveType::Uuid)),
             _ => Ok(TypeRef::Primitive(PrimitiveType::String)),
         },
         SchemaType::Boolean => Ok(TypeRef::Primitive(PrimitiveType::Bool)),
@@ -333,6 +334,7 @@ fn try_lower_primitive(schema: &ObjectSchema) -> Option<TypeRef> {
         SchemaType::String => match schema.format.as_deref() {
             Some("date") => Some(TypeRef::Primitive(PrimitiveType::Date)),
             Some("date-time") => Some(TypeRef::Primitive(PrimitiveType::DateTime)),
+            Some("uuid") => Some(TypeRef::Primitive(PrimitiveType::Uuid)),
             _ => Some(TypeRef::Primitive(PrimitiveType::String)),
         },
         SchemaType::Boolean => Some(TypeRef::Primitive(PrimitiveType::Bool)),

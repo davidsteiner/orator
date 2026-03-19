@@ -96,3 +96,9 @@ fn datetime() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn uuid() {
+    let code = generate_from_yaml(include_str!("../../../tests/fixtures/schemas_uuid.yaml"));
+    insta::assert_snapshot!(code);
+}
