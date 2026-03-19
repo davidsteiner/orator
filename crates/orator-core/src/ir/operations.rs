@@ -1,4 +1,4 @@
-use super::TypeRef;
+use super::{Field, TypeRef};
 
 /// A single API operation derived from a path+method in the OpenAPI spec.
 #[derive(Debug, Clone, PartialEq)]
@@ -56,6 +56,8 @@ pub struct RequestBodyIr {
     pub content_type: ContentType,
     pub type_ref: TypeRef,
     pub required: bool,
+    /// Inline field definitions for multipart form-data bodies.
+    pub fields: Option<Vec<Field>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

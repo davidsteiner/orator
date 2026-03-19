@@ -2,7 +2,7 @@ use oas3::spec::{ObjectOrReference, Parameter, ParameterIn, Response};
 
 use crate::error::Error;
 use crate::ir::{
-    ContentType, HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation,
+    ContentType, Field, HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation,
     PrimitiveType, RequestBodyIr, ResponseBody, ResponseStatusCode, TypeRef,
 };
 
@@ -177,21 +177,77 @@ fn lower_request_body(
             }
         })?;
 
-    let type_ref = match &content_type {
-        ContentType::TextPlain => TypeRef::Primitive(PrimitiveType::String),
-        ContentType::OctetStream => TypeRef::Primitive(PrimitiveType::Bytes),
-        ContentType::MultipartFormData => TypeRef::Primitive(PrimitiveType::String), // placeholder, ignored by codegen
-        ContentType::Json | ContentType::FormUrlEncoded => match &media_type.schema {
-            Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
-            None => TypeRef::Primitive(PrimitiveType::String),
-        },
+    let (type_ref, fields) = match &content_type {
+        ContentType::TextPlain => (TypeRef::Primitive(PrimitiveType::String), None),
+        ContentType::OctetStream => (TypeRef::Primitive(PrimitiveType::Bytes), None),
+        ContentType::MultipartFormData => {
+            let fields = lower_multipart_fields(&media_type.schema)?;
+            (TypeRef::Primitive(PrimitiveType::String), Some(fields))
+        }
+        ContentType::Json | ContentType::FormUrlEncoded => {
+            let tr = match &media_type.schema {
+                Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
+                None => TypeRef::Primitive(PrimitiveType::String),
+            };
+            (tr, None)
+        }
     };
 
     Ok(Some(RequestBodyIr {
         content_type,
         type_ref,
         required: resolved.required.unwrap_or(false),
+        fields,
     }))
+}
+
+fn lower_multipart_fields(
+    schema: &Option<ObjectOrReference<oas3::spec::ObjectSchema>>,
+) -> Result<Vec<Field>, Error> {
+    let Some(schema_or_ref) = schema else {
+        return Ok(Vec::new());
+    };
+
+    let obj = match schema_or_ref {
+        ObjectOrReference::Object(s) => s,
+        ObjectOrReference::Ref { ref_path, .. } => {
+            return Err(Error::UnsupportedSchema {
+                context: format!(
+                    "multipart form-data with $ref schema not yet supported: {ref_path}"
+                ),
+            });
+        }
+    };
+
+    let mut fields = Vec::new();
+    for (prop_name, prop_schema) in &obj.properties {
+        let type_ref = lower_type_ref(prop_schema)?;
+        // Map string+binary to Bytes
+        let type_ref = match &type_ref {
+            TypeRef::Primitive(PrimitiveType::String) => {
+                if let ObjectOrReference::Object(s) = prop_schema {
+                    if s.format.as_deref() == Some("binary") {
+                        TypeRef::Primitive(PrimitiveType::Bytes)
+                    } else {
+                        type_ref
+                    }
+                } else {
+                    type_ref
+                }
+            }
+            _ => type_ref,
+        };
+        fields.push(Field {
+            name: prop_name.clone(),
+            type_ref,
+            required: obj.required.contains(prop_name),
+            description: match prop_schema {
+                ObjectOrReference::Object(s) => s.description.clone(),
+                _ => None,
+            },
+        });
+    }
+    Ok(fields)
 }
 
 fn lower_responses(

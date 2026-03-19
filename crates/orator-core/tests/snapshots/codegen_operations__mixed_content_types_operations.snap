@@ -26,6 +26,10 @@ pub enum ImportItemsResponse {
     /// Import result
     Ok(String),
 }
+#[derive(Debug)]
+pub struct ImportItemsBody {
+    pub file: Option<orator_axum::bytes::Bytes>,
+}
 /// Search with form data
 #[derive(Debug)]
 pub enum SearchItemsResponse {
@@ -60,7 +64,7 @@ pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
     fn import_items(
         &self,
         ctx: Ctx,
-        body: orator_axum::axum::extract::Multipart,
+        body: ImportItemsBody,
     ) -> impl std::future::Future<
         Output = Result<ImportItemsResponse, Self::Error>,
     > + Send;

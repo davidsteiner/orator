@@ -57,6 +57,7 @@ expression: ops
                     Bytes,
                 ),
                 required: true,
+                fields: None,
             },
         ),
         responses: [

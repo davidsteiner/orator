@@ -21,12 +21,10 @@ tower = "0.5"
 
 [features]
 default = []
-cookies = ["dep:axum-extra"]
 
 [dependencies.axum-extra]
 version = "0.12"
 features = ["cookie"]
-optional = true
 
 [dev-dependencies]
 http-body-util = "0.1"

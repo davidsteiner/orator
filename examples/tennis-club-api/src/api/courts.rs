@@ -1,5 +1,6 @@
 use crate::api::generated::{
-    CourtsApi, ListCourtsResponse, UploadCourtPhotoPath, UploadCourtPhotoResponse,
+    CourtsApi, ListCourtsResponse, UploadCourtPhotoBody, UploadCourtPhotoPath,
+    UploadCourtPhotoResponse,
 };
 use std::convert::Infallible;
 use tennis_club_core::{TennisClub, domain};
@@ -17,7 +18,7 @@ impl CourtsApi for TennisClub {
         &self,
         _ctx: (),
         _path: UploadCourtPhotoPath,
-        _body: orator_axum::axum::extract::Multipart,
+        _body: UploadCourtPhotoBody,
     ) -> Result<UploadCourtPhotoResponse, Self::Error> {
         Ok(UploadCourtPhotoResponse::NoContent)
     }

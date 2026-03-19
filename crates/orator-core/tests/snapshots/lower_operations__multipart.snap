@@ -19,6 +19,26 @@ expression: ops
                     String,
                 ),
                 required: true,
+                fields: Some(
+                    [
+                        Field {
+                            name: "description",
+                            type_ref: Primitive(
+                                String,
+                            ),
+                            required: false,
+                            description: None,
+                        },
+                        Field {
+                            name: "file",
+                            type_ref: Primitive(
+                                Bytes,
+                            ),
+                            required: false,
+                            description: None,
+                        },
+                    ],
+                ),
             },
         ),
         responses: [

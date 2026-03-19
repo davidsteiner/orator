@@ -76,11 +76,58 @@ impl orator_axum::axum::response::IntoResponse for UploadCourtPhotoResponse {
         }
     }
 }
+impl<S> orator_axum::axum::extract::FromRequest<S> for UploadCourtPhotoBody
+where
+    S: Send + Sync,
+{
+    type Rejection = orator_axum::axum::response::Response;
+    async fn from_request(
+        req: orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let mut multipart = orator_axum::axum::extract::Multipart::from_request(req, state)
+            .await
+            .map_err(|e| {
+                use orator_axum::axum::response::IntoResponse;
+                e.into_response()
+            })?;
+        let mut caption = None;
+        let mut photo = None;
+        while let Some(field) = multipart.next_field().await.map_err(|e| {
+            orator_axum::axum::response::Response::builder()
+                .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                .body(orator_axum::axum::body::Body::from(e.to_string()))
+                .unwrap()
+        })? {
+            let name = field.name().unwrap_or_default().to_owned();
+            match name.as_str() {
+                "caption" => {
+                    caption = Some(field.text().await.map_err(|e| {
+                        orator_axum::axum::response::Response::builder()
+                            .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                            .body(orator_axum::axum::body::Body::from(e.to_string()))
+                            .unwrap()
+                    })?);
+                }
+                "photo" => {
+                    photo = Some(field.bytes().await.map_err(|e| {
+                        orator_axum::axum::response::Response::builder()
+                            .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                            .body(orator_axum::axum::body::Body::from(e.to_string()))
+                            .unwrap()
+                    })?);
+                }
+                _ => {}
+            }
+        }
+        Ok(Self { caption, photo })
+    }
+}
 async fn handle_upload_court_photo<T, Ctx>(
     orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
     orator_axum::axum::extract::Path(court_id): orator_axum::axum::extract::Path<i64>,
-    body: orator_axum::axum::extract::Multipart,
+    body: UploadCourtPhotoBody,
 ) -> Result<UploadCourtPhotoResponse, T::Error>
 where
     T: CourtsApi<Ctx>,

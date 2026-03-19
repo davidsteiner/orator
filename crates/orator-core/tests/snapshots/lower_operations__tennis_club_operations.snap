@@ -129,6 +129,26 @@ expression: ops
                     String,
                 ),
                 required: true,
+                fields: Some(
+                    [
+                        Field {
+                            name: "caption",
+                            type_ref: Primitive(
+                                String,
+                            ),
+                            required: false,
+                            description: None,
+                        },
+                        Field {
+                            name: "photo",
+                            type_ref: Primitive(
+                                Bytes,
+                            ),
+                            required: false,
+                            description: None,
+                        },
+                    ],
+                ),
             },
         ),
         responses: [
@@ -327,6 +347,7 @@ expression: ops
                     "NewMember",
                 ),
                 required: true,
+                fields: None,
             },
         ),
         responses: [
@@ -449,6 +470,7 @@ expression: ops
                     "UpdateMember",
                 ),
                 required: true,
+                fields: None,
             },
         ),
         responses: [
@@ -621,6 +643,7 @@ expression: ops
                     Bytes,
                 ),
                 required: true,
+                fields: None,
             },
         ),
         responses: [
