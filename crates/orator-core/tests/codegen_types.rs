@@ -72,3 +72,11 @@ fn json_value() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn oneof_nullable() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_oneof_nullable.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

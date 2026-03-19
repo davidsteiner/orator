@@ -1,0 +1,25 @@
+openapi: "3.1.0"
+info:
+  title: OneOf Nullable Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    Address:
+      type: object
+      required:
+        - street
+      properties:
+        street:
+          type: string
+    Person:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        address:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/Address"
