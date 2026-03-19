@@ -80,3 +80,11 @@ fn oneof_nullable() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn dollar_prefix() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_dollar_prefix.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

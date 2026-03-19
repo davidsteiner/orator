@@ -78,3 +78,11 @@ fn oneof_nullable() {
     ));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn dollar_prefix() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_dollar_prefix.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}

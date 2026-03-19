@@ -1,0 +1,13 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PolymorphicMessage {
+    #[serde(rename = "$")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    #[serde(rename = "$type")]
+    pub r#type: String,
+    pub body: String,
+}

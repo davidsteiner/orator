@@ -1,0 +1,19 @@
+openapi: "3.1.0"
+info:
+  title: Dollar Prefix Schemas
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    PolymorphicMessage:
+      type: object
+      required:
+        - $type
+        - body
+      properties:
+        $type:
+          type: string
+        body:
+          type: string
+        $:
+          type: string
