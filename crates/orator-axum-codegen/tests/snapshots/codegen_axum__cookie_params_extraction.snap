@@ -1,5 +1,5 @@
 ---
-source: crates/orator-axum-build/tests/codegen_axum.rs
+source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
 impl orator_axum::axum::response::IntoResponse for GetItemsResponse {
@@ -27,8 +27,9 @@ where
         Ok(Self {
             session_id: jar
                 .get("session_id")
-                .ok_or_else(|| orator_axum::ParamRejection::new(
-                    concat!("missing required cookie: ", "session_id"),
+                .ok_or_else(|| orator_axum::ParamRejection::missing(
+                    orator_axum::ParamLocation::Cookie,
+                    "session_id",
                 ))?
                 .value()
                 .to_owned(),
@@ -38,8 +39,10 @@ where
                     c
                         .value()
                         .parse::<i32>()
-                        .map_err(|_| orator_axum::ParamRejection::new(
-                            concat!("invalid cookie value: ", "max_results"),
+                        .map_err(|e| orator_axum::ParamRejection::invalid(
+                            orator_axum::ParamLocation::Cookie,
+                            "max_results",
+                            e,
                         ))?
                 }),
         })

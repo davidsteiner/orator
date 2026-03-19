@@ -165,34 +165,35 @@ where
             x_request_id: headers
                 .get("X-Request-ID")
                 .ok_or_else(|| {
-                    orator_axum::ParamRejection::new(concat!(
-                        "missing required header: ",
-                        "X-Request-ID"
-                    ))
+                    orator_axum::ParamRejection::missing(
+                        orator_axum::ParamLocation::Header,
+                        "X-Request-ID",
+                    )
                 })?
                 .to_str()
                 .map_err(|_| {
-                    orator_axum::ParamRejection::new(concat!(
-                        "non-ASCII header value: ",
-                        "X-Request-ID"
-                    ))
+                    orator_axum::ParamRejection::non_ascii(
+                        orator_axum::ParamLocation::Header,
+                        "X-Request-ID",
+                    )
                 })?
                 .to_owned(),
             x_page_size: match headers.get("X-Page-Size") {
                 Some(v) => Some(
                     v.to_str()
                         .map_err(|_| {
-                            orator_axum::ParamRejection::new(concat!(
-                                "non-ASCII header value: ",
-                                "X-Page-Size"
-                            ))
+                            orator_axum::ParamRejection::non_ascii(
+                                orator_axum::ParamLocation::Header,
+                                "X-Page-Size",
+                            )
                         })?
                         .parse::<i32>()
-                        .map_err(|_| {
-                            orator_axum::ParamRejection::new(concat!(
-                                "invalid header value: ",
-                                "X-Page-Size"
-                            ))
+                        .map_err(|e| {
+                            orator_axum::ParamRejection::invalid(
+                                orator_axum::ParamLocation::Header,
+                                "X-Page-Size",
+                                e,
+                            )
                         })?,
                 ),
                 None => None,
@@ -216,10 +217,10 @@ where
             session_id: jar
                 .get("session_id")
                 .ok_or_else(|| {
-                    orator_axum::ParamRejection::new(concat!(
-                        "missing required cookie: ",
-                        "session_id"
-                    ))
+                    orator_axum::ParamRejection::missing(
+                        orator_axum::ParamLocation::Cookie,
+                        "session_id",
+                    )
                 })?
                 .value()
                 .to_owned(),

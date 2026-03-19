@@ -266,19 +266,19 @@ fn generate_header_extractor(
             let value_expr = if is_string {
                 quote! {
                     .to_str()
-                    .map_err(|_| orator_axum::ParamRejection::new(
-                        concat!("non-ASCII header value: ", #header_name)))?
+                    .map_err(|_| orator_axum::ParamRejection::non_ascii(
+                        orator_axum::ParamLocation::Header, #header_name))?
                     .to_owned()
                 }
             } else {
                 let ty = type_ref_to_tokens(&param.type_ref);
                 quote! {
                     .to_str()
-                    .map_err(|_| orator_axum::ParamRejection::new(
-                        concat!("non-ASCII header value: ", #header_name)))?
+                    .map_err(|_| orator_axum::ParamRejection::non_ascii(
+                        orator_axum::ParamLocation::Header, #header_name))?
                     .parse::<#ty>()
-                    .map_err(|_| orator_axum::ParamRejection::new(
-                        concat!("invalid header value: ", #header_name)))?
+                    .map_err(|e| orator_axum::ParamRejection::invalid(
+                        orator_axum::ParamLocation::Header, #header_name, e))?
                 }
             };
 
@@ -286,8 +286,8 @@ fn generate_header_extractor(
                 quote! {
                     #field_name: headers
                         .get(#header_name)
-                        .ok_or_else(|| orator_axum::ParamRejection::new(
-                            concat!("missing required header: ", #header_name)))?
+                        .ok_or_else(|| orator_axum::ParamRejection::missing(
+                            orator_axum::ParamLocation::Header, #header_name))?
                         #value_expr,
                 }
             } else {
@@ -351,8 +351,8 @@ fn generate_cookie_extractor(
                 quote! {
                     .value()
                     .parse::<#ty>()
-                    .map_err(|_| orator_axum::ParamRejection::new(
-                        concat!("invalid cookie value: ", #cookie_name)))?
+                    .map_err(|e| orator_axum::ParamRejection::invalid(
+                        orator_axum::ParamLocation::Cookie, #cookie_name, e))?
                 }
             };
 
@@ -360,8 +360,8 @@ fn generate_cookie_extractor(
                 quote! {
                     #field_name: jar
                         .get(#cookie_name)
-                        .ok_or_else(|| orator_axum::ParamRejection::new(
-                            concat!("missing required cookie: ", #cookie_name)))?
+                        .ok_or_else(|| orator_axum::ParamRejection::missing(
+                            orator_axum::ParamLocation::Cookie, #cookie_name))?
                         #value_expr,
                 }
             } else {
