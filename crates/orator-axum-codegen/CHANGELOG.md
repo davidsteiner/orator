@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.1.2...orator-axum-codegen-v0.1.3) - 2026-03-19
+
+### Added
+
+- make ParamRejection better typed ([#57](https://github.com/davidsteiner/orator/pull/57))
+
+### Other
+
+- revised content for documentation landing page ([#56](https://github.com/davidsteiner/orator/pull/56))
+
 ## [0.1.2](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.1.1...orator-axum-codegen-v0.1.2) - 2026-03-18
 
 ### Added
