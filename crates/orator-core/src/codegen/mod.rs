@@ -23,7 +23,12 @@ pub const RUST_KEYWORDS: &[&str] = &[
 ];
 
 pub fn to_snake_ident(s: &str) -> Ident {
-    let snake = s.to_snake_case();
+    let mut snake = s.to_snake_case();
+    if snake.is_empty() {
+        snake = "value".to_string();
+    } else if snake.starts_with(|c: char| c.is_ascii_digit()) {
+        snake = format!("_{snake}");
+    }
     if RUST_KEYWORDS.contains(&snake.as_str()) {
         format_ident!("r#{}", snake)
     } else {
