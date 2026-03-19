@@ -11,3 +11,8 @@ components:
         - active
         - inactive
         - pending
+    Priority:
+      enum:
+        - low
+        - medium
+        - high

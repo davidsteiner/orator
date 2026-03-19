@@ -39,7 +39,7 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
     let description = schema.description.clone();
 
     // string enum: type string + enum values
-    if is_string_type(schema) && !schema.enum_values.is_empty() {
+    if (is_string_type(schema) || schema.schema_type.is_none()) && !schema.enum_values.is_empty() {
         let values = schema
             .enum_values
             .iter()

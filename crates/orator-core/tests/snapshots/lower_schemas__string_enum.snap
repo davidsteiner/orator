@@ -4,6 +4,19 @@ expression: types
 ---
 [
     TypeDef {
+        name: "Priority",
+        description: None,
+        kind: StringEnum(
+            StringEnumDef {
+                values: [
+                    "low",
+                    "medium",
+                    "high",
+                ],
+            },
+        ),
+    },
+    TypeDef {
         name: "Status",
         description: None,
         kind: StringEnum(
