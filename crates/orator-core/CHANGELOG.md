@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.1.3...orator-core-v0.2.0) - 2026-03-19
+
+### Added
+
+- support inline oneOf nullable refs ([#70](https://github.com/davidsteiner/orator/pull/70))
+- support empty/untyped schemas as serde_json::Value ([#69](https://github.com/davidsteiner/orator/pull/69))
+
+### Fixed
+
+- resolve issue with enums without explicit type ([#68](https://github.com/davidsteiner/orator/pull/68))
+
 ## [0.1.3](https://github.com/davidsteiner/orator/compare/orator-core-v0.1.2...orator-core-v0.1.3) - 2026-03-19
 
 ### Other
