@@ -1,0 +1,13 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+pub type DateAlias = orator_axum::chrono::NaiveDate;
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Event {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cancelled_at: Option<orator_axum::chrono::DateTime<orator_axum::chrono::Utc>>,
+    pub date: orator_axum::chrono::NaiveDate,
+    pub name: String,
+    pub starts_at: orator_axum::chrono::DateTime<orator_axum::chrono::Utc>,
+}

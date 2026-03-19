@@ -354,6 +354,7 @@ components:
         - id
         - first_name
         - last_name
+        - joined_at
       properties:
         id:
           type: integer
@@ -362,6 +363,9 @@ components:
           type: string
         last_name:
           type: string
+        joined_at:
+          type: string
+          format: date-time
       additionalProperties: false
 
     NewMember:
@@ -417,6 +421,7 @@ components:
           format: int64
         date:
           type: string
+          format: date
 
     GuestBooking:
       type: object
@@ -431,6 +436,7 @@ components:
           type: string
         date:
           type: string
+          format: date
 
     Booking:
       oneOf:

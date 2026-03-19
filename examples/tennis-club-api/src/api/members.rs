@@ -116,6 +116,7 @@ impl From<domain::Member> for crate::api::generated::Member {
             id: m.id,
             first_name: m.first_name,
             last_name: m.last_name,
+            joined_at: m.joined_at,
         }
     }
 }

@@ -263,7 +263,11 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
     };
 
     match schema_type {
-        SchemaType::String => Ok(TypeRef::Primitive(PrimitiveType::String)),
+        SchemaType::String => match schema.format.as_deref() {
+            Some("date") => Ok(TypeRef::Primitive(PrimitiveType::Date)),
+            Some("date-time") => Ok(TypeRef::Primitive(PrimitiveType::DateTime)),
+            _ => Ok(TypeRef::Primitive(PrimitiveType::String)),
+        },
         SchemaType::Boolean => Ok(TypeRef::Primitive(PrimitiveType::Bool)),
         SchemaType::Integer => match schema.format.as_deref() {
             Some("int64") => Ok(TypeRef::Primitive(PrimitiveType::I64)),
@@ -326,7 +330,11 @@ fn try_lower_primitive(schema: &ObjectSchema) -> Option<TypeRef> {
         return None;
     };
     match t {
-        SchemaType::String => Some(TypeRef::Primitive(PrimitiveType::String)),
+        SchemaType::String => match schema.format.as_deref() {
+            Some("date") => Some(TypeRef::Primitive(PrimitiveType::Date)),
+            Some("date-time") => Some(TypeRef::Primitive(PrimitiveType::DateTime)),
+            _ => Some(TypeRef::Primitive(PrimitiveType::String)),
+        },
         SchemaType::Boolean => Some(TypeRef::Primitive(PrimitiveType::Bool)),
         SchemaType::Integer => match schema.format.as_deref() {
             Some("int64") => Some(TypeRef::Primitive(PrimitiveType::I64)),

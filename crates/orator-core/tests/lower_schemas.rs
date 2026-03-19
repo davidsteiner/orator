@@ -86,3 +86,11 @@ fn dollar_prefix() {
     ));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn datetime() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_datetime.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}

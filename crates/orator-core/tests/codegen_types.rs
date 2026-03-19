@@ -88,3 +88,11 @@ fn dollar_prefix() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn datetime() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_datetime.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

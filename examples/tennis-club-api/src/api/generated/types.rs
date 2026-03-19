@@ -25,7 +25,7 @@ pub struct Error {
 pub struct GuestBooking {
     pub booking_type: String,
     pub court_id: i64,
-    pub date: String,
+    pub date: orator_axum::chrono::NaiveDate,
     pub guest_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -33,13 +33,14 @@ pub struct GuestBooking {
 pub struct Member {
     pub first_name: String,
     pub id: i64,
+    pub joined_at: orator_axum::chrono::DateTime<orator_axum::chrono::Utc>,
     pub last_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MemberBooking {
     pub booking_type: String,
     pub court_id: i64,
-    pub date: String,
+    pub date: orator_axum::chrono::NaiveDate,
     pub member_id: i64,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

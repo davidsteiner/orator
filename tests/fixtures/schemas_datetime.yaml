@@ -1,0 +1,28 @@
+openapi: "3.1.0"
+info:
+  title: DateTime Test
+  version: "1.0"
+paths: {}
+components:
+  schemas:
+    Event:
+      type: object
+      required:
+        - name
+        - starts_at
+        - date
+      properties:
+        name:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        date:
+          type: string
+          format: date
+        cancelled_at:
+          type: string
+          format: date-time
+    DateAlias:
+      type: string
+      format: date

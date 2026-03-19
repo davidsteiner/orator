@@ -220,6 +220,8 @@ fn variant_name_for_type_ref(type_ref: &TypeRef) -> Ident {
             PrimitiveType::F32 => "F32".to_string(),
             PrimitiveType::F64 => "F64".to_string(),
             PrimitiveType::Bytes => "Bytes".to_string(),
+            PrimitiveType::Date => "Date".to_string(),
+            PrimitiveType::DateTime => "DateTime".to_string(),
         },
         TypeRef::Array(inner) => {
             let inner_name = variant_name_for_type_ref(inner);
