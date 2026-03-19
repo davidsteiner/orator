@@ -1,0 +1,51 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Resource",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "id",
+                        type_ref: Primitive(
+                            Uuid,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "parent_id",
+                        type_ref: Primitive(
+                            Uuid,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "ResourceId",
+        description: None,
+        kind: Alias(
+            Primitive(
+                Uuid,
+            ),
+        ),
+    },
+]

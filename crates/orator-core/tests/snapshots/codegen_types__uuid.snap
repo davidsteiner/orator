@@ -1,0 +1,12 @@
+---
+source: crates/orator-core/tests/codegen_types.rs
+expression: code
+---
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Resource {
+    pub id: orator_axum::uuid::Uuid,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<orator_axum::uuid::Uuid>,
+}
+pub type ResourceId = orator_axum::uuid::Uuid;
