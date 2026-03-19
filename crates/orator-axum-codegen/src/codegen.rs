@@ -7,7 +7,8 @@ use quote::{format_ident, quote};
 
 use orator_core::codegen::{
     PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, group_by_tag,
-    location_suffix, status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
+    location_suffix, multipart_body_struct_name, status_code_variant_name, to_pascal_ident,
+    to_snake_ident, type_ref_to_tokens,
 };
 pub use orator_core::config::Config;
 use orator_core::ir::{
@@ -112,6 +113,7 @@ pub fn generate_axum_handlers_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_into_response_impl(op));
+            all_items.extend(generate_multipart_from_request_impl(op));
             let handler_output = generate_handler_fn(op, config);
             all_items.extend(handler_output.extractor_impls);
             all_items.push(handler_output.handler_fn);
@@ -399,6 +401,120 @@ fn generate_cookie_extractor(
     (fn_param, impl_block)
 }
 
+fn generate_multipart_from_request_impl(op: &OperationIr) -> Option<TokenStream> {
+    let struct_name = multipart_body_struct_name(op)?;
+    let body = op.request_body.as_ref()?;
+    let fields = body.fields.as_ref()?;
+
+    let struct_ident = to_pascal_ident(&struct_name);
+
+    // For each field, generate:
+    // 1. A mutable local variable initialized to None
+    // 2. A match arm in the field-name match that sets it
+    // 3. A final unwrap/take for required vs optional
+
+    let local_vars: Vec<TokenStream> = fields
+        .iter()
+        .map(|field| {
+            let var = to_snake_ident(&field.name);
+            quote! { let mut #var = None; }
+        })
+        .collect();
+
+    let match_arms: Vec<TokenStream> = fields
+        .iter()
+        .map(|field| {
+            let field_name_str = &field.name;
+            let var = to_snake_ident(&field.name);
+            let is_bytes = matches!(&field.type_ref, TypeRef::Primitive(PrimitiveType::Bytes));
+
+            let value_expr = if is_bytes {
+                quote! { field.bytes().await.map_err(|e| {
+                    orator_axum::axum::response::Response::builder()
+                        .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                        .body(orator_axum::axum::body::Body::from(e.to_string()))
+                        .unwrap()
+                })? }
+            } else {
+                quote! { field.text().await.map_err(|e| {
+                    orator_axum::axum::response::Response::builder()
+                        .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                        .body(orator_axum::axum::body::Body::from(e.to_string()))
+                        .unwrap()
+                })? }
+            };
+
+            quote! {
+                #field_name_str => {
+                    #var = Some(#value_expr);
+                }
+            }
+        })
+        .collect();
+
+    let field_inits: Vec<TokenStream> = fields
+        .iter()
+        .map(|field| {
+            let var = to_snake_ident(&field.name);
+            let field_name_str = &field.name;
+            if field.required {
+                quote! {
+                    #var: #var.ok_or_else(|| {
+                        orator_axum::axum::response::Response::builder()
+                            .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                            .body(orator_axum::axum::body::Body::from(
+                                format!("missing required multipart field: {}", #field_name_str),
+                            ))
+                            .unwrap()
+                    })?,
+                }
+            } else {
+                quote! { #var: #var, }
+            }
+        })
+        .collect();
+
+    Some(quote! {
+        impl<S> orator_axum::axum::extract::FromRequest<S> for #struct_ident
+        where
+            S: Send + Sync,
+        {
+            type Rejection = orator_axum::axum::response::Response;
+
+            async fn from_request(
+                req: orator_axum::axum::http::Request<orator_axum::axum::body::Body>,
+                state: &S,
+            ) -> Result<Self, Self::Rejection> {
+                let mut multipart = orator_axum::axum::extract::Multipart::from_request(req, state)
+                    .await
+                    .map_err(|e| {
+                        use orator_axum::axum::response::IntoResponse;
+                        e.into_response()
+                    })?;
+
+                #(#local_vars)*
+
+                while let Some(field) = multipart.next_field().await.map_err(|e| {
+                    orator_axum::axum::response::Response::builder()
+                        .status(orator_axum::http::StatusCode::BAD_REQUEST)
+                        .body(orator_axum::axum::body::Body::from(e.to_string()))
+                        .unwrap()
+                })? {
+                    let name = field.name().unwrap_or_default().to_owned();
+                    match name.as_str() {
+                        #(#match_arms)*
+                        _ => {}
+                    }
+                }
+
+                Ok(Self {
+                    #(#field_inits)*
+                })
+            }
+        }
+    })
+}
+
 /// Result of generating a handler function and its associated extractor impls.
 struct HandlerOutput {
     handler_fn: TokenStream,
@@ -516,9 +632,16 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
                 });
             }
             ContentType::MultipartFormData => {
-                fn_params.push(quote! {
-                    body: orator_axum::axum::extract::Multipart
-                });
+                if let Some(struct_name) = multipart_body_struct_name(op) {
+                    let body_struct = to_pascal_ident(&struct_name);
+                    fn_params.push(quote! {
+                        body: #body_struct
+                    });
+                } else {
+                    fn_params.push(quote! {
+                        body: orator_axum::axum::extract::Multipart
+                    });
+                }
             }
         }
     }

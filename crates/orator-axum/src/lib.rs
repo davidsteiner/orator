@@ -4,7 +4,6 @@ pub use http;
 pub use serde_json;
 pub use tower;
 
-#[cfg(feature = "cookies")]
 pub use axum_extra;
 
 #[derive(Debug, Clone, Copy, serde::Serialize)]

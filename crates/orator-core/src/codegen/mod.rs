@@ -3,7 +3,7 @@ mod schemas;
 
 pub use operations::{
     PARAM_LOCATIONS, generate_operations, generate_operations_tokens, group_by_tag,
-    location_arg_name, location_suffix, status_code_variant_name,
+    location_arg_name, location_suffix, multipart_body_struct_name, status_code_variant_name,
 };
 pub use schemas::{generate_types, generate_types_tokens};
 

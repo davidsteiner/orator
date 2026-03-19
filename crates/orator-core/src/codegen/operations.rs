@@ -4,7 +4,10 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::config::Config;
-use crate::ir::{ContentType, OperationIr, OperationResponse, ParamLocation, ResponseStatusCode};
+use crate::ir::{
+    ContentType, OperationIr, OperationResponse, ParamLocation, PrimitiveType, ResponseStatusCode,
+    TypeRef,
+};
 
 use heck::ToSnakeCase;
 
@@ -24,6 +27,7 @@ pub fn generate_operations_tokens(
         for op in ops {
             all_items.push(generate_response_enum(op));
             all_items.extend(generate_params_structs(op, config));
+            all_items.extend(generate_multipart_body_struct(op));
         }
         all_items.push(generate_api_trait(tag, ops, config));
     }
@@ -207,6 +211,64 @@ fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream
     structs
 }
 
+fn generate_multipart_body_struct(op: &OperationIr) -> Option<TokenStream> {
+    let body = op.request_body.as_ref()?;
+    if body.content_type != ContentType::MultipartFormData {
+        return None;
+    }
+    let fields = body.fields.as_ref()?;
+    if fields.is_empty() {
+        return None;
+    }
+
+    let struct_ident = to_pascal_ident(&format!("{}Body", op.operation_id));
+
+    let field_tokens: Vec<TokenStream> = fields
+        .iter()
+        .map(|field| {
+            let field_ident = to_snake_ident(&field.name);
+            let field_type = if field.required {
+                multipart_field_type(&field.type_ref)
+            } else {
+                let inner = multipart_field_type(&field.type_ref);
+                quote! { Option<#inner> }
+            };
+            let field_doc = generate_doc_comment(&field.description);
+            quote! { #field_doc pub #field_ident: #field_type, }
+        })
+        .collect();
+
+    Some(quote! {
+        #[derive(Debug)]
+        pub struct #struct_ident {
+            #(#field_tokens)*
+        }
+    })
+}
+
+/// Map a TypeRef to the appropriate multipart field type.
+///
+/// Binary fields use `orator_axum::bytes::Bytes` directly.
+fn multipart_field_type(type_ref: &TypeRef) -> TokenStream {
+    match type_ref {
+        TypeRef::Primitive(PrimitiveType::Bytes) => quote! { orator_axum::bytes::Bytes },
+        _ => type_ref_to_tokens(type_ref),
+    }
+}
+
+/// Return the body struct name for a multipart operation, if it has fields.
+pub fn multipart_body_struct_name(op: &OperationIr) -> Option<String> {
+    let body = op.request_body.as_ref()?;
+    if body.content_type != ContentType::MultipartFormData {
+        return None;
+    }
+    let fields = body.fields.as_ref()?;
+    if fields.is_empty() {
+        return None;
+    }
+    Some(format!("{}Body", op.operation_id))
+}
+
 fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -> TokenStream {
     let trait_ident = to_pascal_ident(&format!("{tag}Api"));
 
@@ -236,7 +298,11 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -
             }
 
             if let Some(body) = &op.request_body {
-                let body_type = if body.content_type == ContentType::MultipartFormData {
+                let body_type = if let Some(struct_name) = multipart_body_struct_name(op) {
+                    let ident = to_pascal_ident(&struct_name);
+                    quote! { #ident }
+                } else if body.content_type == ContentType::MultipartFormData {
+                    // Multipart without inline fields — fall back to raw extractor
                     quote! { orator_axum::axum::extract::Multipart }
                 } else if body.required {
                     type_ref_to_tokens(&body.type_ref)

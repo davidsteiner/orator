@@ -10,13 +10,18 @@ pub enum UploadDocumentResponse {
     /// Bad request
     BadRequest,
 }
+#[derive(Debug)]
+pub struct UploadDocumentBody {
+    pub description: Option<String>,
+    pub file: Option<orator_axum::bytes::Bytes>,
+}
 pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
     type Error: Send;
     /// Upload a document with metadata
     fn upload_document(
         &self,
         ctx: Ctx,
-        body: orator_axum::axum::extract::Multipart,
+        body: UploadDocumentBody,
     ) -> impl std::future::Future<
         Output = Result<UploadDocumentResponse, Self::Error>,
     > + Send;

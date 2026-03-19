@@ -19,6 +19,7 @@ expression: ops
                     String,
                 ),
                 required: true,
+                fields: None,
             },
         ),
         responses: [
