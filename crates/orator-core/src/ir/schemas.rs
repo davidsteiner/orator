@@ -95,4 +95,6 @@ pub enum PrimitiveType {
     F32,
     F64,
     Bytes,
+    Date,
+    DateTime,
 }

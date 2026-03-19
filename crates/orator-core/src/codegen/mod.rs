@@ -73,6 +73,10 @@ pub fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
         PrimitiveType::F32 => quote! { f32 },
         PrimitiveType::F64 => quote! { f64 },
         PrimitiveType::Bytes => quote! { orator_axum::bytes::Bytes },
+        PrimitiveType::Date => quote! { orator_axum::chrono::NaiveDate },
+        PrimitiveType::DateTime => {
+            quote! { orator_axum::chrono::DateTime<orator_axum::chrono::Utc> }
+        }
     }
 }
 
