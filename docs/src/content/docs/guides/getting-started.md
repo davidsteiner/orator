@@ -16,7 +16,7 @@ cargo install orator
 Point Orator at your OpenAPI 3.1 spec:
 
 ```bash
-orator generate --input spec.yaml --output src/generated
+orator --output src/generated spec.yaml
 ```
 
 This produces a set of Rust modules containing your request/response types, operation traits, and (if using axum) a ready-made router.
