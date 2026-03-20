@@ -13,6 +13,11 @@ use heck::ToSnakeCase;
 
 use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
 
+/// Module prefix for schema types referenced from operations.
+fn types_prefix() -> TokenStream {
+    quote! { super::types }
+}
+
 /// Generate token streams for a list of operations.
 pub fn generate_operations_tokens(
     operations: &[OperationIr],
@@ -128,7 +133,7 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
             let is_default = matches!(&resp.status_code, ResponseStatusCode::Default);
 
             if let Some(body) = &resp.body {
-                let body_type = type_ref_to_tokens(&body.type_ref);
+                let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
                 if is_default {
                     quote! { #variant_doc #variant_ident(orator_axum::http::StatusCode, #body_type), }
                 } else {
@@ -178,9 +183,9 @@ fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream
             .map(|param| {
                 let field_ident = to_snake_ident(&param.name);
                 let field_type = if param.required {
-                    type_ref_to_tokens(&param.type_ref)
+                    type_ref_to_tokens(&param.type_ref, Some(&types_prefix()))
                 } else {
-                    let inner = type_ref_to_tokens(&param.type_ref);
+                    let inner = type_ref_to_tokens(&param.type_ref, Some(&types_prefix()));
                     quote! { Option<#inner> }
                 };
                 let serde_rename = if is_query && param.name != param.name.to_snake_case() {
@@ -252,7 +257,7 @@ fn generate_multipart_body_struct(op: &OperationIr) -> Option<TokenStream> {
 fn multipart_field_type(type_ref: &TypeRef) -> TokenStream {
     match type_ref {
         TypeRef::Primitive(PrimitiveType::Bytes) => quote! { orator_axum::bytes::Bytes },
-        _ => type_ref_to_tokens(type_ref),
+        _ => type_ref_to_tokens(type_ref, Some(&types_prefix())),
     }
 }
 
@@ -305,9 +310,9 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -
                     // Multipart without inline fields — fall back to raw extractor
                     quote! { orator_axum::axum::extract::Multipart }
                 } else if body.required {
-                    type_ref_to_tokens(&body.type_ref)
+                    type_ref_to_tokens(&body.type_ref, Some(&types_prefix()))
                 } else {
-                    let inner = type_ref_to_tokens(&body.type_ref);
+                    let inner = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
                     quote! { Option<#inner> }
                 };
                 extra_args.push(quote! { body: #body_type });

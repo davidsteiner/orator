@@ -2,7 +2,7 @@
 source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
-impl orator_axum::axum::response::IntoResponse for ListItemsResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::ListItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => {
@@ -17,13 +17,14 @@ async fn handle_list_items<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<ListItemsResponse, T::Error>
+) -> Result<super::operations::ListItemsResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.list_items(ctx).await
 }
-impl orator_axum::axum::response::IntoResponse for CreateItemResponse {
+impl orator_axum::axum::response::IntoResponse
+for super::operations::CreateItemResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Created(body) => {
@@ -38,14 +39,15 @@ async fn handle_create_item<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::Json(body): orator_axum::axum::Json<NewItem>,
-) -> Result<CreateItemResponse, T::Error>
+    orator_axum::axum::Json(body): orator_axum::axum::Json<super::types::NewItem>,
+) -> Result<super::operations::CreateItemResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.create_item(ctx, body).await
 }
-impl orator_axum::axum::response::IntoResponse for ExportItemsResponse {
+impl orator_axum::axum::response::IntoResponse
+for super::operations::ExportItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (orator_axum::http::StatusCode::OK, body).into_response(),
@@ -57,20 +59,21 @@ async fn handle_export_items<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<ExportItemsResponse, T::Error>
+) -> Result<super::operations::ExportItemsResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.export_items(ctx).await
 }
-impl orator_axum::axum::response::IntoResponse for ImportItemsResponse {
+impl orator_axum::axum::response::IntoResponse
+for super::operations::ImportItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (orator_axum::http::StatusCode::OK, body).into_response(),
         }
     }
 }
-impl<S> orator_axum::axum::extract::FromRequest<S> for ImportItemsBody
+impl<S> orator_axum::axum::extract::FromRequest<S> for super::operations::ImportItemsBody
 where
     S: Send + Sync,
 {
@@ -125,14 +128,15 @@ async fn handle_import_items<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    body: ImportItemsBody,
-) -> Result<ImportItemsResponse, T::Error>
+    body: super::operations::ImportItemsBody,
+) -> Result<super::operations::ImportItemsResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.import_items(ctx, body).await
 }
-impl orator_axum::axum::response::IntoResponse for SearchItemsResponse {
+impl orator_axum::axum::response::IntoResponse
+for super::operations::SearchItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => {
@@ -147,16 +151,16 @@ async fn handle_search_items<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-    orator_axum::axum::Form(body): orator_axum::axum::Form<SearchQuery>,
-) -> Result<SearchItemsResponse, T::Error>
+    orator_axum::axum::Form(body): orator_axum::axum::Form<super::types::SearchQuery>,
+) -> Result<super::operations::SearchItemsResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.search_items(ctx, body).await
 }
 pub fn default_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
         + 'static,
@@ -187,7 +191,7 @@ pub struct DefaultRouter(orator_axum::axum::Router);
 impl DefaultRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: DefaultApi<Ctx>,
+        T: super::operations::DefaultApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
             + 'static,

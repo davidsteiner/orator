@@ -1,10 +1,6 @@
-#[allow(dead_code)]
-mod handlers;
-#[allow(dead_code)]
-mod operations;
-#[allow(dead_code)]
-mod types;
-
-pub use handlers::*;
-pub use operations::*;
-pub use types::*;
+#[allow(warnings, clippy::all)]
+pub mod handlers;
+#[allow(warnings, clippy::all)]
+pub mod operations;
+#[allow(warnings, clippy::all)]
+pub mod types;

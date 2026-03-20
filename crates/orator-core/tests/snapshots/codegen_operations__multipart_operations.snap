@@ -6,7 +6,7 @@ expression: code
 #[derive(Debug)]
 pub enum UploadDocumentResponse {
     /// Document uploaded
-    Created(Document),
+    Created(super::types::Document),
     /// Bad request
     BadRequest,
 }

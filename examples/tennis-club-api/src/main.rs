@@ -1,6 +1,6 @@
 mod api;
 
-use api::generated::*;
+use api::generated::handlers::*;
 use serde_json::json;
 use std::sync::Arc;
 use tennis_club_core::TennisClub;

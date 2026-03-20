@@ -1,14 +1,7 @@
 ---
-source: crates/orator-axum/tests/codegen_axum.rs
+source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: module.mod_file()
 ---
-#[allow(dead_code)]
-mod types;
-#[allow(dead_code)]
-mod operations;
-#[allow(dead_code)]
-mod handlers;
-
-pub use types::*;
-pub use operations::*;
-pub use handlers::*;
+pub mod types;
+pub mod operations;
+pub mod handlers;

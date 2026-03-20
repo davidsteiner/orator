@@ -1,4 +1,4 @@
-use crate::api::generated::{
+use crate::api::generated::operations::{
     CourtsApi, ListCourtsResponse, UploadCourtPhotoBody, UploadCourtPhotoPath,
     UploadCourtPhotoResponse,
 };
@@ -24,7 +24,7 @@ impl CourtsApi for TennisClub {
     }
 }
 
-impl From<domain::Court> for crate::api::generated::Court {
+impl From<domain::Court> for crate::api::generated::types::Court {
     fn from(c: domain::Court) -> Self {
         Self {
             id: c.id,
@@ -35,7 +35,7 @@ impl From<domain::Court> for crate::api::generated::Court {
     }
 }
 
-impl From<domain::Surface> for crate::api::generated::Surface {
+impl From<domain::Surface> for crate::api::generated::types::Surface {
     fn from(s: domain::Surface) -> Self {
         match s {
             domain::Surface::Clay => Self::Clay,

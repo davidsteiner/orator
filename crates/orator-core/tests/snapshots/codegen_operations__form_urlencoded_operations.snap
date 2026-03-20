@@ -6,7 +6,7 @@ expression: code
 #[derive(Debug)]
 pub enum LoginResponse {
     /// Login successful
-    Ok(Token),
+    Ok(super::types::Token),
     /// Invalid credentials
     Unauthorized,
 }
@@ -16,6 +16,6 @@ pub trait DefaultApi<Ctx = ()>: Send + Sync + 'static {
     fn login(
         &self,
         ctx: Ctx,
-        body: LoginForm,
+        body: super::types::LoginForm,
     ) -> impl std::future::Future<Output = Result<LoginResponse, Self::Error>> + Send;
 }

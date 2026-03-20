@@ -2,7 +2,7 @@
 source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
-impl orator_axum::axum::response::IntoResponse for EchoTextResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::EchoTextResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok(body) => (orator_axum::http::StatusCode::OK, body).into_response(),
@@ -18,15 +18,15 @@ async fn handle_echo_text<T, Ctx>(
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
     body: String,
-) -> Result<EchoTextResponse, T::Error>
+) -> Result<super::operations::EchoTextResponse, T::Error>
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
 {
     api.echo_text(ctx, body).await
 }
 pub fn default_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: DefaultApi<Ctx>,
+    T: super::operations::DefaultApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
         + 'static,
@@ -41,7 +41,7 @@ pub struct DefaultRouter(orator_axum::axum::Router);
 impl DefaultRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: DefaultApi<Ctx>,
+        T: super::operations::DefaultApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
             + 'static,

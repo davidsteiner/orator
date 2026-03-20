@@ -1,8 +1,8 @@
 ---
-source: crates/orator-axum-build/tests/codegen_axum.rs
+source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
-impl orator_axum::axum::response::IntoResponse for ListItemsResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::ListItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok => orator_axum::http::StatusCode::OK.into_response(),
@@ -14,13 +14,14 @@ async fn handle_list_items<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<ListItemsResponse, T::Error>
+) -> Result<super::operations::ListItemsResponse, T::Error>
 where
-    T: ItemsApi<Ctx>,
+    T: super::operations::ItemsApi<Ctx>,
 {
     api.list_items(ctx).await
 }
-impl orator_axum::axum::response::IntoResponse for CreateItemResponse {
+impl orator_axum::axum::response::IntoResponse
+for super::operations::CreateItemResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Created => orator_axum::http::StatusCode::CREATED.into_response(),
@@ -32,15 +33,15 @@ async fn handle_create_item<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<CreateItemResponse, T::Error>
+) -> Result<super::operations::CreateItemResponse, T::Error>
 where
-    T: ItemsApi<Ctx>,
+    T: super::operations::ItemsApi<Ctx>,
 {
     api.create_item(ctx).await
 }
 pub fn items_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: ItemsApi<Ctx>,
+    T: super::operations::ItemsApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
         + 'static,
@@ -53,7 +54,7 @@ where
         )
         .with_state(api)
 }
-impl orator_axum::axum::response::IntoResponse for ListUsersResponse {
+impl orator_axum::axum::response::IntoResponse for super::operations::ListUsersResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
             Self::Ok => orator_axum::http::StatusCode::OK.into_response(),
@@ -65,15 +66,15 @@ async fn handle_list_users<T, Ctx>(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
     ctx: Ctx,
-) -> Result<ListUsersResponse, T::Error>
+) -> Result<super::operations::ListUsersResponse, T::Error>
 where
-    T: UsersApi<Ctx>,
+    T: super::operations::UsersApi<Ctx>,
 {
     api.list_users(ctx).await
 }
 pub fn users_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: UsersApi<Ctx>,
+    T: super::operations::UsersApi<Ctx>,
     T::Error: orator_axum::axum::response::IntoResponse,
     Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
         + 'static,
@@ -88,7 +89,7 @@ pub struct ItemsRouter(orator_axum::axum::Router);
 impl ItemsRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: ItemsApi<Ctx>,
+        T: super::operations::ItemsApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
             + 'static,
@@ -119,7 +120,7 @@ pub struct UsersRouter(orator_axum::axum::Router);
 impl UsersRouter {
     pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
     where
-        T: UsersApi<Ctx>,
+        T: super::operations::UsersApi<Ctx>,
         T::Error: orator_axum::axum::response::IntoResponse,
         Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
             + 'static,
