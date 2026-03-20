@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.3.0...orator-core-v0.4.0) - 2026-03-20
+
+### Fixed
+
+- qualify type paths to prevent name collisions across generated modules ([#80](https://github.com/davidsteiner/orator/pull/80))
+
 ## [0.3.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.2.0...orator-core-v0.3.0) - 2026-03-19
 
 ### Added
