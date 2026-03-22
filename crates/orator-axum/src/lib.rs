@@ -2,6 +2,7 @@ pub use axum;
 pub use bytes;
 pub use chrono;
 pub use http;
+pub use serde;
 pub use serde_json;
 pub use tower;
 pub use uuid;

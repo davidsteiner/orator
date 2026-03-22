@@ -1,3 +1,5 @@
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+use orator_axum::serde;
 /// List all bookings
 #[derive(Debug)]
 pub enum ListBookingsResponse {
@@ -79,6 +81,7 @@ pub enum ListMembersResponse {
     Default(orator_axum::http::StatusCode, super::types::Error),
 }
 #[derive(Debug, Clone, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 pub struct ListMembersQuery {
     /// Maximum number of members to return
     pub limit: Option<i32>,

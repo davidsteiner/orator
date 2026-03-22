@@ -6,11 +6,19 @@ use crate::ir::{
     TypeRef, Variant,
 };
 
-use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
+use super::{
+    generate_doc_comment, generated_file_preamble, to_pascal_ident, to_snake_ident,
+    type_ref_to_tokens,
+};
 
 /// Generate token streams for a list of type definitions.
 pub fn generate_types_tokens(types: &[TypeDef]) -> Vec<TokenStream> {
-    types.iter().map(generate_typedef).collect()
+    let mut tokens = vec![
+        generated_file_preamble(),
+        quote! { use orator_axum::serde; },
+    ];
+    tokens.extend(types.iter().map(generate_typedef));
+    tokens
 }
 
 /// Generate Rust source code for a list of type definitions.
@@ -101,6 +109,7 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
     quote! {
         #doc
         #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+        #[serde(crate = "orator_axum::serde")]
         #deny_attr
         pub struct #struct_ident {
             #(#base_fields)*
@@ -138,6 +147,7 @@ fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
     quote! {
         #doc
         #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+        #[serde(crate = "orator_axum::serde")]
         #serde_attr
         pub enum #enum_ident {
             #(#variants)*
@@ -194,6 +204,7 @@ fn generate_string_enum(name: &str, def: &StringEnumDef, doc: TokenStream) -> To
     quote! {
         #doc
         #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+        #[serde(crate = "orator_axum::serde")]
         pub enum #enum_ident {
             #(#variants)*
         }

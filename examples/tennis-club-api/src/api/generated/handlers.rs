@@ -1,3 +1,4 @@
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
 impl orator_axum::axum::response::IntoResponse for super::operations::ListBookingsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {

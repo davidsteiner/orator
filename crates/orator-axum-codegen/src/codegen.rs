@@ -6,9 +6,9 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, group_by_tag,
-    location_suffix, multipart_body_struct_name, status_code_variant_name, to_pascal_ident,
-    to_snake_ident, type_ref_to_tokens,
+    PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, generated_file_preamble,
+    group_by_tag, location_suffix, multipart_body_struct_name, status_code_variant_name,
+    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 pub use orator_core::config::Config;
 use orator_core::ir::{
@@ -102,7 +102,7 @@ pub fn generate_axum_handlers_tokens(
 ) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
-    let mut all_items = Vec::new();
+    let mut all_items = vec![generated_file_preamble()];
 
     for (tag, ops) in &grouped {
         for op in ops {

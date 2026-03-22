@@ -11,7 +11,10 @@ use crate::ir::{
 
 use heck::ToSnakeCase;
 
-use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
+use super::{
+    generate_doc_comment, generated_file_preamble, to_pascal_ident, to_snake_ident,
+    type_ref_to_tokens,
+};
 
 /// Module prefix for schema types referenced from operations.
 fn types_prefix() -> TokenStream {
@@ -26,7 +29,10 @@ pub fn generate_operations_tokens(
 ) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
-    let mut all_items = Vec::new();
+    let mut all_items = vec![
+        generated_file_preamble(),
+        quote! { use orator_axum::serde; },
+    ];
 
     for (tag, ops) in &grouped {
         for op in ops {
@@ -200,7 +206,10 @@ fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream
             .collect();
 
         let derives = if is_query {
-            quote! { #[derive(Debug, Clone, serde::Deserialize)] }
+            quote! {
+                #[derive(Debug, Clone, serde::Deserialize)]
+                #[serde(crate = "orator_axum::serde")]
+            }
         } else {
             quote! { #[derive(Debug, Clone)] }
         };

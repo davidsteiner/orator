@@ -1,4 +1,7 @@
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+use orator_axum::serde;
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(tag = "booking_type")]
 pub enum Booking {
     #[serde(rename = "member")]
@@ -7,6 +10,7 @@ pub enum Booking {
     GuestBooking(GuestBooking),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct Court {
     pub id: orator_axum::uuid::Uuid,
@@ -16,12 +20,14 @@ pub struct Court {
     pub surface: Surface,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct Error {
     pub code: i32,
     pub message: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 pub struct GuestBooking {
     pub booking_type: String,
     pub court_id: orator_axum::uuid::Uuid,
@@ -29,6 +35,7 @@ pub struct GuestBooking {
     pub guest_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct Member {
     pub first_name: String,
@@ -37,6 +44,7 @@ pub struct Member {
     pub last_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 pub struct MemberBooking {
     pub booking_type: String,
     pub court_id: orator_axum::uuid::Uuid,
@@ -44,12 +52,14 @@ pub struct MemberBooking {
     pub member_id: orator_axum::uuid::Uuid,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct NewMember {
     pub first_name: String,
     pub last_name: String,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 pub enum Surface {
     #[serde(rename = "clay")]
     Clay,
@@ -59,6 +69,7 @@ pub enum Surface {
     Hard,
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 pub struct UpdateMember {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub first_name: Option<String>,
