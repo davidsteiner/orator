@@ -467,7 +467,7 @@ fn generate_multipart_from_request_impl(op: &OperationIr) -> Option<TokenStream>
                     })?,
                 }
             } else {
-                quote! { #var: #var, }
+                quote! { #var, }
             }
         })
         .collect();
