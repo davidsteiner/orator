@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+#![allow(dead_code, unused_imports)]
 impl orator_axum::axum::response::IntoResponse for super::operations::ListBookingsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {
@@ -118,10 +118,7 @@ where
                 _ => {}
             }
         }
-        Ok(Self {
-            caption: caption,
-            photo: photo,
-        })
+        Ok(Self { caption, photo })
     }
 }
 async fn handle_upload_court_photo<T, Ctx>(

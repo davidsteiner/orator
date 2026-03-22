@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+#![allow(dead_code, unused_imports)]
 use orator_axum::serde;
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]

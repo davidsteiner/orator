@@ -2,7 +2,7 @@
 source: crates/orator-core/tests/codegen_operations.rs
 expression: code
 ---
-#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+#![allow(dead_code, unused_imports)]
 use orator_axum::serde;
 /// List items with a default error response (with body)
 #[derive(Debug)]

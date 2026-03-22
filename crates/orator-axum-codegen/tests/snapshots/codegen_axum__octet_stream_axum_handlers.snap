@@ -2,7 +2,7 @@
 source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
-#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+#![allow(dead_code, unused_imports)]
 impl orator_axum::axum::response::IntoResponse
 for super::operations::DownloadFileResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
