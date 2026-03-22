@@ -1,4 +1,7 @@
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(tag = "booking_type")]
 pub enum Booking {
     #[serde(rename = "member")]
@@ -6,7 +9,10 @@ pub enum Booking {
     #[serde(rename = "guest")]
     GuestBooking(GuestBooking),
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct Court {
     pub id: orator_axum::uuid::Uuid,
@@ -15,20 +21,29 @@ pub struct Court {
     pub name: String,
     pub surface: Surface,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct Error {
     pub code: i32,
     pub message: String,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 pub struct GuestBooking {
     pub booking_type: String,
     pub court_id: orator_axum::uuid::Uuid,
     pub date: orator_axum::chrono::NaiveDate,
     pub guest_name: String,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct Member {
     pub first_name: String,
@@ -36,20 +51,29 @@ pub struct Member {
     pub joined_at: orator_axum::chrono::DateTime<orator_axum::chrono::Utc>,
     pub last_name: String,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 pub struct MemberBooking {
     pub booking_type: String,
     pub court_id: orator_axum::uuid::Uuid,
     pub date: orator_axum::chrono::NaiveDate,
     pub member_id: orator_axum::uuid::Uuid,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 #[serde(deny_unknown_fields)]
 pub struct NewMember {
     pub first_name: String,
     pub last_name: String,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 pub enum Surface {
     #[serde(rename = "clay")]
     Clay,
@@ -58,7 +82,10 @@ pub enum Surface {
     #[serde(rename = "hard")]
     Hard,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize,
+)]
+#[serde(crate = "orator_axum::serde")]
 pub struct UpdateMember {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub first_name: Option<String>,

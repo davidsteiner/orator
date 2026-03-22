@@ -90,7 +90,8 @@ pub enum ListMembersResponse {
     /// Unexpected error
     Default(orator_axum::http::StatusCode, super::types::Error),
 }
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, orator_axum::serde::Deserialize)]
+#[serde(crate = "orator_axum::serde")]
 pub struct ListMembersQuery {
     /// Maximum number of members to return
     pub limit: Option<i32>,

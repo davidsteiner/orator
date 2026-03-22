@@ -200,7 +200,10 @@ fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream
             .collect();
 
         let derives = if is_query {
-            quote! { #[derive(Debug, Clone, serde::Deserialize)] }
+            quote! {
+                #[derive(Debug, Clone, orator_axum::serde::Deserialize)]
+                #[serde(crate = "orator_axum::serde")]
+            }
         } else {
             quote! { #[derive(Debug, Clone)] }
         };
