@@ -2,13 +2,8 @@
 source: crates/orator-core/tests/codegen_types.rs
 expression: code
 ---
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    orator_axum::serde::Serialize,
-    orator_axum::serde::Deserialize
-)]
+use orator_axum::serde;
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
 pub struct Profile {
     #[serde(skip_serializing_if = "Option::is_none")]

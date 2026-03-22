@@ -2,6 +2,7 @@
 source: crates/orator-core/tests/codegen_operations.rs
 expression: code
 ---
+use orator_axum::serde;
 /// Login with form credentials
 #[derive(Debug)]
 pub enum LoginResponse {

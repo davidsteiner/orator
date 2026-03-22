@@ -10,7 +10,14 @@ use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_t
 
 /// Generate token streams for a list of type definitions.
 pub fn generate_types_tokens(types: &[TypeDef]) -> Vec<TokenStream> {
-    types.iter().map(generate_typedef).collect()
+    let mut tokens = vec![serde_use_item()];
+    tokens.extend(types.iter().map(generate_typedef));
+    tokens
+}
+
+/// Emit `use orator_axum::serde;` so generated types can reference `serde::` directly.
+fn serde_use_item() -> TokenStream {
+    quote! { use orator_axum::serde; }
 }
 
 /// Generate Rust source code for a list of type definitions.
@@ -100,7 +107,7 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
 
     quote! {
         #doc
-        #[derive(Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize)]
+        #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
         #[serde(crate = "orator_axum::serde")]
         #deny_attr
         pub struct #struct_ident {
@@ -138,7 +145,7 @@ fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
 
     quote! {
         #doc
-        #[derive(Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize)]
+        #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
         #[serde(crate = "orator_axum::serde")]
         #serde_attr
         pub enum #enum_ident {
@@ -195,7 +202,7 @@ fn generate_string_enum(name: &str, def: &StringEnumDef, doc: TokenStream) -> To
 
     quote! {
         #doc
-        #[derive(Debug, Clone, PartialEq, orator_axum::serde::Serialize, orator_axum::serde::Deserialize)]
+        #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
         #[serde(crate = "orator_axum::serde")]
         pub enum #enum_ident {
             #(#variants)*

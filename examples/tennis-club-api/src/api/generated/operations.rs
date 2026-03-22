@@ -1,3 +1,4 @@
+use orator_axum::serde;
 /// List all bookings
 #[derive(Debug)]
 pub enum ListBookingsResponse {
@@ -78,7 +79,7 @@ pub enum ListMembersResponse {
     /// Unexpected error
     Default(orator_axum::http::StatusCode, super::types::Error),
 }
-#[derive(Debug, Clone, orator_axum::serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
 pub struct ListMembersQuery {
     /// Maximum number of members to return

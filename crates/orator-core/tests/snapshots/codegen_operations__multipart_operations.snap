@@ -2,6 +2,7 @@
 source: crates/orator-core/tests/codegen_operations.rs
 expression: code
 ---
+use orator_axum::serde;
 /// Upload a document with metadata
 #[derive(Debug)]
 pub enum UploadDocumentResponse {

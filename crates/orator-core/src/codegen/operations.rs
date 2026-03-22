@@ -26,7 +26,7 @@ pub fn generate_operations_tokens(
 ) -> Vec<TokenStream> {
     let grouped = group_by_tag(operations, default_tag);
 
-    let mut all_items = Vec::new();
+    let mut all_items = vec![quote! { use orator_axum::serde; }];
 
     for (tag, ops) in &grouped {
         for op in ops {
@@ -201,7 +201,7 @@ fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream
 
         let derives = if is_query {
             quote! {
-                #[derive(Debug, Clone, orator_axum::serde::Deserialize)]
+                #[derive(Debug, Clone, serde::Deserialize)]
                 #[serde(crate = "orator_axum::serde")]
             }
         } else {
