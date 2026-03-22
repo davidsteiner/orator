@@ -1,3 +1,4 @@
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
 use orator_axum::serde;
 /// List all bookings
 #[derive(Debug)]

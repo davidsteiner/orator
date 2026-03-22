@@ -85,6 +85,13 @@ pub fn primitive_to_tokens(p: &PrimitiveType) -> TokenStream {
     }
 }
 
+/// Emit file-level `#![allow(...)]` attributes to suppress expected lints in generated code.
+pub fn generated_file_preamble() -> TokenStream {
+    quote! {
+        #![allow(dead_code, unused_imports, clippy::redundant_field_names)]
+    }
+}
+
 pub fn generate_doc_comment(description: &Option<String>) -> TokenStream {
     match description {
         Some(desc) => {

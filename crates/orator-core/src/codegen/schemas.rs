@@ -6,18 +6,19 @@ use crate::ir::{
     TypeRef, Variant,
 };
 
-use super::{generate_doc_comment, to_pascal_ident, to_snake_ident, type_ref_to_tokens};
+use super::{
+    generate_doc_comment, generated_file_preamble, to_pascal_ident, to_snake_ident,
+    type_ref_to_tokens,
+};
 
 /// Generate token streams for a list of type definitions.
 pub fn generate_types_tokens(types: &[TypeDef]) -> Vec<TokenStream> {
-    let mut tokens = vec![serde_use_item()];
+    let mut tokens = vec![
+        generated_file_preamble(),
+        quote! { use orator_axum::serde; },
+    ];
     tokens.extend(types.iter().map(generate_typedef));
     tokens
-}
-
-/// Emit `use orator_axum::serde;` so generated types can reference `serde::` directly.
-fn serde_use_item() -> TokenStream {
-    quote! { use orator_axum::serde; }
 }
 
 /// Generate Rust source code for a list of type definitions.

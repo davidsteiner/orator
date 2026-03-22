@@ -2,6 +2,7 @@
 source: crates/orator-core/tests/codegen_operations.rs
 expression: code
 ---
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
 use orator_axum::serde;
 /// Download a binary file
 #[derive(Debug)]

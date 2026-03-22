@@ -2,6 +2,7 @@
 source: crates/orator-axum-codegen/tests/codegen_axum.rs
 expression: code
 ---
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
 impl orator_axum::axum::response::IntoResponse for super::operations::ListItemsResponse {
     fn into_response(self) -> orator_axum::axum::response::Response {
         match self {

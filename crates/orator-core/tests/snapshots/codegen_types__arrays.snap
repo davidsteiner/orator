@@ -2,6 +2,7 @@
 source: crates/orator-core/tests/codegen_types.rs
 expression: code
 ---
+#![allow(dead_code, unused_imports, clippy::redundant_field_names)]
 use orator_axum::serde;
 pub type Strings = Vec<String>;
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
