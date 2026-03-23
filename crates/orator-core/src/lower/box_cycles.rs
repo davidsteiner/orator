@@ -9,7 +9,7 @@ use crate::ir::{TypeDef, TypeDefKind, TypeRef};
 /// "Direct" means the `Named` is not already behind indirection (`Vec`, `Option`,
 /// `Map`). Non-required struct fields are Option-wrapped during codegen, so they
 /// are already indirected and excluded from the graph.
-pub fn box_recursive_types(types: &mut Vec<TypeDef>) {
+pub fn box_recursive_types(types: &mut [TypeDef]) {
     let graph = build_direct_edges(types);
 
     for type_def in types.iter_mut() {
@@ -41,11 +41,11 @@ pub fn box_recursive_types(types: &mut Vec<TypeDef>) {
 /// If `type_ref` is a bare `Named(target)` and `target` can reach `owner`
 /// through direct edges, wrap it in `Boxed`.
 fn box_if_cyclic(type_ref: &mut TypeRef, owner: &str, graph: &HashMap<String, HashSet<String>>) {
-    if let TypeRef::Named(target) = type_ref {
-        if can_reach(graph, target, owner) {
-            let inner = std::mem::replace(type_ref, TypeRef::Any);
-            *type_ref = TypeRef::Boxed(Box::new(inner));
-        }
+    if let TypeRef::Named(target) = type_ref
+        && can_reach(graph, target, owner)
+    {
+        let inner = std::mem::replace(type_ref, TypeRef::Any);
+        *type_ref = TypeRef::Boxed(Box::new(inner));
     }
 }
 
@@ -86,10 +86,10 @@ fn build_direct_edges(types: &[TypeDef]) -> HashMap<String, HashSet<String>> {
                     }
                 }
                 for field in &s.fields {
-                    if field.required {
-                        if let TypeRef::Named(target) = &field.type_ref {
-                            edges.insert(target.clone());
-                        }
+                    if field.required
+                        && let TypeRef::Named(target) = &field.type_ref
+                    {
+                        edges.insert(target.clone());
                     }
                 }
             }
