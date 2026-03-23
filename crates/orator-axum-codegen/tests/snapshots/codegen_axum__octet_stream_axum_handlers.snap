@@ -12,14 +12,14 @@ for super::operations::DownloadFileResponse {
         }
     }
 }
-async fn handle_download_file<T, Ctx>(
+async fn handle_download_file<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::DownloadFileResponse, T::Error>
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
 {
     api.download_file(ctx).await
 }
@@ -34,43 +34,41 @@ for super::operations::UploadFileResponse {
         }
     }
 }
-async fn handle_upload_file<T, Ctx>(
+async fn handle_upload_file<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
     body: orator_axum::axum::body::Bytes,
 ) -> Result<super::operations::UploadFileResponse, T::Error>
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
 {
     api.upload_file(ctx, body).await
 }
-pub fn default_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+pub fn default_router<T>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
     T::Error: orator_axum::axum::response::IntoResponse,
-    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-        + 'static,
+    T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>>
+        + Send + 'static,
 {
     orator_axum::axum::Router::new()
-        .route(
-            "/download",
-            orator_axum::axum::routing::get(handle_download_file::<T, Ctx>),
-        )
-        .route("/upload", orator_axum::axum::routing::post(handle_upload_file::<T, Ctx>))
+        .route("/download", orator_axum::axum::routing::get(handle_download_file::<T>))
+        .route("/upload", orator_axum::axum::routing::post(handle_upload_file::<T>))
         .with_state(api)
 }
 pub struct Missing;
 pub struct Registered;
 pub struct DefaultRouter(orator_axum::axum::Router);
 impl DefaultRouter {
-    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    pub fn new<T>(api: std::sync::Arc<T>) -> Self
     where
-        T: super::operations::DefaultApi<Ctx>,
+        T: super::operations::DefaultApi,
         T::Error: orator_axum::axum::response::IntoResponse,
-        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-            + 'static,
+        T::RequestContext: orator_axum::axum::extract::FromRequestParts<
+                std::sync::Arc<T>,
+            > + Send + 'static,
     {
         Self(default_router(api))
     }

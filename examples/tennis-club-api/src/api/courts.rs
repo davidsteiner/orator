@@ -7,6 +7,7 @@ use tennis_club_core::{TennisClub, domain};
 
 impl CourtsApi for TennisClub {
     type Error = Infallible;
+    type RequestContext = ();
 
     async fn list_courts(&self, _ctx: ()) -> Result<ListCourtsResponse, Self::Error> {
         let courts = self.list_courts();

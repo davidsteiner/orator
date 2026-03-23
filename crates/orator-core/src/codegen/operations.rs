@@ -336,7 +336,7 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -
                 #doc
                 fn #method_ident(
                     &self,
-                    ctx: Ctx,
+                    ctx: Self::RequestContext,
                     #(#extra_args),*
                 ) -> impl std::future::Future<Output = Result<#response_ident, Self::Error>> + Send;
             }
@@ -344,8 +344,9 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -
         .collect();
 
     quote! {
-        pub trait #trait_ident<Ctx = ()>: Send + Sync + 'static {
+        pub trait #trait_ident: Send + Sync + 'static {
             type Error: Send;
+            type RequestContext: Send;
 
             #(#methods)*
         }

@@ -9,6 +9,7 @@ use tennis_club_core::{TennisClub, domain};
 
 impl MembersApi for TennisClub {
     type Error = Infallible;
+    type RequestContext = ();
 
     async fn list_members(
         &self,

@@ -10,38 +10,39 @@ impl orator_axum::axum::response::IntoResponse for super::operations::GetItemsRe
         }
     }
 }
-async fn handle_get_items<T, Ctx>(
+async fn handle_get_items<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::GetItemsResponse, T::Error>
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
 {
     api.get_items(ctx).await
 }
-pub fn cookie_test_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+pub fn cookie_test_router<T>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: super::operations::CookieTestApi<Ctx>,
+    T: super::operations::CookieTestApi,
     T::Error: orator_axum::axum::response::IntoResponse,
-    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-        + 'static,
+    T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>>
+        + Send + 'static,
 {
     orator_axum::axum::Router::new()
-        .route("/items", orator_axum::axum::routing::get(handle_get_items::<T, Ctx>))
+        .route("/items", orator_axum::axum::routing::get(handle_get_items::<T>))
         .with_state(api)
 }
 pub struct Missing;
 pub struct Registered;
 pub struct CookieTestRouter(orator_axum::axum::Router);
 impl CookieTestRouter {
-    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    pub fn new<T>(api: std::sync::Arc<T>) -> Self
     where
-        T: super::operations::CookieTestApi<Ctx>,
+        T: super::operations::CookieTestApi,
         T::Error: orator_axum::axum::response::IntoResponse,
-        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-            + 'static,
+        T::RequestContext: orator_axum::axum::extract::FromRequestParts<
+                std::sync::Arc<T>,
+            > + Send + 'static,
     {
         Self(cookie_test_router(api))
     }

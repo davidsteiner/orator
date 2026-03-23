@@ -4,6 +4,7 @@ use tennis_club_core::TennisClub;
 
 impl HealthApi for TennisClub {
     type Error = Infallible;
+    type RequestContext = ();
 
     async fn health_check(&self, _ctx: ()) -> Result<HealthCheckResponse, Self::Error> {
         Ok(HealthCheckResponse::Ok("ok".to_string()))
