@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.4.0...orator-core-v0.5.0) - 2026-03-23
+
+### Added
+
+- add banner to auto-generated files ([#85](https://github.com/davidsteiner/orator/pull/85))
+- add serde as a dependency via orator_axum ([#83](https://github.com/davidsteiner/orator/pull/83))
+
+### Fixed
+
+- redundant names in struct initialisation ([#84](https://github.com/davidsteiner/orator/pull/84))
+
 ## [0.4.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.3.0...orator-core-v0.4.0) - 2026-03-20
 
 ### Fixed

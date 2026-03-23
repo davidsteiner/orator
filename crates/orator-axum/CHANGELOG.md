@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/davidsteiner/orator/compare/orator-axum-v0.3.0...orator-axum-v0.3.1) - 2026-03-23
+
+### Added
+
+- add serde as a dependency via orator_axum ([#83](https://github.com/davidsteiner/orator/pull/83))
+
 ## [0.3.0](https://github.com/davidsteiner/orator/compare/orator-axum-v0.2.1...orator-axum-v0.3.0) - 2026-03-19
 
 ### Added
