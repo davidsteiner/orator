@@ -100,3 +100,11 @@ fn uuid() {
     let types = load_and_lower(include_str!("../../../tests/fixtures/schemas_uuid.yaml"));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn recursive_types() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_recursive.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}

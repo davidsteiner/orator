@@ -106,3 +106,11 @@ fn uuid() {
     let code = generate_from_yaml(include_str!("../../../tests/fixtures/schemas_uuid.yaml"));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn recursive_types() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_recursive.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

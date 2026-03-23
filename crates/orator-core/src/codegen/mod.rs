@@ -70,6 +70,10 @@ pub fn type_ref_to_tokens(type_ref: &TypeRef, module_prefix: Option<&TokenStream
             let inner_tokens = type_ref_to_tokens(inner, module_prefix);
             quote! { std::collections::HashMap<String, #inner_tokens> }
         }
+        TypeRef::Boxed(inner) => {
+            let inner_tokens = type_ref_to_tokens(inner, module_prefix);
+            quote! { Box<#inner_tokens> }
+        }
         TypeRef::Any => quote! { orator_axum::serde_json::Value },
     }
 }

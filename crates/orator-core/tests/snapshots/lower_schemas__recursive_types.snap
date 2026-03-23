@@ -1,0 +1,138 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "CycleA",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "b",
+                        type_ref: Boxed(
+                            Named(
+                                "CycleB",
+                            ),
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "CycleB",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "a",
+                        type_ref: Boxed(
+                            Named(
+                                "CycleA",
+                            ),
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "ListNode",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "next",
+                        type_ref: Boxed(
+                            Named(
+                                "ListNode",
+                            ),
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "value",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "OptionalSelfRef",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "id",
+                        type_ref: Primitive(
+                            I64,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "parent",
+                        type_ref: Named(
+                            "OptionalSelfRef",
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "TreeNode",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "children",
+                        type_ref: Array(
+                            Named(
+                                "TreeNode",
+                            ),
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "name",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+]
