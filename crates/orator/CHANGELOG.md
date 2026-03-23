@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7](https://github.com/davidsteiner/orator/compare/orator-v0.1.6...orator-v0.1.7) - 2026-03-23
+
+### Added
+
+- add banner to auto-generated files ([#85](https://github.com/davidsteiner/orator/pull/85))
+
 ## [0.1.6](https://github.com/davidsteiner/orator/compare/orator-v0.1.5...orator-v0.1.6) - 2026-03-20
 
 ### Other
