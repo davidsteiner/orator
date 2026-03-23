@@ -82,6 +82,7 @@ pub enum TypeRef {
     Array(Box<TypeRef>),
     Option(Box<TypeRef>),
     Map(Box<TypeRef>),
+    Boxed(Box<TypeRef>),
     Any,
 }
 

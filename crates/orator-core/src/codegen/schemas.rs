@@ -245,6 +245,7 @@ fn variant_name_for_type_ref(type_ref: &TypeRef) -> Ident {
         }
         TypeRef::Any => "JsonValue".to_string(),
         TypeRef::Option(inner) => return variant_name_for_type_ref(inner),
+        TypeRef::Boxed(inner) => return variant_name_for_type_ref(inner),
         TypeRef::Map(inner) => {
             let inner_name = variant_name_for_type_ref(inner);
             format!("Map{inner_name}")

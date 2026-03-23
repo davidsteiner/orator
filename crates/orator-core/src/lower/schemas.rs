@@ -11,11 +11,15 @@ pub fn lower_schemas(spec: &oas3::Spec) -> Result<Vec<TypeDef>, Error> {
         return Ok(Vec::new());
     };
 
-    components
+    let mut types: Vec<TypeDef> = components
         .schemas
         .iter()
         .map(|(name, schema_or_ref)| lower_top_level(name, schema_or_ref))
-        .collect()
+        .collect::<Result<_, _>>()?;
+
+    super::box_cycles::box_recursive_types(&mut types);
+
+    Ok(types)
 }
 
 fn lower_top_level(
