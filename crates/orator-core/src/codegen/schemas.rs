@@ -7,8 +7,8 @@ use crate::ir::{
 };
 
 use super::{
-    generate_doc_comment, generated_file_preamble, to_pascal_ident, to_snake_ident,
-    type_ref_to_tokens,
+    GENERATED_FILE_BANNER, generate_doc_comment, generated_file_preamble, to_pascal_ident,
+    to_snake_ident, type_ref_to_tokens,
 };
 
 /// Generate token streams for a list of type definitions.
@@ -27,7 +27,11 @@ pub fn generate_types(types: &[TypeDef]) -> String {
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
-    prettyplease::unparse(&syntax_tree)
+    format!(
+        "{}{}",
+        GENERATED_FILE_BANNER,
+        prettyplease::unparse(&syntax_tree)
+    )
 }
 
 fn generate_typedef(typedef: &TypeDef) -> TokenStream {

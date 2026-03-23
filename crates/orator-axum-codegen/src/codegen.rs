@@ -6,9 +6,9 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, generated_file_preamble,
-    group_by_tag, location_suffix, multipart_body_struct_name, status_code_variant_name,
-    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
+    GENERATED_FILE_BANNER, PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens,
+    generated_file_preamble, group_by_tag, location_suffix, multipart_body_struct_name,
+    status_code_variant_name, to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 pub use orator_core::config::Config;
 use orator_core::ir::{
@@ -41,13 +41,10 @@ pub struct GeneratedModule {
 impl GeneratedModule {
     /// Generate a `mod.rs` for the module.
     pub fn mod_file(&self) -> String {
-        [
-            "pub mod types;",
-            "pub mod operations;",
-            "pub mod handlers;",
-            "",
-        ]
-        .join("\n")
+        format!(
+            "{}pub mod types;\npub mod operations;\npub mod handlers;\n",
+            GENERATED_FILE_BANNER,
+        )
     }
 
     /// Write the module files directly into the given directory.
@@ -68,7 +65,11 @@ fn format_tokens(tokens: Vec<TokenStream>) -> String {
     let file_tokens = quote! { #(#tokens)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
-    prettyplease::unparse(&syntax_tree)
+    format!(
+        "{}{}",
+        GENERATED_FILE_BANNER,
+        prettyplease::unparse(&syntax_tree)
+    )
 }
 
 /// Generate a complete API module from type definitions and operations.
