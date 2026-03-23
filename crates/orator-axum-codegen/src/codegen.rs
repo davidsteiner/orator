@@ -6,9 +6,10 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use orator_core::codegen::{
-    PARAM_LOCATIONS, generate_operations_tokens, generate_types_tokens, generated_file_preamble,
-    group_by_tag, location_suffix, multipart_body_struct_name, status_code_variant_name,
-    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
+    PARAM_LOCATIONS, SpecInfo, generate_operations_tokens, generate_types_tokens,
+    generated_file_banner, generated_file_preamble, group_by_tag, location_suffix,
+    multipart_body_struct_name, status_code_variant_name, to_pascal_ident, to_snake_ident,
+    type_ref_to_tokens,
 };
 pub use orator_core::config::Config;
 use orator_core::ir::{
@@ -30,6 +31,8 @@ fn ops_prefix() -> TokenStream {
 ///
 /// Contains the formatted Rust source for each file in the module.
 pub struct GeneratedModule {
+    /// Banner comment prepended to each file.
+    banner: String,
     /// Schema types (structs, enums, type aliases).
     pub types: String,
     /// Response enums, params structs, and API traits.
@@ -41,13 +44,10 @@ pub struct GeneratedModule {
 impl GeneratedModule {
     /// Generate a `mod.rs` for the module.
     pub fn mod_file(&self) -> String {
-        [
-            "pub mod types;",
-            "pub mod operations;",
-            "pub mod handlers;",
-            "",
-        ]
-        .join("\n")
+        format!(
+            "{}pub mod types;\npub mod operations;\npub mod handlers;\n",
+            self.banner,
+        )
     }
 
     /// Write the module files directly into the given directory.
@@ -64,11 +64,11 @@ impl GeneratedModule {
     }
 }
 
-fn format_tokens(tokens: Vec<TokenStream>) -> String {
+fn format_tokens(tokens: Vec<TokenStream>, banner: &str) -> String {
     let file_tokens = quote! { #(#tokens)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
-    prettyplease::unparse(&syntax_tree)
+    format!("{}{}", banner, prettyplease::unparse(&syntax_tree))
 }
 
 /// Generate a complete API module from type definitions and operations.
@@ -77,17 +77,21 @@ pub fn generate(
     operations: &[OperationIr],
     default_tag: &str,
     config: &Config,
+    spec_info: &SpecInfo,
 ) -> GeneratedModule {
-    let types_code = format_tokens(generate_types_tokens(types));
-    let operations_code =
-        format_tokens(generate_operations_tokens(operations, default_tag, config));
-    let handlers_code = format_tokens(generate_axum_handlers_tokens(
-        operations,
-        default_tag,
-        config,
-    ));
+    let banner = generated_file_banner(spec_info, env!("CARGO_PKG_VERSION"));
+    let types_code = format_tokens(generate_types_tokens(types), &banner);
+    let operations_code = format_tokens(
+        generate_operations_tokens(operations, default_tag, config),
+        &banner,
+    );
+    let handlers_code = format_tokens(
+        generate_axum_handlers_tokens(operations, default_tag, config),
+        &banner,
+    );
 
     GeneratedModule {
+        banner,
         types: types_code,
         operations: operations_code,
         handlers: handlers_code,

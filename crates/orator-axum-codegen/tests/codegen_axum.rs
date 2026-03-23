@@ -1,4 +1,5 @@
 use orator_axum_codegen::codegen::{Config, generate, generate_axum_handlers};
+use orator_core::codegen::SpecInfo;
 use orator_core::lower::{lower_operations, lower_schemas};
 
 fn generate_axum_from_yaml(yaml: &str, default_tag: &str) -> String {
@@ -27,7 +28,17 @@ fn tennis_club_generated_module() {
     let types = lower_schemas(&spec).unwrap();
     let ops = lower_operations(&spec).unwrap();
 
-    let module = generate(&types, &ops, &spec.info.title, &Config::default());
+    let spec_info = SpecInfo {
+        title: spec.info.title.clone(),
+        version: spec.info.version.clone(),
+    };
+    let module = generate(
+        &types,
+        &ops,
+        &spec.info.title,
+        &Config::default(),
+        &spec_info,
+    );
 
     insta::assert_snapshot!("module_types", module.types);
     insta::assert_snapshot!("module_operations", module.operations);

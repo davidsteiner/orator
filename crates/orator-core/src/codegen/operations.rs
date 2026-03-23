@@ -12,8 +12,8 @@ use crate::ir::{
 use heck::ToSnakeCase;
 
 use super::{
-    generate_doc_comment, generated_file_preamble, to_pascal_ident, to_snake_ident,
-    type_ref_to_tokens,
+    SpecInfo, generate_doc_comment, generated_file_banner, generated_file_preamble,
+    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 
 /// Module prefix for schema types referenced from operations.
@@ -51,12 +51,17 @@ pub fn generate_operations(
     operations: &[OperationIr],
     default_tag: &str,
     config: &Config,
+    spec_info: &SpecInfo,
 ) -> String {
     let items = generate_operations_tokens(operations, default_tag, config);
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
-    prettyplease::unparse(&syntax_tree)
+    format!(
+        "{}{}",
+        generated_file_banner(spec_info, env!("CARGO_PKG_VERSION")),
+        prettyplease::unparse(&syntax_tree)
+    )
 }
 
 pub fn group_by_tag<'a>(

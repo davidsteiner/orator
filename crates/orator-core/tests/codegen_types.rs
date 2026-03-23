@@ -1,10 +1,14 @@
-use orator_core::codegen::generate_types;
+use orator_core::codegen::{SpecInfo, generate_types};
 use orator_core::lower::lower_schemas;
 
 fn generate_from_yaml(yaml: &str) -> String {
     let spec = oas3::from_yaml(yaml).unwrap();
     let types = lower_schemas(&spec).unwrap();
-    generate_types(&types)
+    let spec_info = SpecInfo {
+        title: spec.info.title,
+        version: spec.info.version,
+    };
+    generate_types(&types, &spec_info)
 }
 
 #[test]
