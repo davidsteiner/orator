@@ -617,24 +617,40 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
     // request body is last
     if let Some(body) = &op.request_body {
         let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
-        match &body.content_type {
-            ContentType::Json => {
+        match (&body.content_type, body.required) {
+            (ContentType::Json, true) => {
                 fn_params.push(quote! {
                     orator_axum::axum::Json(body): orator_axum::axum::Json<#body_type>
                 });
             }
-            ContentType::TextPlain => {
+            (ContentType::Json, false) => {
+                fn_params.push(quote! {
+                    body: Option<orator_axum::axum::Json<#body_type>>
+                });
+            }
+            (ContentType::TextPlain, true) => {
                 fn_params.push(quote! { body: String });
             }
-            ContentType::OctetStream => {
+            (ContentType::TextPlain, false) => {
+                fn_params.push(quote! { body: Option<String> });
+            }
+            (ContentType::OctetStream, true) => {
                 fn_params.push(quote! { body: orator_axum::axum::body::Bytes });
             }
-            ContentType::FormUrlEncoded => {
+            (ContentType::OctetStream, false) => {
+                fn_params.push(quote! { body: Option<orator_axum::axum::body::Bytes> });
+            }
+            (ContentType::FormUrlEncoded, true) => {
                 fn_params.push(quote! {
                     orator_axum::axum::Form(body): orator_axum::axum::Form<#body_type>
                 });
             }
-            ContentType::MultipartFormData => {
+            (ContentType::FormUrlEncoded, false) => {
+                fn_params.push(quote! {
+                    body: Option<orator_axum::axum::Form<#body_type>>
+                });
+            }
+            (ContentType::MultipartFormData, _) => {
                 if let Some(struct_name) = multipart_body_struct_name(op) {
                     let body_struct = to_pascal_ident(&struct_name);
                     fn_params.push(quote! {
@@ -686,8 +702,20 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
         }
     }
 
-    if op.request_body.is_some() {
-        call_args.push(quote! { body });
+    if let Some(body) = &op.request_body {
+        if !body.required {
+            match &body.content_type {
+                ContentType::Json => {
+                    call_args.push(quote! { body.map(|orator_axum::axum::Json(b)| b) });
+                }
+                ContentType::FormUrlEncoded => {
+                    call_args.push(quote! { body.map(|orator_axum::axum::Form(b)| b) });
+                }
+                _ => call_args.push(quote! { body }),
+            }
+        } else {
+            call_args.push(quote! { body });
+        }
     }
 
     let method_call = quote! { api.#method_ident(#(#call_args),*).await };

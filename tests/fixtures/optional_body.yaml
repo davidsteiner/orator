@@ -1,0 +1,61 @@
+openapi: "3.1.0"
+info:
+  title: Optional Body Test
+  version: "0.1.0"
+paths:
+  /json:
+    patch:
+      operationId: patchJson
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        "200":
+          description: ok
+  /text:
+    patch:
+      operationId: patchText
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ok
+  /binary:
+    patch:
+      operationId: patchBinary
+      requestBody:
+        required: false
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: ok
+  /form:
+    patch:
+      operationId: patchForm
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        "200":
+          description: ok
+components:
+  schemas:
+    Payload:
+      type: object
+      properties:
+        name:
+          type: string
