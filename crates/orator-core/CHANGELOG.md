@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.5.0...orator-core-v0.6.0) - 2026-03-23
+
+### Added
+
+- support optional bodies ([#97](https://github.com/davidsteiner/orator/pull/97))
+- change ctx to an associated type ([#87](https://github.com/davidsteiner/orator/pull/87))
+
+### Fixed
+
+- box circular references as needed ([#96](https://github.com/davidsteiner/orator/pull/96))
+
 ## [0.5.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.4.0...orator-core-v0.5.0) - 2026-03-23
 
 ### Added
