@@ -317,18 +317,22 @@ fn generate_api_trait(tag: &str, operations: &[&OperationIr], config: &Config) -
             }
 
             if let Some(body) = &op.request_body {
-                let body_type = if let Some(struct_name) = multipart_body_struct_name(op) {
+                let raw_type = if let Some(struct_name) = multipart_body_struct_name(op) {
                     let ident = to_pascal_ident(&struct_name);
                     quote! { #ident }
                 } else if body.content_type == ContentType::MultipartFormData {
-                    // Multipart without inline fields — fall back to raw extractor
+                    // Multipart without inline fields — fall back to raw extractor.
+                    // Not wrapped in Option because axum's Multipart doesn't support it.
                     quote! { orator_axum::axum::extract::Multipart }
-                } else if body.required {
-                    type_ref_to_tokens(&body.type_ref, Some(&types_prefix()))
                 } else {
-                    let inner = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
-                    quote! { Option<#inner> }
+                    type_ref_to_tokens(&body.type_ref, Some(&types_prefix()))
                 };
+                let body_type =
+                    if body.required || body.content_type == ContentType::MultipartFormData {
+                        raw_type
+                    } else {
+                        quote! { Option<#raw_type> }
+                    };
                 extra_args.push(quote! { body: #body_type });
             }
 

@@ -66,6 +66,15 @@ fn mixed_content_types_operations() {
 }
 
 #[test]
+fn optional_body_operations() {
+    let code = generate_ops_from_yaml(
+        include_str!("../../../tests/fixtures/optional_body.yaml"),
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn default_response_operations() {
     let code = generate_ops_from_yaml(
         include_str!("../../../tests/fixtures/default_response.yaml"),
