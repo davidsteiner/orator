@@ -4,6 +4,7 @@ use std::process;
 
 use clap::Parser;
 use orator_axum_codegen::codegen::{Config, generate};
+use orator_core::codegen::SpecInfo;
 use orator_core::lower::{lower_operations, lower_schemas};
 
 /// Orator — generate Rust server stubs from OpenAPI 3.1 specs
@@ -68,7 +69,12 @@ fn main() {
         .header_params(!cli.no_header_params)
         .cookie_params(!cli.no_cookie_params);
 
-    let module = generate(&types, &ops, &spec.info.title, &config);
+    let spec_info = SpecInfo {
+        title: spec.info.title.clone(),
+        version: spec.info.version.clone(),
+    };
+
+    let module = generate(&types, &ops, &spec.info.title, &config, &spec_info);
 
     if let Err(e) = module.write_to_dir(&cli.output) {
         eprintln!("error: failed to write generated files: {e}");

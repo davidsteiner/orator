@@ -7,8 +7,8 @@ use crate::ir::{
 };
 
 use super::{
-    GENERATED_FILE_BANNER, generate_doc_comment, generated_file_preamble, to_pascal_ident,
-    to_snake_ident, type_ref_to_tokens,
+    SpecInfo, generate_doc_comment, generated_file_banner, generated_file_preamble,
+    to_pascal_ident, to_snake_ident, type_ref_to_tokens,
 };
 
 /// Generate token streams for a list of type definitions.
@@ -22,14 +22,14 @@ pub fn generate_types_tokens(types: &[TypeDef]) -> Vec<TokenStream> {
 }
 
 /// Generate Rust source code for a list of type definitions.
-pub fn generate_types(types: &[TypeDef]) -> String {
+pub fn generate_types(types: &[TypeDef], spec_info: &SpecInfo) -> String {
     let items = generate_types_tokens(types);
     let file_tokens = quote! { #(#items)* };
     let syntax_tree: syn::File =
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
     format!(
         "{}{}",
-        GENERATED_FILE_BANNER,
+        generated_file_banner(spec_info, env!("CARGO_PKG_VERSION")),
         prettyplease::unparse(&syntax_tree)
     )
 }
