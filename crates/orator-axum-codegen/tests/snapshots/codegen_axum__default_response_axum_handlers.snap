@@ -16,14 +16,14 @@ impl orator_axum::axum::response::IntoResponse for super::operations::ListItemsR
         }
     }
 }
-async fn handle_list_items<T, Ctx>(
+async fn handle_list_items<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::ListItemsResponse, T::Error>
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
 {
     api.list_items(ctx).await
 }
@@ -36,29 +36,29 @@ for super::operations::DeleteAllItemsResponse {
         }
     }
 }
-async fn handle_delete_all_items<T, Ctx>(
+async fn handle_delete_all_items<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::DeleteAllItemsResponse, T::Error>
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
 {
     api.delete_all_items(ctx).await
 }
-pub fn default_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+pub fn default_router<T>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: super::operations::DefaultApi<Ctx>,
+    T: super::operations::DefaultApi,
     T::Error: orator_axum::axum::response::IntoResponse,
-    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-        + 'static,
+    T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>>
+        + Send + 'static,
 {
     orator_axum::axum::Router::new()
         .route(
             "/items",
-            orator_axum::axum::routing::get(handle_list_items::<T, Ctx>)
-                .delete(handle_delete_all_items::<T, Ctx>),
+            orator_axum::axum::routing::get(handle_list_items::<T>)
+                .delete(handle_delete_all_items::<T>),
         )
         .with_state(api)
 }
@@ -66,12 +66,13 @@ pub struct Missing;
 pub struct Registered;
 pub struct DefaultRouter(orator_axum::axum::Router);
 impl DefaultRouter {
-    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    pub fn new<T>(api: std::sync::Arc<T>) -> Self
     where
-        T: super::operations::DefaultApi<Ctx>,
+        T: super::operations::DefaultApi,
         T::Error: orator_axum::axum::response::IntoResponse,
-        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-            + 'static,
+        T::RequestContext: orator_axum::axum::extract::FromRequestParts<
+                std::sync::Arc<T>,
+            > + Send + 'static,
     {
         Self(default_router(api))
     }

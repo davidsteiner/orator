@@ -547,7 +547,7 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
         orator_axum::axum::extract::State(api): orator_axum::axum::extract::State<std::sync::Arc<T>>
     });
     // ctx is second
-    fn_params.push(quote! { ctx: Ctx });
+    fn_params.push(quote! { ctx: T::RequestContext });
 
     // path extractor after ctx
     if path_params.len() == 1 {
@@ -693,11 +693,11 @@ fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
     let method_call = quote! { api.#method_ident(#(#call_args),*).await };
 
     let handler_fn = quote! {
-        async fn #handler_ident<T, Ctx>(
+        async fn #handler_ident<T>(
             #(#fn_params),*
         ) -> Result<#ops::#response_ident, T::Error>
         where
-            T: #ops::#trait_ident<Ctx>,
+            T: #ops::#trait_ident,
         {
             #method_call
         }
@@ -766,11 +766,11 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
                 pub struct #wrapper(orator_axum::axum::Router);
 
                 impl #wrapper {
-                    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+                    pub fn new<T>(api: std::sync::Arc<T>) -> Self
                     where
-                        T: #ops::#trait_ident<Ctx>,
+                        T: #ops::#trait_ident,
                         T::Error: orator_axum::axum::response::IntoResponse,
-                        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+                        T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
                     {
                         Self(#router_fn(api))
                     }
@@ -910,11 +910,11 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
                 let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
                 if i == 0 {
                     method_chain.push(quote! {
-                        orator_axum::axum::routing::#routing_fn(#handler_ident::<T, Ctx>)
+                        orator_axum::axum::routing::#routing_fn(#handler_ident::<T>)
                     });
                 } else {
                     method_chain.push(quote! {
-                        .#routing_fn(#handler_ident::<T, Ctx>)
+                        .#routing_fn(#handler_ident::<T>)
                     });
                 }
             }
@@ -925,11 +925,11 @@ fn generate_router_fn(tag: &str, operations: &[&OperationIr]) -> TokenStream {
         .collect();
 
     quote! {
-        pub fn #router_ident<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+        pub fn #router_ident<T>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
         where
-            T: #ops::#trait_ident<Ctx>,
+            T: #ops::#trait_ident,
             T::Error: orator_axum::axum::response::IntoResponse,
-            Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
+            T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send + 'static,
         {
             orator_axum::axum::Router::new()
                 #(#route_calls)*

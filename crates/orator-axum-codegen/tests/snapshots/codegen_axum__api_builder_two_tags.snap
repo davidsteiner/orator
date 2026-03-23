@@ -10,14 +10,14 @@ impl orator_axum::axum::response::IntoResponse for super::operations::ListItemsR
         }
     }
 }
-async fn handle_list_items<T, Ctx>(
+async fn handle_list_items<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::ListItemsResponse, T::Error>
 where
-    T: super::operations::ItemsApi<Ctx>,
+    T: super::operations::ItemsApi,
 {
     api.list_items(ctx).await
 }
@@ -29,29 +29,29 @@ for super::operations::CreateItemResponse {
         }
     }
 }
-async fn handle_create_item<T, Ctx>(
+async fn handle_create_item<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::CreateItemResponse, T::Error>
 where
-    T: super::operations::ItemsApi<Ctx>,
+    T: super::operations::ItemsApi,
 {
     api.create_item(ctx).await
 }
-pub fn items_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+pub fn items_router<T>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: super::operations::ItemsApi<Ctx>,
+    T: super::operations::ItemsApi,
     T::Error: orator_axum::axum::response::IntoResponse,
-    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-        + 'static,
+    T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>>
+        + Send + 'static,
 {
     orator_axum::axum::Router::new()
         .route(
             "/items",
-            orator_axum::axum::routing::get(handle_list_items::<T, Ctx>)
-                .post(handle_create_item::<T, Ctx>),
+            orator_axum::axum::routing::get(handle_list_items::<T>)
+                .post(handle_create_item::<T>),
         )
         .with_state(api)
 }
@@ -62,38 +62,39 @@ impl orator_axum::axum::response::IntoResponse for super::operations::ListUsersR
         }
     }
 }
-async fn handle_list_users<T, Ctx>(
+async fn handle_list_users<T>(
     orator_axum::axum::extract::State(
         api,
     ): orator_axum::axum::extract::State<std::sync::Arc<T>>,
-    ctx: Ctx,
+    ctx: T::RequestContext,
 ) -> Result<super::operations::ListUsersResponse, T::Error>
 where
-    T: super::operations::UsersApi<Ctx>,
+    T: super::operations::UsersApi,
 {
     api.list_users(ctx).await
 }
-pub fn users_router<T, Ctx>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
+pub fn users_router<T>(api: std::sync::Arc<T>) -> orator_axum::axum::Router
 where
-    T: super::operations::UsersApi<Ctx>,
+    T: super::operations::UsersApi,
     T::Error: orator_axum::axum::response::IntoResponse,
-    Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-        + 'static,
+    T::RequestContext: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>>
+        + Send + 'static,
 {
     orator_axum::axum::Router::new()
-        .route("/users", orator_axum::axum::routing::get(handle_list_users::<T, Ctx>))
+        .route("/users", orator_axum::axum::routing::get(handle_list_users::<T>))
         .with_state(api)
 }
 pub struct Missing;
 pub struct Registered;
 pub struct ItemsRouter(orator_axum::axum::Router);
 impl ItemsRouter {
-    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    pub fn new<T>(api: std::sync::Arc<T>) -> Self
     where
-        T: super::operations::ItemsApi<Ctx>,
+        T: super::operations::ItemsApi,
         T::Error: orator_axum::axum::response::IntoResponse,
-        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-            + 'static,
+        T::RequestContext: orator_axum::axum::extract::FromRequestParts<
+                std::sync::Arc<T>,
+            > + Send + 'static,
     {
         Self(items_router(api))
     }
@@ -119,12 +120,13 @@ impl ItemsRouter {
 }
 pub struct UsersRouter(orator_axum::axum::Router);
 impl UsersRouter {
-    pub fn new<T, Ctx>(api: std::sync::Arc<T>) -> Self
+    pub fn new<T>(api: std::sync::Arc<T>) -> Self
     where
-        T: super::operations::UsersApi<Ctx>,
+        T: super::operations::UsersApi,
         T::Error: orator_axum::axum::response::IntoResponse,
-        Ctx: orator_axum::axum::extract::FromRequestParts<std::sync::Arc<T>> + Send
-            + 'static,
+        T::RequestContext: orator_axum::axum::extract::FromRequestParts<
+                std::sync::Arc<T>,
+            > + Send + 'static,
     {
         Self(users_router(api))
     }

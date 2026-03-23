@@ -4,6 +4,7 @@ use tennis_club_core::{TennisClub, domain};
 
 impl BookingsApi for TennisClub {
     type Error = Infallible;
+    type RequestContext = ();
 
     async fn list_bookings(&self, _ctx: ()) -> Result<ListBookingsResponse, Self::Error> {
         let bookings = self.list_bookings();
