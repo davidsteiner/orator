@@ -17,7 +17,7 @@ async fn handle_get_items<T>(
     ctx: T::RequestContext,
 ) -> Result<super::operations::GetItemsResponse, T::Error>
 where
-    T: super::operations::DefaultApi,
+    T: super::operations::HeaderTestApi,
 {
     api.get_items(ctx).await
 }
