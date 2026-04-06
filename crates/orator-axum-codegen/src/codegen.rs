@@ -112,7 +112,7 @@ pub fn generate_axum_handlers_tokens(
         for op in ops {
             all_items.push(generate_into_response_impl(op));
             all_items.extend(generate_multipart_from_request_impl(op));
-            let handler_output = generate_handler_fn(op, config);
+            let handler_output = generate_handler_fn(op, default_tag, config);
             all_items.extend(handler_output.extractor_impls);
             all_items.push(handler_output.handler_fn);
         }
@@ -523,10 +523,10 @@ struct HandlerOutput {
     extractor_impls: Vec<TokenStream>,
 }
 
-fn generate_handler_fn(op: &OperationIr, config: &Config) -> HandlerOutput {
+fn generate_handler_fn(op: &OperationIr, default_tag: &str, config: &Config) -> HandlerOutput {
     let ops = ops_prefix();
     let handler_ident = to_snake_ident(&format!("handle_{}", op.operation_id));
-    let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or("Default")));
+    let trait_ident = to_pascal_ident(&format!("{}Api", op.tag.as_deref().unwrap_or(default_tag)));
     let method_ident = to_snake_ident(&op.operation_id);
     let response_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
 

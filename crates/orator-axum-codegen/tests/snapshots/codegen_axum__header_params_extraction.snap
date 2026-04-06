@@ -81,7 +81,7 @@ async fn handle_get_items<T>(
     header: super::operations::GetItemsHeader,
 ) -> Result<super::operations::GetItemsResponse, T::Error>
 where
-    T: super::operations::DefaultApi,
+    T: super::operations::HeaderTestApi,
 {
     api.get_items(ctx, header).await
 }
