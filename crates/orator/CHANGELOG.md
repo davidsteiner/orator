@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9](https://github.com/davidsteiner/orator/compare/orator-v0.1.8...orator-v0.1.9) - 2026-04-06
+
+### Fixed
+
+- use CLI crate version in generated file banners ([#102](https://github.com/davidsteiner/orator/pull/102))
+
 ## [0.1.8](https://github.com/davidsteiner/orator/compare/orator-v0.1.7...orator-v0.1.8) - 2026-03-23
 
 ### Other
