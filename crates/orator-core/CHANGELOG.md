@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.6.0...orator-core-v0.7.0) - 2026-04-06
+
+### Fixed
+
+- use CLI crate version in generated file banners ([#102](https://github.com/davidsteiner/orator/pull/102))
+- fix issue with Axum handler referencing DefaultApi instead of default tag for tagless operations ([#101](https://github.com/davidsteiner/orator/pull/101))
+
 ## [0.6.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.5.0...orator-core-v0.6.0) - 2026-03-23
 
 ### Added
