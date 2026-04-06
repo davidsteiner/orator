@@ -7,6 +7,7 @@ fn generate_ops_from_yaml(yaml: &str, default_tag: &str) -> String {
     let spec_info = SpecInfo {
         title: spec.info.title,
         version: spec.info.version,
+        orator_version: env!("CARGO_PKG_VERSION").to_string(),
     };
     generate_operations(&ops, default_tag, &Config::default(), &spec_info)
 }

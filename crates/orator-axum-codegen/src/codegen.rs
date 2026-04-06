@@ -79,7 +79,7 @@ pub fn generate(
     config: &Config,
     spec_info: &SpecInfo,
 ) -> GeneratedModule {
-    let banner = generated_file_banner(spec_info, env!("CARGO_PKG_VERSION"));
+    let banner = generated_file_banner(spec_info);
     let types_code = format_tokens(generate_types_tokens(types), &banner);
     let operations_code = format_tokens(
         generate_operations_tokens(operations, default_tag, config),

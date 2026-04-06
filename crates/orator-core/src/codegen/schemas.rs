@@ -29,7 +29,7 @@ pub fn generate_types(types: &[TypeDef], spec_info: &SpecInfo) -> String {
         syn::parse2(file_tokens).expect("generated tokens should be valid syntax");
     format!(
         "{}{}",
-        generated_file_banner(spec_info, env!("CARGO_PKG_VERSION")),
+        generated_file_banner(spec_info),
         prettyplease::unparse(&syntax_tree)
     )
 }

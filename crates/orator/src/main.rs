@@ -72,6 +72,7 @@ fn main() {
     let spec_info = SpecInfo {
         title: spec.info.title.clone(),
         version: spec.info.version.clone(),
+        orator_version: env!("CARGO_PKG_VERSION").to_string(),
     };
 
     let module = generate(&types, &ops, &spec.info.title, &config, &spec_info);

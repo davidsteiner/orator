@@ -7,6 +7,7 @@ fn generate_from_yaml(yaml: &str) -> String {
     let spec_info = SpecInfo {
         title: spec.info.title,
         version: spec.info.version,
+        orator_version: env!("CARGO_PKG_VERSION").to_string(),
     };
     generate_types(&types, &spec_info)
 }
