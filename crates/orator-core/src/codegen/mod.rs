@@ -63,6 +63,12 @@ pub fn type_ref_to_tokens(type_ref: &TypeRef, module_prefix: Option<&TokenStream
             let inner_tokens = type_ref_to_tokens(inner, module_prefix);
             quote! { Vec<#inner_tokens> }
         }
+        TypeRef::Tuple(items) => {
+            let item_tokens = items
+                .iter()
+                .map(|item| type_ref_to_tokens(item, module_prefix));
+            quote! { ( #( #item_tokens, )* ) }
+        }
         TypeRef::Option(inner) => {
             let inner_tokens = type_ref_to_tokens(inner, module_prefix);
             quote! { Option<#inner_tokens> }

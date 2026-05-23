@@ -243,6 +243,13 @@ fn variant_name_for_type_ref(type_ref: &TypeRef) -> Ident {
             let inner_name = variant_name_for_type_ref(inner);
             format!("Vec{inner_name}")
         }
+        TypeRef::Tuple(items) => {
+            let parts: String = items
+                .iter()
+                .map(|item| variant_name_for_type_ref(item).to_string())
+                .collect();
+            format!("Tuple{parts}")
+        }
         TypeRef::Any => "JsonValue".to_string(),
         TypeRef::Option(inner) => return variant_name_for_type_ref(inner),
         TypeRef::Boxed(inner) => return variant_name_for_type_ref(inner),
