@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.7.0...orator-core-v0.8.0) - 2026-05-23
+
+### Added
+
+- support prefixItems for tuple-shaped arrays ([#105](https://github.com/davidsteiner/orator/pull/105))
+
+### Other
+
+- pin test snapshots to a fixed orator version ([#107](https://github.com/davidsteiner/orator/pull/107))
+
 ## [0.7.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.6.0...orator-core-v0.7.0) - 2026-04-06
 
 ### Fixed
