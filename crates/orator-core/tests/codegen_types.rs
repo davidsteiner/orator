@@ -115,3 +115,11 @@ fn recursive_types() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn prefix_items() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_prefix_items.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}
