@@ -108,3 +108,11 @@ fn recursive_types() {
     ));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn prefix_items() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_prefix_items.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}
