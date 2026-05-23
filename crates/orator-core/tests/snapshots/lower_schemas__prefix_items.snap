@@ -77,6 +77,38 @@ expression: types
         ),
     },
     TypeDef {
+        name: "PointOrLabel",
+        description: Some(
+            "Exercises a tuple as a oneOf variant.",
+        ),
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Tuple(
+                            [
+                                Primitive(
+                                    F64,
+                                ),
+                                Primitive(
+                                    F64,
+                                ),
+                            ],
+                        ),
+                        mapping_value: None,
+                    },
+                    Variant {
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        mapping_value: None,
+                    },
+                ],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
         name: "RGB",
         description: Some(
             "8-bit RGB triple.",
