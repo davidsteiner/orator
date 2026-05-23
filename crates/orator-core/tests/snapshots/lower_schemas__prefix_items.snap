@@ -1,0 +1,132 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Coordinate",
+        description: Some(
+            "Two-integer (x, y) coordinate.",
+        ),
+        kind: Alias(
+            Tuple(
+                [
+                    Primitive(
+                        I32,
+                    ),
+                    Primitive(
+                        I32,
+                    ),
+                ],
+            ),
+        ),
+    },
+    TypeDef {
+        name: "DateRange",
+        description: Some(
+            "Inclusive start/end date range.",
+        ),
+        kind: Alias(
+            Tuple(
+                [
+                    Primitive(
+                        Date,
+                    ),
+                    Primitive(
+                        Date,
+                    ),
+                ],
+            ),
+        ),
+    },
+    TypeDef {
+        name: "Marker",
+        description: Some(
+            "A labelled position; exercises inline prefixItems on a struct property.",
+        ),
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "label",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                    Field {
+                        name: "position",
+                        type_ref: Tuple(
+                            [
+                                Primitive(
+                                    F64,
+                                ),
+                                Primitive(
+                                    F64,
+                                ),
+                            ],
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "PointOrLabel",
+        description: Some(
+            "Exercises a tuple as a oneOf variant.",
+        ),
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Tuple(
+                            [
+                                Primitive(
+                                    F64,
+                                ),
+                                Primitive(
+                                    F64,
+                                ),
+                            ],
+                        ),
+                        mapping_value: None,
+                    },
+                    Variant {
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        mapping_value: None,
+                    },
+                ],
+                discriminator: None,
+            },
+        ),
+    },
+    TypeDef {
+        name: "RGB",
+        description: Some(
+            "8-bit RGB triple.",
+        ),
+        kind: Alias(
+            Tuple(
+                [
+                    Primitive(
+                        I32,
+                    ),
+                    Primitive(
+                        I32,
+                    ),
+                    Primitive(
+                        I32,
+                    ),
+                ],
+            ),
+        ),
+    },
+]

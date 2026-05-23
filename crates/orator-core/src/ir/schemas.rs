@@ -80,6 +80,7 @@ pub enum TypeRef {
     Named(String),
     Primitive(PrimitiveType),
     Array(Box<TypeRef>),
+    Tuple(Vec<TypeRef>),
     Option(Box<TypeRef>),
     Map(Box<TypeRef>),
     Boxed(Box<TypeRef>),

@@ -64,13 +64,13 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
         return lower_composite(name, schema, has_structure, has_variants);
     }
 
-    // array: type array + items
+    // array: type array + items (or prefixItems for tuples)
     if is_array_type(schema) {
-        let inner = lower_items(schema)?;
+        let type_ref = lower_array_type(schema)?;
         return Ok(TypeDef {
             name: name.to_string(),
             description,
-            kind: TypeDefKind::Alias(TypeRef::Array(Box::new(inner))),
+            kind: TypeDefKind::Alias(type_ref),
         });
     }
 
@@ -282,10 +282,7 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
             Some("float") => Ok(TypeRef::Primitive(PrimitiveType::F32)),
             _ => Ok(TypeRef::Primitive(PrimitiveType::F64)),
         },
-        SchemaType::Array => {
-            let inner = lower_items(schema)?;
-            Ok(TypeRef::Array(Box::new(inner)))
-        }
+        SchemaType::Array => lower_array_type(schema),
         SchemaType::Object => {
             if let Some(additional) = &schema.additional_properties {
                 lower_additional_properties(additional)?.ok_or_else(|| Error::UnsupportedSchema {
@@ -301,6 +298,36 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
             PrimitiveType::String,
         )))),
     }
+}
+
+/// Lower an array schema to either an `Array` (open-ended) or `Tuple` (bounded `prefixItems`).
+fn lower_array_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
+    if !schema.prefix_items.is_empty() {
+        return lower_prefix_items(schema);
+    }
+    let inner = lower_items(schema)?;
+    Ok(TypeRef::Array(Box::new(inner)))
+}
+
+/// Lower a `prefixItems` array to `TypeRef::Tuple`. Requires the array length be pinned
+/// by `minItems == maxItems == prefixItems.len()` — otherwise the schema permits arrays
+/// shorter or longer than the prefix and a fixed-size tuple would misrepresent the wire
+/// shape.
+fn lower_prefix_items(schema: &ObjectSchema) -> Result<TypeRef, Error> {
+    let n = schema.prefix_items.len() as u64;
+    if schema.min_items != Some(n) || schema.max_items != Some(n) {
+        return Err(Error::UnsupportedSchema {
+            context: format!(
+                "prefixItems with {n} entries requires minItems and maxItems both equal to {n}"
+            ),
+        });
+    }
+    let items = schema
+        .prefix_items
+        .iter()
+        .map(lower_type_ref)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(TypeRef::Tuple(items))
 }
 
 fn lower_items(schema: &ObjectSchema) -> Result<TypeRef, Error> {
