@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use oas3::spec::{BooleanSchema, ObjectOrReference, ObjectSchema, SchemaType, SchemaTypeSet};
 
 use crate::error::Error;
@@ -6,16 +8,92 @@ use crate::ir::{
     TypeDefKind, TypeRef, Variant,
 };
 
+/// Carries state needed when lowering schemas that may contain inline objects.
+///
+/// `existing_names` is the immutable set of top-level component-schema names.
+/// `synthesized` collects new `TypeDef`s produced by promoting inline objects.
+/// `name_stack` is the path of containing names; e.g. `["Parent", "Child"]`
+/// while lowering `Parent.properties.child`. The PascalCase concatenation of
+/// the stack is used as the candidate name for promotion.
+///
+/// `promotion_allowed`: schema-side lowering may promote inline objects to
+/// named structs; operations-side must keep erroring. Consulted in Task 3
+/// where synthesize_object is added.
+struct LoweringCtx<'a> {
+    #[allow(dead_code)] // used in Task 3 for collision detection
+    existing_names: &'a HashSet<String>,
+    synthesized: Vec<TypeDef>,
+    name_stack: Vec<String>,
+    #[allow(dead_code)] // consulted in Task 3 when synthesize_object is added
+    promotion_allowed: bool,
+}
+
+impl<'a> LoweringCtx<'a> {
+    fn new(existing_names: &'a HashSet<String>) -> Self {
+        Self {
+            existing_names,
+            synthesized: Vec::new(),
+            name_stack: Vec::new(),
+            promotion_allowed: true,
+        }
+    }
+
+    /// Build a ctx for the operations-side path, where promotion is forbidden.
+    /// Uses a static empty set because the operations path never needs name-collision
+    /// checks (it errors on inline objects regardless).
+    fn forbidden() -> Self {
+        static EMPTY: std::sync::OnceLock<HashSet<String>> = std::sync::OnceLock::new();
+        let existing = EMPTY.get_or_init(HashSet::new);
+        Self {
+            existing_names: existing,
+            synthesized: Vec::new(),
+            name_stack: Vec::new(),
+            promotion_allowed: false,
+        }
+    }
+
+    fn push(&mut self, segment: &str) {
+        self.name_stack.push(pascal_case(segment));
+    }
+
+    fn pop(&mut self) {
+        self.name_stack.pop();
+    }
+}
+
+/// Convert `snake_case`, `kebab-case`, or `camelCase` to `PascalCase`.
+/// Already-PascalCase input is left unchanged.
+fn pascal_case(s: &str) -> String {
+    let mut out = String::new();
+    let mut capitalize_next = true;
+    for c in s.chars() {
+        if c == '_' || c == '-' {
+            capitalize_next = true;
+        } else if capitalize_next {
+            out.extend(c.to_uppercase());
+            capitalize_next = false;
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 pub fn lower_schemas(spec: &oas3::Spec) -> Result<Vec<TypeDef>, Error> {
     let Some(components) = &spec.components else {
         return Ok(Vec::new());
     };
 
+    let existing_names: HashSet<String> = components.schemas.keys().cloned().collect();
+    let mut ctx = LoweringCtx::new(&existing_names);
+
     let mut types: Vec<TypeDef> = components
         .schemas
         .iter()
-        .map(|(name, schema_or_ref)| lower_top_level(name, schema_or_ref))
+        .map(|(name, schema_or_ref)| lower_top_level(&mut ctx, name, schema_or_ref))
         .collect::<Result<_, _>>()?;
+
+    types.extend(ctx.synthesized);
 
     super::box_cycles::box_recursive_types(&mut types);
 
@@ -23,6 +101,7 @@ pub fn lower_schemas(spec: &oas3::Spec) -> Result<Vec<TypeDef>, Error> {
 }
 
 fn lower_top_level(
+    ctx: &mut LoweringCtx,
     name: &str,
     schema_or_ref: &ObjectOrReference<ObjectSchema>,
 ) -> Result<TypeDef, Error> {
@@ -35,11 +114,16 @@ fn lower_top_level(
                 kind: TypeDefKind::Alias(TypeRef::Named(target)),
             })
         }
-        ObjectOrReference::Object(schema) => lower_schema(name, schema),
+        ObjectOrReference::Object(schema) => {
+            ctx.push(name);
+            let result = lower_schema(ctx, name, schema);
+            ctx.pop();
+            result
+        }
     }
 }
 
-fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
+fn lower_schema(ctx: &mut LoweringCtx, name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
     let description = schema.description.clone();
 
     // string enum: type string + enum values
@@ -61,12 +145,12 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
     let has_variants = !schema.one_of.is_empty() || !schema.any_of.is_empty();
 
     if has_structure || has_variants {
-        return lower_composite(name, schema, has_structure, has_variants);
+        return lower_composite(ctx, name, schema, has_structure, has_variants);
     }
 
     // array: type array + items (or prefixItems for tuples)
     if is_array_type(schema) {
-        let type_ref = lower_array_type(schema)?;
+        let type_ref = lower_array_type(ctx, schema)?;
         return Ok(TypeDef {
             name: name.to_string(),
             description,
@@ -112,6 +196,7 @@ fn lower_schema(name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
 }
 
 fn lower_composite(
+    ctx: &mut LoweringCtx,
     name: &str,
     schema: &ObjectSchema,
     has_structure: bool,
@@ -121,7 +206,7 @@ fn lower_composite(
 
     // pure enum: only oneOf/anyOf, no fields or bases
     if has_variants && !has_structure {
-        let (variants, discriminator) = lower_variants(schema)?;
+        let (variants, discriminator) = lower_variants(ctx, schema)?;
         return Ok(TypeDef {
             name: name.to_string(),
             description,
@@ -142,12 +227,12 @@ fn lower_composite(
                 bases.push(TypeRef::Named(extract_schema_name(ref_path)?));
             }
             ObjectOrReference::Object(inline) => {
-                lower_properties_into(&mut fields, inline)?;
+                lower_properties_into(ctx, &mut fields, inline)?;
             }
         }
     }
 
-    lower_properties_into(&mut fields, schema)?;
+    lower_properties_into(ctx, &mut fields, schema)?;
 
     let deny_unknown_fields = matches!(
         &schema.additional_properties,
@@ -166,12 +251,13 @@ fn lower_composite(
 }
 
 fn lower_variants(
+    ctx: &mut LoweringCtx,
     schema: &ObjectSchema,
 ) -> Result<(Vec<Variant>, Option<DiscriminatorDef>), Error> {
     let mut variants = Vec::new();
     for entry in schema.one_of.iter().chain(schema.any_of.iter()) {
         variants.push(Variant {
-            type_ref: lower_type_ref(entry)?,
+            type_ref: lower_type_ref_in_schema(ctx, entry)?,
             mapping_value: None,
         });
     }
@@ -196,11 +282,19 @@ fn lower_variants(
     Ok((variants, discriminator))
 }
 
-fn lower_properties_into(fields: &mut Vec<Field>, schema: &ObjectSchema) -> Result<(), Error> {
+fn lower_properties_into(
+    ctx: &mut LoweringCtx,
+    fields: &mut Vec<Field>,
+    schema: &ObjectSchema,
+) -> Result<(), Error> {
     for (prop_name, prop_schema) in &schema.properties {
+        ctx.push(prop_name);
+        let type_ref = lower_type_ref_in_schema(ctx, prop_schema);
+        ctx.pop();
+        let type_ref = type_ref?;
         fields.push(Field {
             name: prop_name.clone(),
-            type_ref: lower_type_ref(prop_schema)?,
+            type_ref,
             required: schema.required.contains(prop_name),
             description: match prop_schema {
                 ObjectOrReference::Object(s) => s.description.clone(),
@@ -214,15 +308,23 @@ fn lower_properties_into(fields: &mut Vec<Field>, schema: &ObjectSchema) -> Resu
 pub(crate) fn lower_type_ref(
     schema_or_ref: &ObjectOrReference<ObjectSchema>,
 ) -> Result<TypeRef, Error> {
+    let mut ctx = LoweringCtx::forbidden();
+    lower_type_ref_in_schema(&mut ctx, schema_or_ref)
+}
+
+fn lower_type_ref_in_schema(
+    ctx: &mut LoweringCtx,
+    schema_or_ref: &ObjectOrReference<ObjectSchema>,
+) -> Result<TypeRef, Error> {
     match schema_or_ref {
         ObjectOrReference::Ref { ref_path, .. } => {
             Ok(TypeRef::Named(extract_schema_name(ref_path)?))
         }
-        ObjectOrReference::Object(schema) => lower_inline_type(schema),
+        ObjectOrReference::Object(schema) => lower_inline_type(ctx, schema),
     }
 }
 
-fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
+fn lower_inline_type(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<TypeRef, Error> {
     // nullable: type is [T, "null"]
     if let Some(SchemaTypeSet::Multiple(types)) = &schema.schema_type {
         let non_null: Vec<_> = types
@@ -233,13 +335,13 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
         if non_null.len() == 1 && types.len() == 2 {
             let mut inner_schema = schema.clone();
             inner_schema.schema_type = Some(SchemaTypeSet::Single(non_null[0]));
-            let inner = lower_inline_type(&inner_schema)?;
+            let inner = lower_inline_type(ctx, &inner_schema)?;
             return Ok(TypeRef::Option(Box::new(inner)));
         }
     }
 
     // nullable: oneOf with exactly [{type: "null"}, {$ref or inline type}]
-    if let Some(inner) = try_lower_oneof_nullable(schema)? {
+    if let Some(inner) = try_lower_oneof_nullable(ctx, schema)? {
         return Ok(TypeRef::Option(Box::new(inner)));
     }
 
@@ -282,7 +384,7 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
             Some("float") => Ok(TypeRef::Primitive(PrimitiveType::F32)),
             _ => Ok(TypeRef::Primitive(PrimitiveType::F64)),
         },
-        SchemaType::Array => lower_array_type(schema),
+        SchemaType::Array => lower_array_type(ctx, schema),
         SchemaType::Object => {
             if let Some(additional) = &schema.additional_properties {
                 lower_additional_properties(additional)?.ok_or_else(|| Error::UnsupportedSchema {
@@ -301,11 +403,11 @@ fn lower_inline_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
 }
 
 /// Lower an array schema to either an `Array` (open-ended) or `Tuple` (bounded `prefixItems`).
-fn lower_array_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
+fn lower_array_type(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<TypeRef, Error> {
     if !schema.prefix_items.is_empty() {
-        return lower_prefix_items(schema);
+        return lower_prefix_items(ctx, schema);
     }
-    let inner = lower_items(schema)?;
+    let inner = lower_items(ctx, schema)?;
     Ok(TypeRef::Array(Box::new(inner)))
 }
 
@@ -313,7 +415,7 @@ fn lower_array_type(schema: &ObjectSchema) -> Result<TypeRef, Error> {
 /// by `minItems == maxItems == prefixItems.len()` — otherwise the schema permits arrays
 /// shorter or longer than the prefix and a fixed-size tuple would misrepresent the wire
 /// shape.
-fn lower_prefix_items(schema: &ObjectSchema) -> Result<TypeRef, Error> {
+fn lower_prefix_items(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<TypeRef, Error> {
     let n = schema.prefix_items.len() as u64;
     if schema.min_items != Some(n) || schema.max_items != Some(n) {
         return Err(Error::UnsupportedSchema {
@@ -322,22 +424,21 @@ fn lower_prefix_items(schema: &ObjectSchema) -> Result<TypeRef, Error> {
             ),
         });
     }
-    let items = schema
-        .prefix_items
-        .iter()
-        .map(lower_type_ref)
-        .collect::<Result<Vec<_>, _>>()?;
+    let mut items = Vec::new();
+    for item in &schema.prefix_items {
+        items.push(lower_type_ref_in_schema(ctx, item)?);
+    }
     Ok(TypeRef::Tuple(items))
 }
 
-fn lower_items(schema: &ObjectSchema) -> Result<TypeRef, Error> {
+fn lower_items(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<TypeRef, Error> {
     let Some(items) = &schema.items else {
         return Err(Error::UnsupportedSchema {
             context: "array without items".to_string(),
         });
     };
     match items.as_ref() {
-        oas3::spec::Schema::Object(inner) => lower_type_ref(inner),
+        oas3::spec::Schema::Object(inner) => lower_type_ref_in_schema(ctx, inner),
         oas3::spec::Schema::Boolean(_) => Err(Error::UnsupportedSchema {
             context: "boolean schema in items".to_string(),
         }),
@@ -390,7 +491,7 @@ pub(crate) fn extract_schema_name(ref_path: &str) -> Result<String, Error> {
         })
 }
 
-fn try_lower_oneof_nullable(schema: &ObjectSchema) -> Result<Option<TypeRef>, Error> {
+fn try_lower_oneof_nullable(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<Option<TypeRef>, Error> {
     if schema.one_of.len() != 2 {
         return Ok(None);
     }
@@ -417,7 +518,7 @@ fn try_lower_oneof_nullable(schema: &ObjectSchema) -> Result<Option<TypeRef>, Er
     };
     let _ = null_idx;
 
-    let inner = lower_type_ref(&schema.one_of[other_idx])?;
+    let inner = lower_type_ref_in_schema(ctx, &schema.one_of[other_idx])?;
     Ok(Some(inner))
 }
 
