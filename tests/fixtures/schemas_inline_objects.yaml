@@ -1,0 +1,74 @@
+openapi: "3.1.0"
+info:
+  title: Inline Object Promotion
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    # Inline object property with additionalProperties: false — issue #108 repro.
+    Parent:
+      type: object
+      required: [child]
+      properties:
+        child:
+          type: object
+          additionalProperties: false
+          properties:
+            a: { type: string }
+            b: { type: string }
+
+    # Inline object property with no additionalProperties — the parallel error
+    # we're removing.
+    Container:
+      type: object
+      required: [payload]
+      properties:
+        payload:
+          type: object
+          properties:
+            id: { type: integer, format: int64 }
+            label: { type: string }
+
+    # Two levels of nesting; name stack should produce OuterMiddleInner.
+    Outer:
+      type: object
+      properties:
+        middle:
+          type: object
+          additionalProperties: false
+          properties:
+            inner:
+              type: object
+              additionalProperties: false
+              properties:
+                value: { type: string }
+
+    # Inline object as array items — name should end in `Item`.
+    Catalogue:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              sku: { type: string }
+              qty: { type: integer }
+
+    # Deliberate collision: synthesised name `ClashChild` would normally be
+    # produced from `Clash.properties.child`, but the user has already declared
+    # a sibling `ClashChild`. Synthesis must pick `ClashChild2`.
+    Clash:
+      type: object
+      properties:
+        child:
+          type: object
+          additionalProperties: false
+          properties:
+            note: { type: string }
+    ClashChild:
+      type: object
+      required: [unrelated]
+      properties:
+        unrelated: { type: string }

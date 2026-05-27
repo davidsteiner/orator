@@ -405,6 +405,16 @@ components:
           $ref: "#/components/schemas/Surface"
         indoor:
           type: boolean
+        booking_window:
+          type: object
+          additionalProperties: false
+          properties:
+            opens_at:
+              type: string
+              format: date-time
+            closes_at:
+              type: string
+              format: date-time
       additionalProperties: false
 
     MemberBooking:

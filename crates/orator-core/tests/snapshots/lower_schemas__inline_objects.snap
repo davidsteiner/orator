@@ -1,0 +1,272 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+expression: types
+---
+[
+    TypeDef {
+        name: "Catalogue",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "entries",
+                        type_ref: Array(
+                            Named(
+                                "CatalogueEntriesItem",
+                            ),
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Clash",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "child",
+                        type_ref: Named(
+                            "ClashChild2",
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "ClashChild",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "unrelated",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Container",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "payload",
+                        type_ref: Named(
+                            "ContainerPayload",
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Outer",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "middle",
+                        type_ref: Named(
+                            "OuterMiddle",
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Parent",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "child",
+                        type_ref: Named(
+                            "ParentChild",
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "CatalogueEntriesItem",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "qty",
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "sku",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: true,
+            },
+        ),
+    },
+    TypeDef {
+        name: "ClashChild2",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "note",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: true,
+            },
+        ),
+    },
+    TypeDef {
+        name: "ContainerPayload",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "id",
+                        type_ref: Primitive(
+                            I64,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "label",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "OuterMiddleInner",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "value",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: true,
+            },
+        ),
+    },
+    TypeDef {
+        name: "OuterMiddle",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "inner",
+                        type_ref: Named(
+                            "OuterMiddleInner",
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: true,
+            },
+        ),
+    },
+    TypeDef {
+        name: "ParentChild",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "a",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                    Field {
+                        name: "b",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: true,
+            },
+        ),
+    },
+]
