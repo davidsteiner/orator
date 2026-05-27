@@ -825,10 +825,16 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
     // ApiBuilder struct
     let state_idents: Vec<&proc_macro2::Ident> = infos.iter().map(|i| &i.state_ident).collect();
 
+    let phantom_ty = if let [single] = state_idents.as_slice() {
+        quote! { std::marker::PhantomData<#single> }
+    } else {
+        quote! { std::marker::PhantomData<(#(#state_idents),*)> }
+    };
+
     let builder_struct = quote! {
         pub struct ApiBuilder<#(#state_idents = Missing),*> {
             router: orator_axum::axum::Router,
-            _phantom: std::marker::PhantomData<(#(#state_idents),*)>,
+            _phantom: #phantom_ty,
         }
     };
 

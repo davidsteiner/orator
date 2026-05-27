@@ -141,7 +141,7 @@ impl DefaultRouter {
 }
 pub struct ApiBuilder<DefaultState = Missing> {
     router: orator_axum::axum::Router,
-    _phantom: std::marker::PhantomData<(DefaultState)>,
+    _phantom: std::marker::PhantomData<DefaultState>,
 }
 impl ApiBuilder {
     pub fn new() -> Self {
