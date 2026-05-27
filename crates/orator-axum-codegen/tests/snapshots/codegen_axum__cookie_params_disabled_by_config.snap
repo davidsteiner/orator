@@ -68,7 +68,7 @@ impl CookieTestRouter {
 }
 pub struct ApiBuilder<CookieTestState = Missing> {
     router: orator_axum::axum::Router,
-    _phantom: std::marker::PhantomData<(CookieTestState)>,
+    _phantom: std::marker::PhantomData<CookieTestState>,
 }
 impl ApiBuilder {
     pub fn new() -> Self {

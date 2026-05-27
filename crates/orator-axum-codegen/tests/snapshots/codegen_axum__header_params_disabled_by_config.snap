@@ -68,7 +68,7 @@ impl HeaderTestRouter {
 }
 pub struct ApiBuilder<HeaderTestState = Missing> {
     router: orator_axum::axum::Router,
-    _phantom: std::marker::PhantomData<(HeaderTestState)>,
+    _phantom: std::marker::PhantomData<HeaderTestState>,
 }
 impl ApiBuilder {
     pub fn new() -> Self {
