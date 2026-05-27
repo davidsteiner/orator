@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1](https://github.com/davidsteiner/orator/compare/orator-core-v0.8.0...orator-core-v0.8.1) - 2026-05-27
+
+### Added
+
+- promote inline object schemas to named structs ([#109](https://github.com/davidsteiner/orator/pull/109))
+
 ## [0.8.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.7.0...orator-core-v0.8.0) - 2026-05-23
 
 ### Added

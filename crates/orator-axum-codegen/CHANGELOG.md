@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.2.3...orator-axum-codegen-v0.2.4) - 2026-05-27
+
+### Added
+
+- promote inline object schemas to named structs ([#109](https://github.com/davidsteiner/orator/pull/109))
+
+### Fixed
+
+- avoid redundant parens in single-tag ApiBuilder PhantomData ([#111](https://github.com/davidsteiner/orator/pull/111))
+
 ## [0.2.3](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.2.2...orator-axum-codegen-v0.2.3) - 2026-05-23
 
 ### Added
