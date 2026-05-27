@@ -116,3 +116,11 @@ fn prefix_items() {
     ));
     insta::assert_debug_snapshot!(types);
 }
+
+#[test]
+fn inline_objects() {
+    let types = load_and_lower(include_str!(
+        "../../../tests/fixtures/schemas_inline_objects.yaml"
+    ));
+    insta::assert_debug_snapshot!(types);
+}

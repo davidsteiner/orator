@@ -123,3 +123,11 @@ fn prefix_items() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn inline_objects() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_inline_objects.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}
