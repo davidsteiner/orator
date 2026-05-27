@@ -20,11 +20,9 @@ use crate::ir::{
 /// named structs; operations-side must keep erroring. Consulted in Task 3
 /// where synthesize_object is added.
 struct LoweringCtx<'a> {
-    #[allow(dead_code)] // used in Task 3 for collision detection
     existing_names: &'a HashSet<String>,
     synthesized: Vec<TypeDef>,
     name_stack: Vec<String>,
-    #[allow(dead_code)] // consulted in Task 3 when synthesize_object is added
     promotion_allowed: bool,
 }
 
@@ -77,6 +75,87 @@ fn pascal_case(s: &str) -> String {
         }
     }
     out
+}
+
+/// Build a `TypeDef` for an inline `type: object` schema and register it in `ctx`.
+/// Returns a `TypeRef::Named` pointing at the freshly synthesised type.
+///
+/// `array_item` distinguishes array-items from struct properties: when true the
+/// current top-of-stack name is suffixed with `Item` (so `Catalogue.entries`
+/// items become `CatalogueEntriesItem`, not `CatalogueEntries`).
+///
+/// When `ctx.promotion_allowed` is false (operations-side calls), this raises
+/// the same `UnsupportedSchema` error that pre-Task-3 code did. Promotion is
+/// scoped to component schemas only.
+fn synthesize_object(
+    ctx: &mut LoweringCtx,
+    schema: &ObjectSchema,
+    array_item: bool,
+) -> Result<TypeRef, Error> {
+    if !ctx.promotion_allowed {
+        return Err(Error::UnsupportedSchema {
+            context: "inline object with additionalProperties: false — use a $ref to a named schema instead".to_string(),
+        });
+    }
+
+    let mut base_name = ctx.name_stack.join("");
+    if array_item {
+        base_name.push_str("Item");
+    }
+    let name = unique_name(ctx, &base_name);
+
+    let description = schema.description.clone();
+
+    let mut bases = Vec::new();
+    let mut fields = Vec::new();
+    for entry in &schema.all_of {
+        match entry {
+            ObjectOrReference::Ref { ref_path, .. } => {
+                bases.push(TypeRef::Named(extract_schema_name(ref_path)?));
+            }
+            ObjectOrReference::Object(inline) => {
+                lower_properties_into(ctx, &mut fields, inline)?;
+            }
+        }
+    }
+    lower_properties_into(ctx, &mut fields, schema)?;
+
+    let deny_unknown_fields = matches!(
+        &schema.additional_properties,
+        Some(oas3::spec::Schema::Boolean(BooleanSchema(false)))
+    );
+
+    ctx.synthesized.push(TypeDef {
+        name: name.clone(),
+        description,
+        kind: TypeDefKind::Struct(StructDef {
+            bases,
+            fields,
+            deny_unknown_fields,
+        }),
+    });
+
+    Ok(TypeRef::Named(name))
+}
+
+/// Pick a name that doesn't clash with an existing component schema or a
+/// previously synthesised type. Tries `base`, then `base2`, `base3`, ...
+fn unique_name(ctx: &LoweringCtx, base: &str) -> String {
+    let taken = |candidate: &str| -> bool {
+        ctx.existing_names.contains(candidate)
+            || ctx.synthesized.iter().any(|t| t.name == candidate)
+    };
+    if !taken(base) {
+        return base.to_string();
+    }
+    let mut n = 2;
+    loop {
+        let candidate = format!("{base}{n}");
+        if !taken(&candidate) {
+            return candidate;
+        }
+        n += 1;
+    }
 }
 
 pub fn lower_schemas(spec: &oas3::Spec) -> Result<Vec<TypeDef>, Error> {
@@ -348,11 +427,12 @@ fn lower_inline_type(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<Typ
     let Some(SchemaTypeSet::Single(schema_type)) = &schema.schema_type else {
         // object with additionalProperties but no explicit type
         if let Some(additional) = &schema.additional_properties {
-            return lower_additional_properties(additional)?.ok_or_else(|| {
-                Error::UnsupportedSchema {
-                    context: "inline schema with additionalProperties: false — use a $ref to a named schema instead".to_string(),
-                }
-            });
+            if let Some(type_ref) = lower_additional_properties(additional)? {
+                return Ok(type_ref);
+            }
+            // additionalProperties: false on a typeless inline schema — promote
+            // it to a named struct.
+            return synthesize_object(ctx, schema, /* array_item */ false);
         }
         // empty inline schema: no type, no additionalProperties — any JSON value
         if schema.properties.is_empty()
@@ -387,13 +467,14 @@ fn lower_inline_type(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<Typ
         SchemaType::Array => lower_array_type(ctx, schema),
         SchemaType::Object => {
             if let Some(additional) = &schema.additional_properties {
-                lower_additional_properties(additional)?.ok_or_else(|| Error::UnsupportedSchema {
-                    context: "inline object with additionalProperties: false — use a $ref to a named schema instead".to_string(),
-                })
+                if let Some(type_ref) = lower_additional_properties(additional)? {
+                    return Ok(type_ref);
+                }
+                // additionalProperties: false with properties or empty — synthesise.
+                synthesize_object(ctx, schema, /* array_item */ false)
             } else {
-                Err(Error::UnsupportedSchema {
-                    context: "inline object without additionalProperties".to_string(),
-                })
+                // type: object with `properties` but no `additionalProperties`.
+                synthesize_object(ctx, schema, /* array_item */ false)
             }
         }
         SchemaType::Null => Ok(TypeRef::Option(Box::new(TypeRef::Primitive(
@@ -438,11 +519,37 @@ fn lower_items(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<TypeRef, 
         });
     };
     match items.as_ref() {
-        oas3::spec::Schema::Object(inner) => lower_type_ref_in_schema(ctx, inner),
+        oas3::spec::Schema::Object(inner) => match &**inner {
+            ObjectOrReference::Ref { ref_path, .. } => {
+                Ok(TypeRef::Named(extract_schema_name(ref_path)?))
+            }
+            ObjectOrReference::Object(obj) => {
+                if is_inline_object(obj) {
+                    synthesize_object(ctx, obj, /* array_item */ true)
+                } else {
+                    lower_inline_type(ctx, obj)
+                }
+            }
+        },
         oas3::spec::Schema::Boolean(_) => Err(Error::UnsupportedSchema {
             context: "boolean schema in items".to_string(),
         }),
     }
+}
+
+/// True for schemas that `synthesize_object` would promote — used by
+/// `lower_items` to decide whether to apply the `Item` suffix.
+fn is_inline_object(schema: &ObjectSchema) -> bool {
+    let is_explicit_object = matches!(
+        schema.schema_type,
+        Some(SchemaTypeSet::Single(SchemaType::Object))
+    );
+    let is_implicit_closed = schema.schema_type.is_none()
+        && matches!(
+            &schema.additional_properties,
+            Some(oas3::spec::Schema::Boolean(BooleanSchema(false)))
+        );
+    is_explicit_object || is_implicit_closed
 }
 
 fn lower_additional_properties(schema: &oas3::spec::Schema) -> Result<Option<TypeRef>, Error> {
