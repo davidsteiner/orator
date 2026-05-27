@@ -32,6 +32,7 @@ impl From<domain::Court> for crate::api::generated::types::Court {
             name: c.name,
             surface: c.surface.into(),
             indoor: c.indoor,
+            booking_window: None,
         }
     }
 }

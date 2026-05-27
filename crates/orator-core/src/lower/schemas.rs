@@ -202,7 +202,11 @@ fn lower_top_level(
     }
 }
 
-fn lower_schema(ctx: &mut LoweringCtx, name: &str, schema: &ObjectSchema) -> Result<TypeDef, Error> {
+fn lower_schema(
+    ctx: &mut LoweringCtx,
+    name: &str,
+    schema: &ObjectSchema,
+) -> Result<TypeDef, Error> {
     let description = schema.description.clone();
 
     // string enum: type string + enum values
@@ -598,7 +602,10 @@ pub(crate) fn extract_schema_name(ref_path: &str) -> Result<String, Error> {
         })
 }
 
-fn try_lower_oneof_nullable(ctx: &mut LoweringCtx, schema: &ObjectSchema) -> Result<Option<TypeRef>, Error> {
+fn try_lower_oneof_nullable(
+    ctx: &mut LoweringCtx,
+    schema: &ObjectSchema,
+) -> Result<Option<TypeRef>, Error> {
     if schema.one_of.len() != 2 {
         return Ok(None);
     }
