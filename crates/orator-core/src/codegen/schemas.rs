@@ -125,24 +125,157 @@ fn generate_struct(name: &str, def: &StructDef, doc: TokenStream) -> TokenStream
 fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
     let enum_ident = to_pascal_ident(name);
 
-    let serde_attr = if let Some(disc) = &def.discriminator {
-        let tag = &disc.property;
-        quote! { #[serde(tag = #tag)] }
-    } else {
-        quote! { #[serde(untagged)] }
-    };
-
     let mut used_idents: std::collections::HashSet<String> = std::collections::HashSet::new();
-    let variants: Vec<TokenStream> = def
+    let variant_idents: Vec<Ident> = def
         .variants
         .iter()
         .map(|variant| {
             let base_ident = variant_ident_for(variant);
-            let variant_ident = dedupe_ident(&base_ident, &mut used_idents);
+            dedupe_ident(&base_ident, &mut used_idents)
+        })
+        .collect();
+
+    if let Some(disc) = &def.discriminator {
+        generate_discriminated_enum(&enum_ident, doc, def, disc, &variant_idents)
+    } else {
+        generate_untagged_enum(&enum_ident, doc, def, &variant_idents)
+    }
+}
+
+// Discriminated `oneOf`: variant body structs typically declare the
+// discriminator property as their own field. Deriving `Deserialize` with
+// `#[serde(tag = ...)]` strips that field from the content before passing it
+// to the variant struct, so the struct fails to deserialize. Deriving
+// `Serialize` makes serde *prepend* the tag while the inner struct *also*
+// emits its own copy, producing two keys on the wire.
+//
+// We hand-roll both directions: `Serialize` delegates to the inner struct (so
+// the field is emitted exactly once, by the struct itself), and `Deserialize`
+// buffers as a `serde_json::Value`, peeks at the discriminator property to
+// pick the variant, then re-deserialises the full value into that variant's
+// inner type. JSON-coupled by design; tracked for replacement by the
+// typify-style inline+strip fix in the follow-up issue.
+fn generate_discriminated_enum(
+    enum_ident: &Ident,
+    doc: TokenStream,
+    def: &EnumDef,
+    disc: &DiscriminatorDef,
+    variant_idents: &[Ident],
+) -> TokenStream {
+    let tag = &disc.property;
+
+    let variants: Vec<TokenStream> = def
+        .variants
+        .iter()
+        .zip(variant_idents)
+        .map(|(variant, variant_ident)| {
             let variant_type = type_ref_to_tokens(&variant.type_ref, None);
+            quote! {
+                #variant_ident(#variant_type),
+            }
+        })
+        .collect();
 
-            let rename_attr = variant_rename_attr(variant, &def.discriminator, &variant_ident);
+    let serialize_arms: Vec<TokenStream> = variant_idents
+        .iter()
+        .map(|variant_ident| {
+            quote! {
+                Self::#variant_ident(inner) => orator_axum::serde::Serialize::serialize(inner, serializer),
+            }
+        })
+        .collect();
 
+    // Wire tag for each variant: explicit mapping value if set, else the
+    // referenced schema name. The variant ident fallback is defensive — a
+    // valid discriminated oneOf always resolves to Named target schemas.
+    let wire_tags: Vec<String> = def
+        .variants
+        .iter()
+        .zip(variant_idents)
+        .map(|(variant, variant_ident)| {
+            if let Some(val) = &variant.mapping_value {
+                val.clone()
+            } else if let TypeRef::Named(ref_name) = &variant.type_ref {
+                ref_name.clone()
+            } else {
+                variant_ident.to_string()
+            }
+        })
+        .collect();
+
+    let deserialize_arms: Vec<TokenStream> = def
+        .variants
+        .iter()
+        .zip(variant_idents)
+        .zip(&wire_tags)
+        .map(|((variant, variant_ident), wire_tag)| {
+            let variant_type = type_ref_to_tokens(&variant.type_ref, None);
+            quote! {
+                #wire_tag => {
+                    let inner: #variant_type =
+                        orator_axum::serde_json::from_value(value)
+                            .map_err(orator_axum::serde::de::Error::custom)?;
+                    Ok(Self::#variant_ident(inner))
+                }
+            }
+        })
+        .collect();
+
+    quote! {
+        #doc
+        #[derive(Debug, Clone, PartialEq)]
+        pub enum #enum_ident {
+            #(#variants)*
+        }
+
+        impl orator_axum::serde::Serialize for #enum_ident {
+            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+            where
+                S: orator_axum::serde::Serializer,
+            {
+                match self {
+                    #(#serialize_arms)*
+                }
+            }
+        }
+
+        impl<'de> orator_axum::serde::Deserialize<'de> for #enum_ident {
+            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+            where
+                D: orator_axum::serde::Deserializer<'de>,
+            {
+                use orator_axum::serde::Deserialize;
+                let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+                let tag = value
+                    .get(#tag)
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| orator_axum::serde::de::Error::missing_field(#tag))?
+                    .to_string();
+                match tag.as_str() {
+                    #(#deserialize_arms)*
+                    other => Err(orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &[#(#wire_tags,)*],
+                    )),
+                }
+            }
+        }
+    }
+}
+
+fn generate_untagged_enum(
+    enum_ident: &Ident,
+    doc: TokenStream,
+    def: &EnumDef,
+    variant_idents: &[Ident],
+) -> TokenStream {
+    let variants: Vec<TokenStream> = def
+        .variants
+        .iter()
+        .zip(variant_idents)
+        .map(|(variant, variant_ident)| {
+            let variant_type = type_ref_to_tokens(&variant.type_ref, None);
+            let rename_attr = variant_rename_attr(variant, &def.discriminator, variant_ident);
             quote! {
                 #rename_attr
                 #variant_ident(#variant_type),
@@ -154,7 +287,7 @@ fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
         #doc
         #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
         #[serde(crate = "orator_axum::serde")]
-        #serde_attr
+        #[serde(untagged)]
         pub enum #enum_ident {
             #(#variants)*
         }

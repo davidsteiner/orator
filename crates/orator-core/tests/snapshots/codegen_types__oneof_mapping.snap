@@ -39,61 +39,303 @@ pub struct Color {
 pub struct Dog {
     pub bark: String,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(crate = "orator_axum::serde")]
-#[serde(tag = "kind")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Fruit {
-    #[serde(rename = "red-apple")]
     RedApple(Apple),
     Banana(Banana),
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(crate = "orator_axum::serde")]
-#[serde(tag = "shade")]
+impl orator_axum::serde::Serialize for Fruit {
+    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+    where
+        S: orator_axum::serde::Serializer,
+    {
+        match self {
+            Self::RedApple(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::Banana(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+        }
+    }
+}
+impl<'de> orator_axum::serde::Deserialize<'de> for Fruit {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: orator_axum::serde::Deserializer<'de>,
+    {
+        use orator_axum::serde::Deserialize;
+        let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+        let tag = value
+            .get("kind")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| orator_axum::serde::de::Error::missing_field("kind"))?
+            .to_string();
+        match tag.as_str() {
+            "red-apple" => {
+                let inner: Apple = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::RedApple(inner))
+            }
+            "Banana" => {
+                let inner: Banana = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Banana(inner))
+            }
+            other => {
+                Err(
+                    orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &["red-apple", "Banana"],
+                    ),
+                )
+            }
+        }
+    }
+}
+#[derive(Debug, Clone, PartialEq)]
 pub enum Paint {
     Red(Color),
-    #[serde(rename = "red")]
     Red_2(Color),
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(crate = "orator_axum::serde")]
-#[serde(tag = "kind")]
+impl orator_axum::serde::Serialize for Paint {
+    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+    where
+        S: orator_axum::serde::Serializer,
+    {
+        match self {
+            Self::Red(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::Red_2(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+        }
+    }
+}
+impl<'de> orator_axum::serde::Deserialize<'de> for Paint {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: orator_axum::serde::Deserializer<'de>,
+    {
+        use orator_axum::serde::Deserialize;
+        let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+        let tag = value
+            .get("shade")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| orator_axum::serde::de::Error::missing_field("shade"))?
+            .to_string();
+        match tag.as_str() {
+            "Red" => {
+                let inner: Color = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Red(inner))
+            }
+            "red" => {
+                let inner: Color = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Red_2(inner))
+            }
+            other => {
+                Err(
+                    orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &["Red", "red"],
+                    ),
+                )
+            }
+        }
+    }
+}
+#[derive(Debug, Clone, PartialEq)]
 pub enum Pet {
-    #[serde(rename = "kitty")]
     Kitty(Cat),
-    #[serde(rename = "puppy")]
     Puppy(Dog),
+}
+impl orator_axum::serde::Serialize for Pet {
+    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+    where
+        S: orator_axum::serde::Serializer,
+    {
+        match self {
+            Self::Kitty(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::Puppy(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+        }
+    }
+}
+impl<'de> orator_axum::serde::Deserialize<'de> for Pet {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: orator_axum::serde::Deserializer<'de>,
+    {
+        use orator_axum::serde::Deserialize;
+        let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+        let tag = value
+            .get("kind")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| orator_axum::serde::de::Error::missing_field("kind"))?
+            .to_string();
+        match tag.as_str() {
+            "kitty" => {
+                let inner: Cat = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Kitty(inner))
+            }
+            "puppy" => {
+                let inner: Dog = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Puppy(inner))
+            }
+            other => {
+                Err(
+                    orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &["kitty", "puppy"],
+                    ),
+                )
+            }
+        }
+    }
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
 pub struct PolyominoBody {
     pub size: i32,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(crate = "orator_axum::serde")]
-#[serde(tag = "type")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Puzzle {
-    #[serde(rename = "hexa-blocks")]
     HexaBlocks(PolyominoBody),
-    #[serde(rename = "quatro-blocks")]
     QuatroBlocks(PolyominoBody),
-    #[serde(rename = "quatro-legacy")]
     QuatroLegacy(RegionBalanceBody),
-    #[serde(rename = "trio-mino")]
     TrioMino(PolyominoBody),
+}
+impl orator_axum::serde::Serialize for Puzzle {
+    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+    where
+        S: orator_axum::serde::Serializer,
+    {
+        match self {
+            Self::HexaBlocks(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::QuatroBlocks(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::QuatroLegacy(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::TrioMino(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+        }
+    }
+}
+impl<'de> orator_axum::serde::Deserialize<'de> for Puzzle {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: orator_axum::serde::Deserializer<'de>,
+    {
+        use orator_axum::serde::Deserialize;
+        let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+        let tag = value
+            .get("type")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| orator_axum::serde::de::Error::missing_field("type"))?
+            .to_string();
+        match tag.as_str() {
+            "hexa-blocks" => {
+                let inner: PolyominoBody = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::HexaBlocks(inner))
+            }
+            "quatro-blocks" => {
+                let inner: PolyominoBody = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::QuatroBlocks(inner))
+            }
+            "quatro-legacy" => {
+                let inner: RegionBalanceBody = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::QuatroLegacy(inner))
+            }
+            "trio-mino" => {
+                let inner: PolyominoBody = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::TrioMino(inner))
+            }
+            other => {
+                Err(
+                    orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &["hexa-blocks", "quatro-blocks", "quatro-legacy", "trio-mino"],
+                    ),
+                )
+            }
+        }
+    }
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
 pub struct RegionBalanceBody {
     pub regions: i32,
 }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(crate = "orator_axum::serde")]
-#[serde(tag = "type")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Shape {
-    #[serde(rename = "round-thing")]
     RoundThing(Circle),
     Square(Square),
+}
+impl orator_axum::serde::Serialize for Shape {
+    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+    where
+        S: orator_axum::serde::Serializer,
+    {
+        match self {
+            Self::RoundThing(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::Square(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+        }
+    }
+}
+impl<'de> orator_axum::serde::Deserialize<'de> for Shape {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: orator_axum::serde::Deserializer<'de>,
+    {
+        use orator_axum::serde::Deserialize;
+        let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+        let tag = value
+            .get("type")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| orator_axum::serde::de::Error::missing_field("type"))?
+            .to_string();
+        match tag.as_str() {
+            "round-thing" => {
+                let inner: Circle = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::RoundThing(inner))
+            }
+            "Square" => {
+                let inner: Square = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Square(inner))
+            }
+            other => {
+                Err(
+                    orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &["round-thing", "Square"],
+                    ),
+                )
+            }
+        }
+    }
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]

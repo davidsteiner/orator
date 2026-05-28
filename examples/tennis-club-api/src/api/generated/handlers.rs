@@ -657,6 +657,11 @@ impl ApiBuilder {
         }
     }
 }
+impl Default for ApiBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl<CourtsState, HealthState, MembersState>
     ApiBuilder<Missing, CourtsState, HealthState, MembersState>
 {

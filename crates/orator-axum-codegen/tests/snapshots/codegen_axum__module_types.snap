@@ -9,14 +9,59 @@ expression: module.types
 
 #![allow(dead_code, unused_imports)]
 use orator_axum::serde;
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(crate = "orator_axum::serde")]
-#[serde(tag = "booking_type")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Booking {
-    #[serde(rename = "guest")]
     Guest(GuestBooking),
-    #[serde(rename = "member")]
     Member(MemberBooking),
+}
+impl orator_axum::serde::Serialize for Booking {
+    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+    where
+        S: orator_axum::serde::Serializer,
+    {
+        match self {
+            Self::Guest(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+            Self::Member(inner) => {
+                orator_axum::serde::Serialize::serialize(inner, serializer)
+            }
+        }
+    }
+}
+impl<'de> orator_axum::serde::Deserialize<'de> for Booking {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: orator_axum::serde::Deserializer<'de>,
+    {
+        use orator_axum::serde::Deserialize;
+        let value = orator_axum::serde_json::Value::deserialize(deserializer)?;
+        let tag = value
+            .get("booking_type")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| orator_axum::serde::de::Error::missing_field("booking_type"))?
+            .to_string();
+        match tag.as_str() {
+            "guest" => {
+                let inner: GuestBooking = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Guest(inner))
+            }
+            "member" => {
+                let inner: MemberBooking = orator_axum::serde_json::from_value(value)
+                    .map_err(orator_axum::serde::de::Error::custom)?;
+                Ok(Self::Member(inner))
+            }
+            other => {
+                Err(
+                    orator_axum::serde::de::Error::unknown_variant(
+                        other,
+                        &["guest", "member"],
+                    ),
+                )
+            }
+        }
+    }
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]

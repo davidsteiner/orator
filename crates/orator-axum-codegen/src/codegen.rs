@@ -848,6 +848,12 @@ fn generate_api_builder(tags: &BTreeMap<String, Vec<&OperationIr>>) -> TokenStre
                 }
             }
         }
+
+        impl Default for ApiBuilder {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
     };
 
     // per-tag registration methods

@@ -1,5 +1,6 @@
 ---
 source: crates/orator-axum-codegen/tests/codegen_axum.rs
+assertion_line: 92
 expression: code
 ---
 #![allow(dead_code, unused_imports)]
@@ -230,6 +231,11 @@ impl ApiBuilder {
             router: orator_axum::axum::Router::new(),
             _phantom: std::marker::PhantomData,
         }
+    }
+}
+impl Default for ApiBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 impl ApiBuilder<Missing> {
