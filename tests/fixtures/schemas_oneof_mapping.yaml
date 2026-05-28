@@ -1,0 +1,128 @@
+openapi: "3.1.0"
+info:
+  title: Discriminator Mapping
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    PolyominoBody:
+      type: object
+      required:
+        - size
+      properties:
+        size:
+          type: integer
+    RegionBalanceBody:
+      type: object
+      required:
+        - regions
+      properties:
+        regions:
+          type: integer
+    # Many-to-one mapping: three keys to PolyominoBody, one to RegionBalanceBody.
+    # Reproduces the exact example from issue #113.
+    Puzzle:
+      oneOf:
+        - $ref: '#/components/schemas/PolyominoBody'
+        - $ref: '#/components/schemas/RegionBalanceBody'
+      discriminator:
+        propertyName: type
+        mapping:
+          hexa-blocks:   '#/components/schemas/PolyominoBody'
+          quatro-blocks: '#/components/schemas/PolyominoBody'
+          trio-mino:     '#/components/schemas/PolyominoBody'
+          quatro-legacy: '#/components/schemas/RegionBalanceBody'
+    Cat:
+      type: object
+      required:
+        - meow
+      properties:
+        meow:
+          type: string
+    Dog:
+      type: object
+      required:
+        - bark
+      properties:
+        bark:
+          type: string
+    # One-to-one mapping where the key does not match the schema name.
+    # Pre-fix this produced `Cat(Cat)` with `rename="kitty"`; post-fix it produces `Kitty(Cat)`.
+    Pet:
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: kind
+        mapping:
+          kitty:  '#/components/schemas/Cat'
+          puppy:  '#/components/schemas/Dog'
+    Circle:
+      type: object
+      required:
+        - radius
+      properties:
+        radius:
+          type: number
+          format: float
+    Square:
+      type: object
+      required:
+        - side
+      properties:
+        side:
+          type: number
+          format: float
+    # Partial mapping: Circle is mapped to a custom tag; Square has no mapping
+    # entry and must fall back to its schema name as the wire tag.
+    Shape:
+      oneOf:
+        - $ref: '#/components/schemas/Circle'
+        - $ref: '#/components/schemas/Square'
+      discriminator:
+        propertyName: type
+        mapping:
+          round-thing: '#/components/schemas/Circle'
+    Apple:
+      type: object
+      required:
+        - color
+      properties:
+        color:
+          type: string
+    Banana:
+      type: object
+      required:
+        - length
+      properties:
+        length:
+          type: integer
+    # Unused mapping key `mystery-fruit` points at a schema that is NOT in
+    # this oneOf list. Today this is silently dropped; we will preserve that
+    # behaviour and assert it explicitly.
+    Fruit:
+      oneOf:
+        - $ref: '#/components/schemas/Apple'
+        - $ref: '#/components/schemas/Banana'
+      discriminator:
+        propertyName: kind
+        mapping:
+          red-apple:     '#/components/schemas/Apple'
+          mystery-fruit: '#/components/schemas/Mango'
+    Color:
+      type: object
+      required:
+        - hex
+      properties:
+        hex:
+          type: string
+    # Collision case: `red` and `Red` both PascalCase to `Red`. Codegen must
+    # dedupe by appending a numeric suffix so the generated enum still compiles.
+    Paint:
+      oneOf:
+        - $ref: '#/components/schemas/Color'
+      discriminator:
+        propertyName: shade
+        mapping:
+          red: '#/components/schemas/Color'
+          Red: '#/components/schemas/Color'
