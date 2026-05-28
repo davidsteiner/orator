@@ -44,24 +44,25 @@ pub struct Dog {
 #[serde(tag = "kind")]
 pub enum Fruit {
     #[serde(rename = "red-apple")]
-    Apple(Apple),
+    RedApple(Apple),
     Banana(Banana),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
 #[serde(tag = "shade")]
 pub enum Paint {
+    Red(Color),
     #[serde(rename = "red")]
-    Color(Color),
+    Red_2(Color),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
 #[serde(tag = "kind")]
 pub enum Pet {
     #[serde(rename = "kitty")]
-    Cat(Cat),
+    Kitty(Cat),
     #[serde(rename = "puppy")]
-    Dog(Dog),
+    Puppy(Dog),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
@@ -72,10 +73,14 @@ pub struct PolyominoBody {
 #[serde(crate = "orator_axum::serde")]
 #[serde(tag = "type")]
 pub enum Puzzle {
-    #[serde(rename = "trio-mino")]
-    PolyominoBody(PolyominoBody),
+    #[serde(rename = "hexa-blocks")]
+    HexaBlocks(PolyominoBody),
+    #[serde(rename = "quatro-blocks")]
+    QuatroBlocks(PolyominoBody),
     #[serde(rename = "quatro-legacy")]
-    RegionBalanceBody(RegionBalanceBody),
+    QuatroLegacy(RegionBalanceBody),
+    #[serde(rename = "trio-mino")]
+    TrioMino(PolyominoBody),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(crate = "orator_axum::serde")]
@@ -87,7 +92,7 @@ pub struct RegionBalanceBody {
 #[serde(tag = "type")]
 pub enum Shape {
     #[serde(rename = "round-thing")]
-    Circle(Circle),
+    RoundThing(Circle),
     Square(Square),
 }
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

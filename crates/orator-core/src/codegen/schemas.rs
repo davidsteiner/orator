@@ -132,11 +132,13 @@ fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
         quote! { #[serde(untagged)] }
     };
 
+    let mut used_idents: std::collections::HashSet<String> = std::collections::HashSet::new();
     let variants: Vec<TokenStream> = def
         .variants
         .iter()
         .map(|variant| {
-            let variant_ident = variant_name_for_type_ref(&variant.type_ref);
+            let base_ident = variant_ident_for(variant);
+            let variant_ident = dedupe_ident(&base_ident, &mut used_idents);
             let variant_type = type_ref_to_tokens(&variant.type_ref, None);
 
             let rename_attr = variant_rename_attr(variant, &def.discriminator, &variant_ident);
@@ -159,27 +161,49 @@ fn generate_enum(name: &str, def: &EnumDef, doc: TokenStream) -> TokenStream {
     }
 }
 
+fn variant_ident_for(variant: &Variant) -> Ident {
+    if let Some(val) = &variant.mapping_value {
+        to_pascal_ident(val)
+    } else {
+        variant_name_for_type_ref(&variant.type_ref)
+    }
+}
+
+fn dedupe_ident(base: &Ident, used: &mut std::collections::HashSet<String>) -> Ident {
+    let base_str = base.to_string();
+    if used.insert(base_str.clone()) {
+        return base.clone();
+    }
+    let mut suffix = 2usize;
+    loop {
+        let candidate = format!("{base_str}_{suffix}");
+        if used.insert(candidate.clone()) {
+            return Ident::new(&candidate, proc_macro2::Span::call_site());
+        }
+        suffix += 1;
+    }
+}
+
 fn variant_rename_attr(
     variant: &Variant,
     discriminator: &Option<DiscriminatorDef>,
     variant_ident: &Ident,
 ) -> TokenStream {
-    // if there's an explicit mapping value, use it
-    if let Some(val) = &variant.mapping_value
-        && val != &variant_ident.to_string()
-    {
-        return quote! { #[serde(rename = #val)] };
+    // If the variant has an explicit mapping key, the wire tag is that key.
+    if let Some(val) = &variant.mapping_value {
+        if val != &variant_ident.to_string() {
+            return quote! { #[serde(rename = #val)] };
+        }
+        return quote! {};
     }
 
-    // for discriminated enums without explicit mapping, check if the variant name
-    // matches what serde would use by default
-    #[allow(clippy::collapsible_if)]
-    if discriminator.is_some() {
-        if let TypeRef::Named(ref_name) = &variant.type_ref {
-            if variant_ident != ref_name {
-                return quote! { #[serde(rename = #ref_name)] };
-            }
-        }
+    // No mapping key but the enum is discriminated: the wire tag is the
+    // schema name (OpenAPI's implicit-mapping rule).
+    if discriminator.is_some()
+        && let TypeRef::Named(ref_name) = &variant.type_ref
+        && variant_ident != ref_name
+    {
+        return quote! { #[serde(rename = #ref_name)] };
     }
 
     quote! {}
