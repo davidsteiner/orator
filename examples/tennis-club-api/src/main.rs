@@ -1,8 +1,6 @@
-mod api;
-
-use api::generated::handlers::*;
 use serde_json::json;
 use std::sync::Arc;
+use tennis_club_api::api::generated::handlers::*;
 use tennis_club_core::TennisClub;
 
 #[tokio::main]
