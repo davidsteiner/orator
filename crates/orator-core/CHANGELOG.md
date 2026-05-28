@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2](https://github.com/davidsteiner/orator/compare/orator-core-v0.8.1...orator-core-v0.8.2) - 2026-05-28
+
+### Fixed
+
+- hand-roll serde impls for discriminated oneOf enums ([#117](https://github.com/davidsteiner/orator/pull/117))
+- emit a variant per discriminator mapping key ([#114](https://github.com/davidsteiner/orator/pull/114))
+
 ## [0.8.1](https://github.com/davidsteiner/orator/compare/orator-core-v0.8.0...orator-core-v0.8.1) - 2026-05-27
 
 ### Added

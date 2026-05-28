@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.2.4...orator-axum-codegen-v0.2.5) - 2026-05-28
+
+### Fixed
+
+- hand-roll serde impls for discriminated oneOf enums ([#117](https://github.com/davidsteiner/orator/pull/117))
+- emit a variant per discriminator mapping key ([#114](https://github.com/davidsteiner/orator/pull/114))
+
 ## [0.2.4](https://github.com/davidsteiner/orator/compare/orator-axum-codegen-v0.2.3...orator-axum-codegen-v0.2.4) - 2026-05-27
 
 ### Added
