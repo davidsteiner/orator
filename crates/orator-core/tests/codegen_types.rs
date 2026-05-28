@@ -131,3 +131,11 @@ fn inline_objects() {
     ));
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn oneof_mapping() {
+    let code = generate_from_yaml(include_str!(
+        "../../../tests/fixtures/schemas_oneof_mapping.yaml"
+    ));
+    insta::assert_snapshot!(code);
+}

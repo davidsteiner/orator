@@ -1,0 +1,375 @@
+---
+source: crates/orator-core/tests/lower_schemas.rs
+assertion_line: 132
+expression: types
+---
+[
+    TypeDef {
+        name: "Apple",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "color",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Banana",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "length",
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Cat",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "meow",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Circle",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "radius",
+                        type_ref: Primitive(
+                            F32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Color",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "hex",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Dog",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "bark",
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Fruit",
+        description: None,
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Named(
+                            "Apple",
+                        ),
+                        mapping_value: Some(
+                            "red-apple",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "Banana",
+                        ),
+                        mapping_value: None,
+                    },
+                ],
+                discriminator: Some(
+                    DiscriminatorDef {
+                        property: "kind",
+                        mapping: {
+                            "mystery-fruit": "#/components/schemas/Mango",
+                            "red-apple": "#/components/schemas/Apple",
+                        },
+                    },
+                ),
+            },
+        ),
+    },
+    TypeDef {
+        name: "Paint",
+        description: None,
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Named(
+                            "Color",
+                        ),
+                        mapping_value: Some(
+                            "Red",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "Color",
+                        ),
+                        mapping_value: Some(
+                            "red",
+                        ),
+                    },
+                ],
+                discriminator: Some(
+                    DiscriminatorDef {
+                        property: "shade",
+                        mapping: {
+                            "Red": "#/components/schemas/Color",
+                            "red": "#/components/schemas/Color",
+                        },
+                    },
+                ),
+            },
+        ),
+    },
+    TypeDef {
+        name: "Pet",
+        description: None,
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Named(
+                            "Cat",
+                        ),
+                        mapping_value: Some(
+                            "kitty",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "Dog",
+                        ),
+                        mapping_value: Some(
+                            "puppy",
+                        ),
+                    },
+                ],
+                discriminator: Some(
+                    DiscriminatorDef {
+                        property: "kind",
+                        mapping: {
+                            "kitty": "#/components/schemas/Cat",
+                            "puppy": "#/components/schemas/Dog",
+                        },
+                    },
+                ),
+            },
+        ),
+    },
+    TypeDef {
+        name: "PolyominoBody",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "size",
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Puzzle",
+        description: None,
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Named(
+                            "PolyominoBody",
+                        ),
+                        mapping_value: Some(
+                            "hexa-blocks",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "PolyominoBody",
+                        ),
+                        mapping_value: Some(
+                            "quatro-blocks",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "RegionBalanceBody",
+                        ),
+                        mapping_value: Some(
+                            "quatro-legacy",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "PolyominoBody",
+                        ),
+                        mapping_value: Some(
+                            "trio-mino",
+                        ),
+                    },
+                ],
+                discriminator: Some(
+                    DiscriminatorDef {
+                        property: "type",
+                        mapping: {
+                            "hexa-blocks": "#/components/schemas/PolyominoBody",
+                            "quatro-blocks": "#/components/schemas/PolyominoBody",
+                            "quatro-legacy": "#/components/schemas/RegionBalanceBody",
+                            "trio-mino": "#/components/schemas/PolyominoBody",
+                        },
+                    },
+                ),
+            },
+        ),
+    },
+    TypeDef {
+        name: "RegionBalanceBody",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "regions",
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+    TypeDef {
+        name: "Shape",
+        description: None,
+        kind: Enum(
+            EnumDef {
+                variants: [
+                    Variant {
+                        type_ref: Named(
+                            "Circle",
+                        ),
+                        mapping_value: Some(
+                            "round-thing",
+                        ),
+                    },
+                    Variant {
+                        type_ref: Named(
+                            "Square",
+                        ),
+                        mapping_value: None,
+                    },
+                ],
+                discriminator: Some(
+                    DiscriminatorDef {
+                        property: "type",
+                        mapping: {
+                            "round-thing": "#/components/schemas/Circle",
+                        },
+                    },
+                ),
+            },
+        ),
+    },
+    TypeDef {
+        name: "Square",
+        description: None,
+        kind: Struct(
+            StructDef {
+                bases: [],
+                fields: [
+                    Field {
+                        name: "side",
+                        type_ref: Primitive(
+                            F32,
+                        ),
+                        required: true,
+                        description: None,
+                    },
+                ],
+                deny_unknown_fields: false,
+            },
+        ),
+    },
+]

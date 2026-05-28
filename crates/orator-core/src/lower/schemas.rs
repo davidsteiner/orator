@@ -337,29 +337,78 @@ fn lower_variants(
     ctx: &mut LoweringCtx,
     schema: &ObjectSchema,
 ) -> Result<(Vec<Variant>, Option<DiscriminatorDef>), Error> {
-    let mut variants = Vec::new();
-    for entry in schema.one_of.iter().chain(schema.any_of.iter()) {
-        variants.push(Variant {
-            type_ref: lower_type_ref_in_schema(ctx, entry)?,
-            mapping_value: None,
-        });
-    }
-
     let discriminator = schema.discriminator.as_ref().map(|d| DiscriminatorDef {
         property: d.property_name.clone(),
         mapping: d.mapping.clone().unwrap_or_default(),
     });
 
-    if let Some(disc) = &discriminator {
-        for (value, schema_ref) in &disc.mapping {
-            let target = extract_schema_name(schema_ref).unwrap_or_else(|_| schema_ref.clone());
-            if let Some(variant) = variants
-                .iter_mut()
-                .find(|v| v.type_ref == TypeRef::Named(target.clone()))
-            {
-                variant.mapping_value = Some(value.clone());
-            }
+    // Collect TypeRefs for each oneOf/anyOf entry in source order. We use them
+    // both for the no-mapping path and for filling in unmapped branches below.
+    let mut branch_refs: Vec<TypeRef> = Vec::new();
+    for entry in schema.one_of.iter().chain(schema.any_of.iter()) {
+        branch_refs.push(lower_type_ref_in_schema(ctx, entry)?);
+    }
+
+    let Some(disc) = &discriminator else {
+        // No discriminator: one variant per branch, no wire tags.
+        let variants = branch_refs
+            .into_iter()
+            .map(|type_ref| Variant {
+                type_ref,
+                mapping_value: None,
+            })
+            .collect();
+        return Ok((variants, discriminator));
+    };
+
+    if disc.mapping.is_empty() {
+        // Discriminator without an explicit mapping: one variant per branch;
+        // the wire tag is the schema name (handled by codegen via type_ref).
+        let variants = branch_refs
+            .into_iter()
+            .map(|type_ref| Variant {
+                type_ref,
+                mapping_value: None,
+            })
+            .collect();
+        return Ok((variants, discriminator));
+    }
+
+    // Mapping present. Build one variant per mapping key, in BTreeMap (alpha)
+    // order. Keys whose target is not in the oneOf list are silently dropped
+    // (matches prior behaviour and OpenAPI's permissive stance on stray keys).
+    let mut variants: Vec<Variant> = Vec::new();
+    let mut covered_refs: Vec<TypeRef> = Vec::new();
+    for (key, schema_ref) in &disc.mapping {
+        let target = match extract_schema_name(schema_ref) {
+            Ok(name) => TypeRef::Named(name),
+            Err(_) => continue,
+        };
+        if !branch_refs.contains(&target) {
+            continue;
         }
+        if !covered_refs.contains(&target) {
+            covered_refs.push(target.clone());
+        }
+        variants.push(Variant {
+            type_ref: target,
+            mapping_value: Some(key.clone()),
+        });
+    }
+
+    // Append any oneOf branches that no mapping key referred to. They keep
+    // the implicit-schema-name behaviour. We deliberately allow a branch to
+    // be both mapped and listed without a key only if mapping coverage is
+    // partial; once a TypeRef is covered by at least one mapping key, we do
+    // not also emit an "implicit" variant for it.
+    for type_ref in branch_refs {
+        if covered_refs.contains(&type_ref) {
+            continue;
+        }
+        variants.push(Variant {
+            type_ref,
+            mapping_value: None,
+        });
     }
 
     Ok((variants, discriminator))
