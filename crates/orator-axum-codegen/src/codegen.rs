@@ -176,6 +176,49 @@ fn status_code_to_tokens(response: &OperationResponse) -> TokenStream {
     }
 }
 
+/// Build a `HeaderMap` named `__header_map` from a bound `headers` struct value.
+/// Assumes the match arm binds the headers struct to a local named `headers`.
+fn build_header_map(resp: &OperationResponse) -> TokenStream {
+    let inserts: Vec<TokenStream> = resp
+        .headers
+        .iter()
+        .map(|header| {
+            let field = to_snake_ident(&header.name);
+            let name_lower = header.name.to_lowercase();
+            if header.required {
+                quote! {
+                    if let Ok(__value) =
+                        orator_axum::http::HeaderValue::try_from(headers.#field.to_string())
+                    {
+                        __header_map.insert(
+                            orator_axum::http::HeaderName::from_static(#name_lower),
+                            __value,
+                        );
+                    }
+                }
+            } else {
+                quote! {
+                    if let Some(__header) = &headers.#field {
+                        if let Ok(__value) =
+                            orator_axum::http::HeaderValue::try_from(__header.to_string())
+                        {
+                            __header_map.insert(
+                                orator_axum::http::HeaderName::from_static(#name_lower),
+                                __value,
+                            );
+                        }
+                    }
+                }
+            }
+        })
+        .collect();
+
+    quote! {
+        let mut __header_map = orator_axum::http::HeaderMap::new();
+        #(#inserts)*
+    }
+}
+
 fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
     let ops = ops_prefix();
     let enum_ident = to_pascal_ident(&format!("{}Response", op.operation_id));
@@ -187,49 +230,70 @@ fn generate_into_response_impl(op: &OperationIr) -> TokenStream {
             let variant_name = status_code_variant_name(resp);
             let variant_ident = to_pascal_ident(&variant_name);
             let is_default = matches!(&resp.status_code, ResponseStatusCode::Default);
+            let has_headers = !resp.headers.is_empty();
 
-            if is_default {
-                if let Some(body) = &resp.body {
-                    let response_expr = match &body.content_type {
-                        ContentType::Json => {
-                            quote! { (status, orator_axum::axum::Json(body)).into_response() }
-                        }
-                        ContentType::TextPlain | ContentType::OctetStream => {
-                            quote! { (status, body).into_response() }
-                        }
-                        ContentType::FormUrlEncoded | ContentType::MultipartFormData => {
-                            unreachable!()
-                        }
+            // Wrap a bound `body` local for the given content type.
+            let body_wrap = |ct: &ContentType| -> TokenStream {
+                match ct {
+                    ContentType::Json => quote! { orator_axum::axum::Json(body) },
+                    ContentType::TextPlain | ContentType::OctetStream => quote! { body },
+                    ContentType::FormUrlEncoded | ContentType::MultipartFormData => unreachable!(),
+                }
+            };
+
+            // The status expression: bound `status` for default, constant otherwise.
+            let status_expr = if is_default {
+                quote! { status }
+            } else {
+                status_code_to_tokens(resp)
+            };
+
+            match (resp.body.as_ref(), is_default, has_headers) {
+                // --- no headers: unchanged from today ---
+                (Some(body), true, false) => {
+                    let wrapped = body_wrap(&body.content_type);
+                    quote! { Self::#variant_ident(status, body) => (status, #wrapped).into_response(), }
+                }
+                (None, true, false) => {
+                    quote! { Self::#variant_ident(status) => status.into_response(), }
+                }
+                (Some(body), false, false) => {
+                    let wrapped = body_wrap(&body.content_type);
+                    let status = status_code_to_tokens(resp);
+                    quote! { Self::#variant_ident(body) => (#status, #wrapped).into_response(), }
+                }
+                (None, false, false) => {
+                    let status = status_code_to_tokens(resp);
+                    quote! { Self::#variant_ident => #status.into_response(), }
+                }
+                // --- with headers ---
+                (Some(body), _, true) => {
+                    let wrapped = body_wrap(&body.content_type);
+                    let header_map = build_header_map(resp);
+                    let pat = if is_default {
+                        quote! { Self::#variant_ident { status, body, headers } }
+                    } else {
+                        quote! { Self::#variant_ident { body, headers } }
                     };
                     quote! {
-                        Self::#variant_ident(status, body) => #response_expr,
-                    }
-                } else {
-                    quote! {
-                        Self::#variant_ident(status) => status.into_response(),
+                        #pat => {
+                            #header_map
+                            (#status_expr, __header_map, #wrapped).into_response()
+                        }
                     }
                 }
-            } else {
-                let status = status_code_to_tokens(resp);
-
-                if let Some(body) = &resp.body {
-                    let response_expr = match &body.content_type {
-                        ContentType::Json => {
-                            quote! { (#status, orator_axum::axum::Json(body)).into_response() }
-                        }
-                        ContentType::TextPlain | ContentType::OctetStream => {
-                            quote! { (#status, body).into_response() }
-                        }
-                        ContentType::FormUrlEncoded | ContentType::MultipartFormData => {
-                            unreachable!()
-                        }
+                (None, _, true) => {
+                    let header_map = build_header_map(resp);
+                    let pat = if is_default {
+                        quote! { Self::#variant_ident { status, headers } }
+                    } else {
+                        quote! { Self::#variant_ident { headers } }
                     };
                     quote! {
-                        Self::#variant_ident(body) => #response_expr,
-                    }
-                } else {
-                    quote! {
-                        Self::#variant_ident => #status.into_response(),
+                        #pat => {
+                            #header_map
+                            (#status_expr, __header_map).into_response()
+                        }
                     }
                 }
             }
