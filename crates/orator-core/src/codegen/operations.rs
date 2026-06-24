@@ -37,6 +37,7 @@ pub fn generate_operations_tokens(
     for (tag, ops) in &grouped {
         for op in ops {
             all_items.push(generate_response_enum(op));
+            all_items.extend(generate_response_header_structs(op));
             all_items.extend(generate_params_structs(op, config));
             all_items.extend(generate_multipart_body_struct(op));
         }
@@ -142,18 +143,44 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
             let variant_doc = generate_doc_comment(&resp.description);
 
             let is_default = matches!(&resp.status_code, ResponseStatusCode::Default);
+            let has_headers = !resp.headers.is_empty();
+            let headers_ident = to_pascal_ident(&format!(
+                "{}{}Headers",
+                op.operation_id,
+                variant_name
+            ));
 
-            if let Some(body) = &resp.body {
-                let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
-                if is_default {
+            match (resp.body.as_ref(), is_default, has_headers) {
+                // --- no headers: unchanged from today ---
+                (Some(body), true, false) => {
+                    let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
                     quote! { #variant_doc #variant_ident(orator_axum::http::StatusCode, #body_type), }
-                } else {
+                }
+                (Some(body), false, false) => {
+                    let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
                     quote! { #variant_doc #variant_ident(#body_type), }
                 }
-            } else if is_default {
-                quote! { #variant_doc #variant_ident(orator_axum::http::StatusCode), }
-            } else {
-                quote! { #variant_doc #variant_ident, }
+                (None, true, false) => {
+                    quote! { #variant_doc #variant_ident(orator_axum::http::StatusCode), }
+                }
+                (None, false, false) => {
+                    quote! { #variant_doc #variant_ident, }
+                }
+                // --- with headers: struct variants ---
+                (Some(body), true, true) => {
+                    let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
+                    quote! { #variant_doc #variant_ident { status: orator_axum::http::StatusCode, body: #body_type, headers: #headers_ident }, }
+                }
+                (Some(body), false, true) => {
+                    let body_type = type_ref_to_tokens(&body.type_ref, Some(&types_prefix()));
+                    quote! { #variant_doc #variant_ident { body: #body_type, headers: #headers_ident }, }
+                }
+                (None, true, true) => {
+                    quote! { #variant_doc #variant_ident { status: orator_axum::http::StatusCode, headers: #headers_ident }, }
+                }
+                (None, false, true) => {
+                    quote! { #variant_doc #variant_ident { headers: #headers_ident }, }
+                }
             }
         })
         .collect();
@@ -165,6 +192,43 @@ fn generate_response_enum(op: &OperationIr) -> TokenStream {
             #(#variants)*
         }
     }
+}
+
+fn generate_response_header_structs(op: &OperationIr) -> Vec<TokenStream> {
+    op.responses
+        .iter()
+        .filter(|resp| !resp.headers.is_empty())
+        .map(|resp| {
+            let struct_ident = to_pascal_ident(&format!(
+                "{}{}Headers",
+                op.operation_id,
+                status_code_variant_name(resp)
+            ));
+
+            let fields: Vec<TokenStream> = resp
+                .headers
+                .iter()
+                .map(|header| {
+                    let field_ident = to_snake_ident(&header.name);
+                    let inner = type_ref_to_tokens(&header.type_ref, Some(&types_prefix()));
+                    let field_type = if header.required {
+                        quote! { #inner }
+                    } else {
+                        quote! { Option<#inner> }
+                    };
+                    let field_doc = generate_doc_comment(&header.description);
+                    quote! { #field_doc pub #field_ident: #field_type, }
+                })
+                .collect();
+
+            quote! {
+                #[derive(Debug, Clone)]
+                pub struct #struct_ident {
+                    #(#fields)*
+                }
+            }
+        })
+        .collect()
 }
 
 fn generate_params_structs(op: &OperationIr, config: &Config) -> Vec<TokenStream> {

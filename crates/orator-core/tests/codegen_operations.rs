@@ -83,3 +83,47 @@ fn default_response_operations() {
     );
     insta::assert_snapshot!(code);
 }
+
+#[test]
+fn response_headers_operations() {
+    let code = generate_ops_from_yaml(
+        r#"
+openapi: "3.1.0"
+info:
+  title: Response Headers Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: A list of items
+          headers:
+            X-Rate-Limit:
+              required: true
+              schema:
+                type: integer
+                format: int32
+            X-Request-ID:
+              required: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "429":
+          description: Too many requests
+          headers:
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+"#,
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
