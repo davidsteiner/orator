@@ -1,9 +1,9 @@
-use oas3::spec::{ObjectOrReference, Parameter, ParameterIn, Response};
+use oas3::spec::{Header, ObjectOrReference, Parameter, ParameterIn, Response};
 
 use crate::error::Error;
 use crate::ir::{
     ContentType, Field, HttpMethod, OperationIr, OperationParam, OperationResponse, ParamLocation,
-    PrimitiveType, RequestBodyIr, ResponseBody, ResponseStatusCode, TypeRef,
+    PrimitiveType, RequestBodyIr, ResponseBody, ResponseHeader, ResponseStatusCode, TypeRef,
 };
 
 use super::schemas::lower_type_ref;
@@ -250,6 +250,43 @@ fn lower_multipart_fields(
     Ok(fields)
 }
 
+fn lower_response_headers(
+    headers: &std::collections::BTreeMap<String, ObjectOrReference<Header>>,
+    spec: &oas3::Spec,
+) -> Result<Vec<ResponseHeader>, Error> {
+    let mut result = Vec::new();
+
+    for (name, header_ref) in headers {
+        // Per OpenAPI 3.1, a response header named "Content-Type" is ignored.
+        if name.eq_ignore_ascii_case("content-type") {
+            continue;
+        }
+
+        let resolved = match header_ref {
+            ObjectOrReference::Object(h) => h.clone(),
+            ObjectOrReference::Ref { ref_path, .. } => {
+                header_ref.resolve(spec).map_err(|_| Error::UnresolvedRef {
+                    ref_path: ref_path.clone(),
+                })?
+            }
+        };
+
+        let type_ref = match &resolved.schema {
+            Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
+            None => TypeRef::Primitive(PrimitiveType::String),
+        };
+
+        result.push(ResponseHeader {
+            name: name.clone(),
+            description: resolved.description.clone(),
+            type_ref,
+            required: resolved.required.unwrap_or(false),
+        });
+    }
+
+    Ok(result)
+}
+
 fn lower_responses(
     responses: &Option<std::collections::BTreeMap<String, ObjectOrReference<Response>>>,
     spec: &oas3::Spec,
@@ -305,10 +342,13 @@ fn lower_responses(
             None => None,
         };
 
+        let headers = lower_response_headers(&resolved.headers, spec)?;
+
         result.push(OperationResponse {
             status_code,
             description: resolved.description.clone(),
             body,
+            headers,
         });
     }
 

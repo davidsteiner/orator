@@ -29,6 +29,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -38,6 +39,7 @@ expression: ops
                     "Not found",
                 ),
                 body: None,
+                headers: [],
             },
         ],
     },
@@ -69,6 +71,7 @@ expression: ops
                     "Upload successful",
                 ),
                 body: None,
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -78,6 +81,7 @@ expression: ops
                     "Bad request",
                 ),
                 body: None,
+                headers: [],
             },
         ],
     },

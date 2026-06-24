@@ -1,0 +1,55 @@
+---
+source: crates/orator-core/tests/lower_operations.rs
+expression: ops
+---
+[
+    OperationIr {
+        operation_id: "getItems",
+        description: None,
+        method: Get,
+        path: "/items",
+        tag: None,
+        parameters: [],
+        request_body: None,
+        responses: [
+            OperationResponse {
+                status_code: Code(
+                    200,
+                ),
+                description: Some(
+                    "A list of items",
+                ),
+                body: Some(
+                    ResponseBody {
+                        content_type: Json,
+                        type_ref: Array(
+                            Primitive(
+                                String,
+                            ),
+                        ),
+                    },
+                ),
+                headers: [
+                    ResponseHeader {
+                        name: "X-Rate-Limit",
+                        description: Some(
+                            "Calls left this window",
+                        ),
+                        type_ref: Primitive(
+                            I32,
+                        ),
+                        required: true,
+                    },
+                    ResponseHeader {
+                        name: "X-Request-ID",
+                        description: None,
+                        type_ref: Primitive(
+                            String,
+                        ),
+                        required: false,
+                    },
+                ],
+            },
+        ],
+    },
+]
