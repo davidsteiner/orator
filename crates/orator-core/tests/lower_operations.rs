@@ -116,6 +116,39 @@ paths:
 }
 
 #[test]
+fn array_response_header() {
+    let yaml = r#"
+openapi: "3.1.0"
+info:
+  title: Array Header Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Ids:
+              required: true
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+            X-Tags:
+              required: false
+              schema:
+                type: array
+                items:
+                  type: string
+"#;
+    let ops = load_and_lower_ops(yaml);
+    insta::assert_debug_snapshot!(ops);
+}
+
+#[test]
 fn non_scalar_response_header_errors() {
     let yaml = r#"
 openapi: "3.1.0"
@@ -130,18 +163,18 @@ paths:
         "200":
           description: OK
           headers:
-            X-Ids:
+            X-Meta:
               schema:
-                type: array
-                items:
-                  type: integer
+                type: object
+                additionalProperties:
+                  type: string
 "#;
     let spec = oas3::from_yaml(yaml).unwrap();
     let err = lower_operations(&spec).unwrap_err();
     let msg = err.to_string();
     assert!(
-        msg.contains("X-Ids") && msg.contains("scalar"),
-        "expected UnsupportedSchema error mentioning X-Ids and scalar, got: {msg}"
+        msg.contains("X-Meta") && msg.contains("not yet supported"),
+        "expected UnsupportedSchema error mentioning X-Meta, got: {msg}"
     );
 }
 
