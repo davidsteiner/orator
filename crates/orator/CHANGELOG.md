@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.14](https://github.com/davidsteiner/orator/compare/orator-v0.1.13...orator-v0.1.14) - 2026-06-25
+
+### Other
+
+- updated the following local packages: orator-core, orator-axum-codegen
+
 ## [0.1.13](https://github.com/davidsteiner/orator/compare/orator-v0.1.12...orator-v0.1.13) - 2026-06-25
 
 ### Other
