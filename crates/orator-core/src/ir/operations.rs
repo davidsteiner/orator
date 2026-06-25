@@ -67,10 +67,19 @@ pub struct ResponseBody {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct ResponseHeader {
+    pub name: String,
+    pub description: Option<String>,
+    pub type_ref: TypeRef,
+    pub required: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct OperationResponse {
     pub status_code: ResponseStatusCode,
     pub description: Option<String>,
     pub body: Option<ResponseBody>,
+    pub headers: Vec<ResponseHeader>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -57,6 +57,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -66,6 +67,7 @@ expression: ops
                     "Bad request",
                 ),
                 body: None,
+                headers: [],
             },
         ],
     },

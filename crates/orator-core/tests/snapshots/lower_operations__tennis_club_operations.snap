@@ -33,6 +33,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -49,6 +50,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -82,6 +84,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -98,6 +101,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -160,6 +164,7 @@ expression: ops
                     "Photo uploaded",
                 ),
                 body: None,
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -176,6 +181,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -207,6 +213,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -296,6 +303,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -312,6 +320,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Default,
@@ -326,6 +335,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -366,6 +376,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -382,6 +393,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -423,6 +435,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -439,6 +452,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -489,6 +503,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -505,6 +520,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -539,6 +555,7 @@ expression: ops
                     "Member deleted",
                 ),
                 body: None,
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -555,6 +572,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -596,6 +614,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -612,6 +631,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },
@@ -655,6 +675,7 @@ expression: ops
                     "Photo uploaded",
                 ),
                 body: None,
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -671,6 +692,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
         ],
     },

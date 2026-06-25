@@ -38,6 +38,7 @@ expression: ops
                         ),
                     },
                 ),
+                headers: [],
             },
             OperationResponse {
                 status_code: Code(
@@ -47,6 +48,7 @@ expression: ops
                     "Invalid credentials",
                 ),
                 body: None,
+                headers: [],
             },
         ],
     },

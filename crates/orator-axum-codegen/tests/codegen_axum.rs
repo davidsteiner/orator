@@ -237,6 +237,101 @@ fn optional_body_axum_handlers() {
 }
 
 #[test]
+fn default_response_headers_axum_handlers() {
+    let code = generate_axum_from_yaml(
+        r#"
+openapi: "3.1.0"
+info:
+  title: Default Header Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          description: Unexpected error
+          headers:
+            X-Error-Code:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: string
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        "204":
+          description: No content
+        default:
+          description: Unexpected error
+          headers:
+            X-Error-Code:
+              required: true
+              schema:
+                type: string
+"#,
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
+
+#[test]
+fn response_headers_axum_handlers() {
+    let code = generate_axum_from_yaml(
+        r#"
+openapi: "3.1.0"
+info:
+  title: Response Headers Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: A list of items
+          headers:
+            X-Rate-Limit:
+              required: true
+              schema:
+                type: integer
+                format: int32
+            X-Request-ID:
+              required: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "204":
+          description: No content but a header
+          headers:
+            X-Trace-Id:
+              required: true
+              schema:
+                type: string
+"#,
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn header_params_disabled_by_config() {
     let yaml = r#"
 openapi: "3.1.0"
