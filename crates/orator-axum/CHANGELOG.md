@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2](https://github.com/davidsteiner/orator/compare/orator-axum-v0.3.1...orator-axum-v0.3.2) - 2026-06-25
+
+### Added
+
+- support array response headers (simple-style serialisation) ([#124](https://github.com/davidsteiner/orator/pull/124))
+
 ## [0.3.1](https://github.com/davidsteiner/orator/compare/orator-axum-v0.3.0...orator-axum-v0.3.1) - 2026-03-23
 
 ### Added
