@@ -237,6 +237,57 @@ fn optional_body_axum_handlers() {
 }
 
 #[test]
+fn default_response_headers_axum_handlers() {
+    let code = generate_axum_from_yaml(
+        r#"
+openapi: "3.1.0"
+info:
+  title: Default Header Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          description: Unexpected error
+          headers:
+            X-Error-Code:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: string
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        "204":
+          description: No content
+        default:
+          description: Unexpected error
+          headers:
+            X-Error-Code:
+              required: true
+              schema:
+                type: string
+"#,
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn response_headers_axum_handlers() {
     let code = generate_axum_from_yaml(
         r#"

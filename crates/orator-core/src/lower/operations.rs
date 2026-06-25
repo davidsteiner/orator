@@ -250,6 +250,26 @@ fn lower_multipart_fields(
     Ok(fields)
 }
 
+/// Response headers are serialized to a single string via `Display`, so only
+/// scalar primitive types are supported. Composite types (arrays, objects, maps)
+/// and binary (`Bytes`) have no `Display` impl and would produce non-compiling code.
+fn is_supported_header_type(type_ref: &TypeRef) -> bool {
+    matches!(
+        type_ref,
+        TypeRef::Primitive(
+            PrimitiveType::String
+                | PrimitiveType::Bool
+                | PrimitiveType::I32
+                | PrimitiveType::I64
+                | PrimitiveType::F32
+                | PrimitiveType::F64
+                | PrimitiveType::Date
+                | PrimitiveType::DateTime
+                | PrimitiveType::Uuid
+        )
+    )
+}
+
 fn lower_response_headers(
     headers: &std::collections::BTreeMap<String, ObjectOrReference<Header>>,
     spec: &oas3::Spec,
@@ -275,6 +295,15 @@ fn lower_response_headers(
             Some(schema_or_ref) => lower_type_ref(schema_or_ref)?,
             None => TypeRef::Primitive(PrimitiveType::String),
         };
+
+        if !is_supported_header_type(&type_ref) {
+            return Err(Error::UnsupportedSchema {
+                context: format!(
+                    "response header `{name}`: only scalar header schemas are supported \
+                     (arrays, objects, and binary headers are not yet supported)"
+                ),
+            });
+        }
 
         result.push(ResponseHeader {
             name: name.clone(),
