@@ -9,6 +9,34 @@ pub use uuid;
 
 pub use axum_extra;
 
+/// Runtime helpers for serializing response header values in OpenAPI `simple` style.
+///
+/// Framework-agnostic: depends only on the `http` crate and `Display`.
+pub mod header {
+    use crate::http::HeaderValue;
+    use std::fmt::Display;
+
+    /// Serialize a scalar header value. Returns `None` if the rendered value
+    /// contains bytes that are not legal in an HTTP header value.
+    pub fn scalar(value: &impl Display) -> Option<HeaderValue> {
+        HeaderValue::try_from(value.to_string()).ok()
+    }
+
+    /// Serialize an array header value as a comma-joined list (OpenAPI `simple` style).
+    /// Returns `None` if the rendered value contains bytes that are not legal in an
+    /// HTTP header value.
+    pub fn seq<T: Display>(values: &[T]) -> Option<HeaderValue> {
+        HeaderValue::try_from(
+            values
+                .iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join(","),
+        )
+        .ok()
+    }
+}
+
 #[derive(Debug, Clone, Copy, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ParamLocation {
@@ -136,6 +164,29 @@ mod tests {
         };
         let json = serde_json::to_value(&r).unwrap();
         assert!(json.get("param").is_none());
+    }
+
+    #[test]
+    fn header_scalar_serializes_via_display() {
+        assert_eq!(header::scalar(&42i64).unwrap().to_str().unwrap(), "42");
+        assert_eq!(header::scalar(&true).unwrap().to_str().unwrap(), "true");
+        assert_eq!(header::scalar(&"abc").unwrap().to_str().unwrap(), "abc");
+    }
+
+    #[test]
+    fn header_seq_comma_joins() {
+        assert_eq!(header::seq(&[1, 2, 3]).unwrap().to_str().unwrap(), "1,2,3");
+    }
+
+    #[test]
+    fn header_seq_empty_is_empty_value() {
+        assert_eq!(header::seq::<i32>(&[]).unwrap().to_str().unwrap(), "");
+    }
+
+    #[test]
+    fn header_scalar_rejects_value_with_illegal_bytes() {
+        // A newline is not a legal header-value byte.
+        assert!(header::scalar(&"line1\nline2").is_none());
     }
 
     #[tokio::test]

@@ -250,10 +250,7 @@ fn lower_multipart_fields(
     Ok(fields)
 }
 
-/// Response headers are serialized to a single string via `Display`, so only
-/// scalar primitive types are supported. Composite types (arrays, objects, maps)
-/// and binary (`Bytes`) have no `Display` impl and would produce non-compiling code.
-fn is_supported_header_type(type_ref: &TypeRef) -> bool {
+fn is_supported_header_scalar(type_ref: &TypeRef) -> bool {
     matches!(
         type_ref,
         TypeRef::Primitive(
@@ -268,6 +265,20 @@ fn is_supported_header_type(type_ref: &TypeRef) -> bool {
                 | PrimitiveType::Uuid
         )
     )
+}
+
+/// Whether a response header's value type can be serialized to an HTTP header.
+///
+/// Header values are rendered to a string: scalars via `Display`, and arrays as a
+/// comma-joined list (OpenAPI `simple` style). Only types with a usable `Display`
+/// impl qualify, so `Bytes` and all composite types (objects, maps, tuples) are
+/// rejected during lowering — supporting object/map headers is tracked in #122.
+fn is_supported_header_type(type_ref: &TypeRef) -> bool {
+    match type_ref {
+        // Array-of-scalar headers serialize in OpenAPI `simple` style (comma-joined).
+        TypeRef::Array(inner) => is_supported_header_scalar(inner),
+        other => is_supported_header_scalar(other),
+    }
 }
 
 fn lower_response_headers(
@@ -299,8 +310,8 @@ fn lower_response_headers(
         if !is_supported_header_type(&type_ref) {
             return Err(Error::UnsupportedSchema {
                 context: format!(
-                    "response header `{name}`: only scalar header schemas are supported \
-                     (arrays, objects, and binary headers are not yet supported)"
+                    "response header `{name}`: only scalar and scalar-array header schemas \
+                     are supported (object and map headers are not yet supported)"
                 ),
             });
         }
