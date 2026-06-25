@@ -185,11 +185,19 @@ fn build_header_map(resp: &OperationResponse) -> TokenStream {
         .map(|header| {
             let field = to_snake_ident(&header.name);
             let name_lower = header.name.to_lowercase();
+            let is_array = matches!(&header.type_ref, TypeRef::Array(_));
+            let serialize = |value_ref: TokenStream| {
+                if is_array {
+                    quote! { orator_axum::header::seq(#value_ref) }
+                } else {
+                    quote! { orator_axum::header::scalar(#value_ref) }
+                }
+            };
+
             if header.required {
+                let call = serialize(quote! { &headers.#field });
                 quote! {
-                    if let Ok(__value) =
-                        orator_axum::http::HeaderValue::try_from(headers.#field.to_string())
-                    {
+                    if let Some(__value) = #call {
                         __header_map.insert(
                             orator_axum::http::HeaderName::from_static(#name_lower),
                             __value,
@@ -197,11 +205,10 @@ fn build_header_map(resp: &OperationResponse) -> TokenStream {
                     }
                 }
             } else {
+                let call = serialize(quote! { __inner });
                 quote! {
-                    if let Some(__header) = &headers.#field {
-                        if let Ok(__value) =
-                            orator_axum::http::HeaderValue::try_from(__header.to_string())
-                        {
+                    if let Some(__inner) = &headers.#field {
+                        if let Some(__value) = #call {
                             __header_map.insert(
                                 orator_axum::http::HeaderName::from_static(#name_lower),
                                 __value,

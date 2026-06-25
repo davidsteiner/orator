@@ -8,8 +8,8 @@ impl orator_axum::axum::response::IntoResponse for super::operations::GetItemsRe
         match self {
             Self::Ok { body, headers } => {
                 let mut __header_map = orator_axum::http::HeaderMap::new();
-                if let Ok(__value) = orator_axum::http::HeaderValue::try_from(
-                    headers.x_rate_limit.to_string(),
+                if let Some(__value) = orator_axum::header::scalar(
+                    &headers.x_rate_limit,
                 ) {
                     __header_map
                         .insert(
@@ -17,10 +17,8 @@ impl orator_axum::axum::response::IntoResponse for super::operations::GetItemsRe
                             __value,
                         );
                 }
-                if let Some(__header) = &headers.x_request_id {
-                    if let Ok(__value) = orator_axum::http::HeaderValue::try_from(
-                        __header.to_string(),
-                    ) {
+                if let Some(__inner) = &headers.x_request_id {
+                    if let Some(__value) = orator_axum::header::scalar(__inner) {
                         __header_map
                             .insert(
                                 orator_axum::http::HeaderName::from_static("x-request-id"),
@@ -37,9 +35,7 @@ impl orator_axum::axum::response::IntoResponse for super::operations::GetItemsRe
             }
             Self::NoContent { headers } => {
                 let mut __header_map = orator_axum::http::HeaderMap::new();
-                if let Ok(__value) = orator_axum::http::HeaderValue::try_from(
-                    headers.x_trace_id.to_string(),
-                ) {
+                if let Some(__value) = orator_axum::header::scalar(&headers.x_trace_id) {
                     __header_map
                         .insert(
                             orator_axum::http::HeaderName::from_static("x-trace-id"),

@@ -332,6 +332,52 @@ paths:
 }
 
 #[test]
+fn array_response_header_axum_handlers() {
+    let code = generate_axum_from_yaml(
+        r#"
+openapi: "3.1.0"
+info:
+  title: Array Header Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Ids:
+              required: true
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+            X-Tags:
+              required: false
+              schema:
+                type: array
+                items:
+                  type: string
+            X-Total:
+              required: true
+              schema:
+                type: integer
+                format: int64
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+"#,
+        "Default",
+    );
+    insta::assert_snapshot!(code);
+}
+
+#[test]
 fn header_params_disabled_by_config() {
     let yaml = r#"
 openapi: "3.1.0"
