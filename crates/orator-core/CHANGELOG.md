@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0](https://github.com/davidsteiner/orator/compare/orator-core-v0.8.2...orator-core-v0.9.0) - 2026-06-25
+
+### Added
+
+- support response headers in generated response enums ([#120](https://github.com/davidsteiner/orator/pull/120))
+
 ## [0.8.2](https://github.com/davidsteiner/orator/compare/orator-core-v0.8.1...orator-core-v0.8.2) - 2026-05-28
 
 ### Fixed
