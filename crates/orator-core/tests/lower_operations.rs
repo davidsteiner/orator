@@ -179,6 +179,37 @@ paths:
 }
 
 #[test]
+fn array_of_non_scalar_response_header_errors() {
+    let yaml = r#"
+openapi: "3.1.0"
+info:
+  title: Test
+  version: "0.1.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Items:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties:
+                    type: string
+"#;
+    let spec = oas3::from_yaml(yaml).unwrap();
+    let err = lower_operations(&spec).unwrap_err();
+    assert!(
+        matches!(err, orator_core::error::Error::UnsupportedSchema { .. }),
+        "expected UnsupportedSchema for array-of-object header, got: {err:?}"
+    );
+}
+
+#[test]
 fn missing_operation_id() {
     let yaml = r#"
 openapi: "3.1.0"

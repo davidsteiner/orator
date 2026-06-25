@@ -267,6 +267,12 @@ fn is_supported_header_scalar(type_ref: &TypeRef) -> bool {
     )
 }
 
+/// Whether a response header's value type can be serialized to an HTTP header.
+///
+/// Header values are rendered to a string: scalars via `Display`, and arrays as a
+/// comma-joined list (OpenAPI `simple` style). Only types with a usable `Display`
+/// impl qualify, so `Bytes` and all composite types (objects, maps, tuples) are
+/// rejected during lowering — supporting object/map headers is tracked in #122.
 fn is_supported_header_type(type_ref: &TypeRef) -> bool {
     match type_ref {
         // Array-of-scalar headers serialize in OpenAPI `simple` style (comma-joined).
