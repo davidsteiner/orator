@@ -3,20 +3,27 @@ title: CLI reference
 description: Command-line options for the Orator CLI.
 ---
 
-## `orator generate`
+## `orator`
 
-The main (and currently only) command. Reads an OpenAPI 3.1 spec and writes generated Rust code.
+Reads an OpenAPI 3.1 spec and writes generated Rust code (axum) into an output directory.
 
-### Options
+### Usage
 
-| Flag | Description |
+```bash
+orator <SPEC> --output <DIR>
+```
+
+### Arguments & options
+
+| Argument / Flag | Description |
 |------|-------------|
-| `--input`, `-i` | Path to the OpenAPI spec file (YAML or JSON) |
-| `--output`, `-o` | Directory to write generated code into |
-| `--framework` | Target framework. Currently only `axum` is supported |
+| `<SPEC>` | Path to the OpenAPI spec file (YAML or JSON). Positional. |
+| `--output`, `-o` | Directory to write generated code into. Required. |
+| `--no-header-params` | Disable header parameter extraction. |
+| `--no-cookie-params` | Disable cookie parameter extraction. |
 
 ### Example
 
 ```bash
-orator generate -i api.yaml -o src/generated --framework axum
+orator openapi.yaml --output src/api/generated
 ```
